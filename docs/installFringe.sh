@@ -1,20 +1,15 @@
 #!/bin/bash
 
-env_name="myenv"
+env_name="isce"
 
 if conda env list | grep -q "$env_name"; then
   echo "Conda environment $env_name already exists"
 else
   echo "Creating conda environment $env_name"
-  conda env create -f isce_fringe.yml
+  conda env create -f $HOME/Software/SARTS/docs/isce_fringe.yml
 fi
 
 source activate isce
-
-if [ ! -d "$HOME/Software" ]; then
-  mkdir Software
-fi
-
 cd $HOME/Software
 
 if [ ! -d "$HOME/Software/Fringe" ]; then
