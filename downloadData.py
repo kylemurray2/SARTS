@@ -28,13 +28,15 @@ searchData = True
 # def setupStack(makeStack=False,dlSlc=False):
 
 if searchData:
-    slcUrls,gran,dates = asfQuery.getGran(ps.path,ps.frame,ps.start,ps.end,ps.sat,ps.bounds,ps.point,ps.poly)
+    slcUrls,gran,_ = asfQuery.getGran(ps.path,ps.frame,ps.start,ps.end,ps.sat,ps.bounds,ps.point,ps.poly)
 
 else:
     slcUrls = pd.read_csv('out.csv')['URL']
     gran = pd.read_csv('out.csv')['Granule Name']
-    dates = pd.read_csv('out.csv')["Acquisition Date"]
 
+dates=[]
+for l in gran:
+    dates.append(l[17:25])
 dates.sort()
 zips = glob.glob(ps.slc_dirname + '*zip')
 
@@ -68,7 +70,6 @@ def getRectBounds(minlat,maxlat,minlon,maxlon):
 
 # Figure out what bounds to use for the DEM
 minlats,maxlats,minlons,maxlons = [],[],[],[]
-minlatssub,maxlatssub,minlonssub,maxlonssub = [],[],[],[]
 
 for z in zips:
     safe = stackSentinel.sentinelSLC(z)
@@ -79,44 +80,6 @@ for z in zips:
     minlons.append(safe.SNWE[2])
     maxlons.append(safe.SNWE[3])
 
-    boundsAll = safe.getkmlQUAD(z)
-    blons,blats = [],[]
-    for b in boundsAll:
-        blons.append(float(b.split(sep=",")[0]))
-        blats.append(float(b.split(sep=",")[1]))
-
-    blons,blats = np.asarray(blons), np.asarray(blats)
-
-    blons.sort()
-    blats.sort()
-
-    minlatssub.append(blats[1])
-    maxlatssub.append(blats[2])
-    minlonssub.append(blons[1])
-    maxlonssub.append(blons[2])
-
-plt.figure()
-for g in zips:
-    safe = stackSentinel.sentinelSLC(g)
-    safe.get_lat_lon_v2()
-    # S,N,W,E = safe.SNWE[0],safe.SNWE[1],safe.SNWE[2],safe.SNWE[3]
-
-    boundsAll = safe.getkmlQUAD(g)
-    blons,blats = [],[]
-    for b in boundsAll:
-        blons.append(float(b.split(sep=",")[0]))
-        blats.append(float(b.split(sep=",")[1]))
-
-    blons,blats = np.asarray(blons), np.asarray(blats)
-
-    blons.sort()
-    blats.sort()
-
-    lon_bounds,lat_bounds = getRectBounds(safe.SNWE[0],safe.SNWE[1],safe.SNWE[2],safe.SNWE[3])
-    lon_bounds_sub,lat_bounds_sub = getRectBounds(blats[1],blats[2],blons[1],blons[2])
-
-    plt.plot(lon_bounds,lat_bounds,linewidth=2,color='red',zorder=10)
-    plt.plot(lon_bounds_sub,lat_bounds_sub,linewidth=2,color='blue',zorder=10)
 
 if not os.path.isdir('Figs'):
     os.mkdir('Figs')
@@ -129,21 +92,17 @@ maxlat = max(maxlats)
 minlon = min(minlons)
 maxlon = max(maxlons)
 
-#demBounds = [str(int(np.floor(minlat))), str(int(np.ceil(maxlat))), str(int(np.floor(minlon))), str(int(np.ceil(maxlon)))]
 demBounds = str(int(np.floor(minlat))) +','+ str(int(np.ceil(maxlat)))+ ','+ str(int(np.floor(minlon))) +','+ str(int(np.ceil(maxlon)))
 
 #os.system('mv run_files run_files_o')
-   # Download dem if it doesn't exist
+# Download dem if it doesn't exist
 if not os.path.isdir('./DEM'):
     getDEM.getDEM(demBounds)
     DEM = glob.glob(ps.workdir + '/DEM/*wgs84.dem')[0]
     # Updating DEM’s wgs84 xml to include full path to the DEM
 else:
     DEM = glob.glob(ps.workdir + '/DEM/*wgs84.dem')[0]
-
 # os.system('fixImageXml.py -f -i ' + DEM + ' >> log')
-
-minx,maxx,miny,maxy = ps.bounds.split(sep=',')
 
 #setupParams = argparse.Namespace()
 ps.dem_bounds  = demBounds # Get the DEM and define dem location

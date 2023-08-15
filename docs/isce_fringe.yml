@@ -1,7 +1,7 @@
 # This is the env setup for installing and running ISCE and FRINGE.
 
-# create environment : conda env create -f isce_env.yml
-# update dependencies: conda env update -f isce_env.yml
+# create environment : conda env create -f isce_fringe.yml
+# update dependencies: conda env update -f isce_fringe.yml
 # remove environment : conda env remove -n isce
 # enter  environment : conda activate isce
 # exit   environment : conda deactivate
