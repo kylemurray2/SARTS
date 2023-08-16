@@ -65,8 +65,8 @@ if os.path.isfile('./merged/geom_reference/waterMask.rdr.full.crop.vrt'):
 else:
     inps.maskDS     = None
 
-inps.linesPerBlock  = 64
-inps.memorySize  = 60000
+inps.linesPerBlock  = 256
+inps.memorySize  = 70000
 inps.halfWindowX = 11
 inps.halfWindowY = 5
 inps.pValue      = 0.05
@@ -79,7 +79,7 @@ inps.weightDS       = inps.outputDS
 inps.outputDir      = './Fringe/Sequential'
 inps.memorySize     = inps.memorySize
 inps.minNeighbors   = 5
-inps.miniStackSize  = 10
+inps.miniStackSize  = 20
 inps.forceprocessing= False
 
 # For adjustMiniStacks

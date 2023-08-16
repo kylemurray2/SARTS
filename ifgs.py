@@ -34,22 +34,22 @@ for example:
 @author: km
 """
 
-import argparse
 import numpy as np
 import os
 from osgeo import gdal
-from matplotlib import pyplot as plt
-from datetime import date
-import scipy.spatial
-from isce.components import isceobj
-import looks
+from isce.applications import looks
 import FilterAndCoherence
-from PyPS2 import util
-from mintpy.utils import readfile, isce_utils
 import integratePS
-import glob
 import multiprocessing
-from Scripts.Fringe import writeStackVRT
+
+# from Scripts.Fringe import writeStackVRT
+# from matplotlib import pyplot as plt
+# from datetime import date
+# import scipy.spatial
+# from isce.components import isceobj
+# import glob
+# from SARTS import util
+from mintpy.utils import readfile, isce_utils
 
 
 dlunw = True
@@ -58,15 +58,7 @@ makeVrts = True
 
 ps = np.load('./ps.npy',allow_pickle=True).all()
 ps.sensor='Sentinel'
-
 fringeDir = './Fringe/'
-
-# for d in ps.dates:
-#     # print(d)
-#     f = 'baselines/20221221_' + d + '/20221221_' +d + '.txt'
-#     if not os.path.isfile(f):
-#         print(d)
-
 ps.networkType = 'sequential1'
 rmBadPairs = False
 num_processes = 5 # For parallel unwrapping (memory intensive)
@@ -110,14 +102,7 @@ if makeIfgs:
     integratePS.main(inps)
 #______________________
 
-# for pair in ps.pairs:
-#     fn = inps.outDir + '/' + pair + '/fine.int'
-#     if os.path.isfile(fn):
-#         fnOut = inps.outDir +'/'+ pair +'/' + pair + '.int'
-#         os.system('mv ' + fn + ' ' + fnOut )
-#         os.system('mv ' + fn + '.vrt ' + fnOut+ '.vrt')
-#         os.system('mv ' + fn + '.xml ' + fnOut+ '.xml')
-#         os.system('fixImageXml.py -i ' + fnOut + ' -f')
+
 
 def downlook(pair):
     # Downlook ifgs
@@ -217,20 +202,20 @@ def unwrapsnaphu(pair):
 
 
 if dlunw:
-    for pair in ps.pairs:
-        downlook(pair)
-    for pair in ps.pairs:
-        unwrapsnaphu(pair)
+    # for pair in ps.pairs:
+    #     downlook(pair)
+    # for pair in ps.pairs:
+    #     unwrapsnaphu(pair)
 
-# pool = multiprocessing.Pool(processes=num_processes)
-# pool.map(downlook, ps.pairs)
-# pool.close()
-# pool.join()
-
-# pool = multiprocessing.Pool(processes=num_processes)
-# pool.map(unwrapsnaphu, ps.pairs)
-# pool.close()
-# pool.join()
+    pool = multiprocessing.Pool(processes=num_processes)
+    pool.map(downlook, ps.pairs)
+    pool.close()
+    pool.join()
+    
+    pool = multiprocessing.Pool(processes=num_processes)
+    pool.map(unwrapsnaphu, ps.pairs)
+    pool.close()
+    pool.join()
 
 
 # for pair in ps.pairs2:
@@ -273,28 +258,28 @@ if dlunw:
 #             FilterAndCoherence.runFilter(ifgLkName,int_file,float(filterStrength))
 #             FilterAndCoherence.estCoherence(int_file, cor_file)
             
-if makeVrts:            
-    # Load unw stack as vrt file
-    # You can write a stack vrt file with the script ~/Software/Scripts/Fringe/writeStackVRT.py
-    inps = argparse.Namespace()
-    inps.outdir = fringeDir + 'PS_DS/sequential1/unw'
-    inps.stackdir = fringeDir
-    inps.stacklist = glob.glob(fringeDir + 'PS_DS/sequential1/*/filt_lk.unw')
-    inps.indir = './merged/'
-    inps.outFn = 'unwStack.vrt'
-    # run the code
-    writeStackVRT.main(inps)
+# if makeVrts:            
+#     # Load unw stack as vrt file
+#     # You can write a stack vrt file with the script ~/Software/Scripts/Fringe/writeStackVRT.py
+#     inps = argparse.Namespace()
+#     inps.outdir = fringeDir + 'PS_DS/sequential1/unw'
+#     inps.stackdir = fringeDir
+#     inps.stacklist = glob.glob(fringeDir + 'PS_DS/sequential1/*/filt_lk.unw')
+#     inps.indir = './merged/'
+#     inps.outFn = 'unwStack.vrt'
+#     # run the code
+#     writeStackVRT.main(inps)
     
-    # Same for cor files
-    inps = argparse.Namespace()
-    inps.outdir = fringeDir + 'PS_DS/sequential1/cor'
-    inps.stackdir = fringeDir
-    inps.stacklist = glob.glob(fringeDir + 'PS_DS/sequential1/*/*.cor')
-    inps.indir = './merged/'
-    inps.outFn = 'corStack.vrt'
-    # Run the code
-    writeStackVRT.main(inps)
-    # Load cor stack
+#     # Same for cor files
+#     inps = argparse.Namespace()
+#     inps.outdir = fringeDir + 'PS_DS/sequential1/cor'
+#     inps.stackdir = fringeDir
+#     inps.stacklist = glob.glob(fringeDir + 'PS_DS/sequential1/*/*.cor')
+#     inps.indir = './merged/'
+#     inps.outFn = 'corStack.vrt'
+#     # Run the code
+#     writeStackVRT.main(inps)
+#     # Load cor stack
     
     
 # # Load that in
@@ -311,32 +296,32 @@ if makeVrts:
 # cor = np.asarray(corStack[idx,:,:]).copy()
 
 
-if ps.waterMask:
-    wmds = gdal.Open('./merged/geom_reference/waterMask_lk.rdr.vrt')
-    wm = wmds.GetVirtualMemArray()
+# if ps.waterMask:
+#     wmds = gdal.Open('./merged/geom_reference/waterMask_lk.rdr.vrt')
+#     wm = wmds.GetVirtualMemArray()
 
 
-ds = gdal.Open('./Fringe2/PS_DS/sequential1/' + ps.pairs[51] + '/filt_lk.unw.vrt')
-unw = ds.GetVirtualMemArray().copy()
+# ds = gdal.Open('./Fringe2/PS_DS/sequential1/' + ps.pairs[51] + '/filt_lk.unw.vrt')
+# unw = ds.GetVirtualMemArray().copy()
 
-ds = gdal.Open('./Fringe2/PS_DS/sequential1/' + ps.pairs[51] + '/filt_lk.cor.vrt')
-cor = ds.GetVirtualMemArray().copy()
-unw[wm==0]= np.nan
-cor[wm==0]= np.nan
+# ds = gdal.Open('./Fringe2/PS_DS/sequential1/' + ps.pairs[51] + '/filt_lk.cor.vrt')
+# cor = ds.GetVirtualMemArray().copy()
+# unw[wm==0]= np.nan
+# cor[wm==0]= np.nan
 
-unwm = unw.copy()
-unwm[cor<.7] = np.nan
+# unwm = unw.copy()
+# unwm[cor<.7] = np.nan
 
-util.show(unwm);util.show(cor)
-from astropy.convolution import Gaussian2DKernel
-from scipy.signal import convolve as scipy_convolve
-from astropy.convolution import convolve
-kernel = Gaussian2DKernel(x_stddev=5)
+# util.show(unwm);util.show(cor)
+# from astropy.convolution import Gaussian2DKernel
+# from scipy.signal import convolve as scipy_convolve
+# from astropy.convolution import convolve
+# kernel = Gaussian2DKernel(x_stddev=5)
 
-# Mask unw
-unwFilt = convolve(unwm, kernel)
-unwFilt[wm==0]= np.nan
-util.show(unwFilt)
+# # Mask unw
+# unwFilt = convolve(unwm, kernel)
+# unwFilt[wm==0]= np.nan
+# util.show(unwFilt)
 
-#Now add back in the good data
-unwFilt[cor>.7] = unw[cor>.7]
+# #Now add back in the good data
+# unwFilt[cor>.7] = unw[cor>.7]

@@ -58,20 +58,23 @@ for d in datesFN:
     dates.append(d.split('/')[2])
 dates.sort()
 
+
+numDatesToKeep = len(ps.dates) - ps.dates.index(ps.reference_date) + 6
+
 print('keeping dates: ')
-print(dates[-6:])
+print(dates[-numDatesToKeep:])
 
 
 if 'coreg_secondarys' in delList:
     print('removing coreg_secondarys')
-    for d in dates[:-6]:
+    for d in dates[:-numDatesToKeep]:
         if d != ps.reference_date: #Don't delete the reference date
             # print('removing ./coreg_secondarys/' + d)
             os.system('rm -r ./coreg_secondarys/' + d + '/*')
 
 if 'secondarys' in delList:
     print('removing secondarys')
-    for d in dates[:-6]:
+    for d in dates[:-numDatesToKeep]:
         if d != ps.reference_date: #Don't delete the reference date
             # print('removing ./coreg_secondarys/' + d)
             os.system('rm -r ./secondarys/' + d + '/*')
@@ -79,7 +82,7 @@ if 'secondarys' in delList:
 if 'SLCS' in delList:
     print('removing safe files')
     safeList = glob.glob(ps.slc_dirname + '*zip') # make a list of all the safe files
-    for ii,d in enumerate(dates[:-6]):  # Loop through the dates
+    for ii,d in enumerate(dates[:-numDatesToKeep]):  # Loop through the dates
         for safe in safeList:           # Delete all safe files with that date in the name
             if d in safe:
                 if d != ps.reference_date: #Don't delete the reference date
@@ -89,7 +92,7 @@ if 'SLCS' in delList:
 if 'orbits' in delList:
     print('removing orbits')
     orbList = glob.glob('./orbits/*EOF') # make a list of all the safe files
-    for ii,d in enumerate(dates[:-6]):  # Loop through the dates
+    for ii,d in enumerate(dates[:-numDatesToKeep]):  # Loop through the dates
         for orb in orbList:           # Delete all safe files with that date in the name
             if d in orb:
                 if d != ps.reference_date: #Don't delete the reference date
