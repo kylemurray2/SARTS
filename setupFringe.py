@@ -18,14 +18,13 @@ import os
 from datetime import date
 import isce.components.isceobj as isceobj
 import matplotlib.pyplot as plt
-import makeMap
+from PyPS2 import makeMap,util
 import cartopy.crs as ccrs
 from mroipac.looks.Looks import Looks
 from scipy.interpolate import griddata 
 import cv2
 from scipy import signal
 import localParams
-import util
 from Network import Network
 from osgeo import gdal
 

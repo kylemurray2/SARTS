@@ -66,7 +66,7 @@ else:
     inps.maskDS     = None
 
 inps.linesPerBlock  = 64
-inps.memorySize  = 60000
+inps.memorySize  = 190000
 inps.halfWindowX = 11
 inps.halfWindowY = 5
 inps.pValue      = 0.05
