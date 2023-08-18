@@ -41,7 +41,7 @@ from isce.applications import looks
 import FilterAndCoherence
 import integratePS
 import multiprocessing
-
+from SARTS import unwrap
 # from Scripts.Fringe import writeStackVRT
 # from matplotlib import pyplot as plt
 # from datetime import date
@@ -184,7 +184,7 @@ def unwrapsnaphu(pair):
         cor_file = pairDir + '/filt_lk.cor'
         int_file =  pairDir + '/filt_lk.int'
         unw_file =  pairDir + '/filt_lk.unw'        
-        isce_utils.unwrap_snaphu(int_file, cor_file, unw_file,atr, wavelength=wavelength, defo_max=defo_max, max_comp=max_comp, init_only=init_only, init_method=init_method, cost_mode=cost_mode)
+        unwrap.unwrap_snaphu(int_file, cor_file, unw_file,atr, wavelength=wavelength, defo_max=defo_max, max_comp=max_comp, init_only=init_only, init_method=init_method, cost_mode=cost_mode)
     else:
         print(pair + ' already unwrapped.')
 
