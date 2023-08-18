@@ -11,21 +11,20 @@ First, change the crop values in localParams
 # Read from ps.npy. this should have all of the processing params
 # Crop and downlook geom files (used in mintpy)
 
- 
+
 import numpy as np
 import glob
 import os
 from datetime import date
 import isce.components.isceobj as isceobj
 import matplotlib.pyplot as plt
-import makeMap
 import cartopy.crs as ccrs
 from mroipac.looks.Looks import Looks
-from scipy.interpolate import griddata 
+from scipy.interpolate import griddata
 import cv2
 from scipy import signal
 import localParams
-import util
+from PyPS2 import util,makeMap
 from Network import Network
 from osgeo import gdal
 
@@ -41,13 +40,13 @@ if replace:
     os.system('rm ./merged/geom_reference/*crop*')
     os.system('rm ./merged/geom_reference/*lk*')
     os.system('rm ./merged/SLC/*/*crop*')
-   
-    
+
+
 # Make directories
 if not os.path.isdir(ps.tsdir):
-    os.mkdir(ps.tsdir) 
+    os.mkdir(ps.tsdir)
 if not os.path.isdir('Npy'):
-    os.mkdir('Npy') 
+    os.mkdir('Npy')
 if not os.path.isdir(ps.workdir + '/Figs'):
     os.mkdir(ps.workdir + '/Figs')
 
@@ -68,7 +67,7 @@ else:
     #     os.system('fixImageXml.py -i ' + fname + ' -f')
     # for fname in blList:
     #     os.system('fixImageXml.py -i ' + fname + ' -f')
-        
+
 
 
 
@@ -132,10 +131,10 @@ print(len(networkObj.pairsDates))
 
 # for pair in networkObj.pairsDates: # do this after moving ints into dirs
 #     os.system('ln /d/Ridgecrest/Des2/Fringe/PS_DS/delaunay2/' + pair + '/f* ./Fringe/PS_DS/' + pair + '/')
-   
+
 idxs = []
 dec_year = []
-dn = [] 
+dn = []
 for d in networkObj.dateList:
     yr = d[0:4]
     mo = d[4:6]
@@ -171,7 +170,7 @@ plt.ylabel('Perpindicular baseline (m)')
 
 
 
-pairs = [] 
+pairs = []
 for ii,d in enumerate(dates[0:-1]):
     pairs.append(dates[ii] + '_' + dates[ii+1])
 
@@ -231,10 +230,10 @@ if not os.path.isfile(ps.mergeddir + '/geom_reference/waterMask.rdr.full'):
 #             imgi.load(infile+'.xml')
 #             if f in ['los','incLocal']:
 #                 imgi.scheme = 'BSQ'
-#             # Rearrange axes order from small to big 
+#             # Rearrange axes order from small to big
 #             slcIm = util.orderAxes(imgi.memMap(),nx,ny)
 #             slcIm = slcIm[:,ps.cropymin:ps.cropymax,ps.cropxmin:ps.cropxmax]
-    
+
 #             imgo = imgi.clone()
 #             imgo.filename = infile+'.crop'
 #             imgo.width = ps.cropxmax-ps.cropxmin
@@ -263,7 +262,7 @@ if not os.path.isfile(ps.mergeddir + '/geom_reference/waterMask.rdr.full'):
 geomList = glob.glob(ps.mergeddir + '/geom_reference/*full')
 geomList = [item for item in geomList if '_lk' not in item]
 
-# file_list = list(['lat','lon','hgt','los','shadowMask','incLocal','waterMask']) 
+# file_list = list(['lat','lon','hgt','los','shadowMask','incLocal','waterMask'])
 if ps.crop:
     for infile in geomList:
         if os.path.isfile(infile):
@@ -274,7 +273,7 @@ if ps.crop:
                     imgi.scheme = 'BSQ'
                     imgi.imageType = 'bsq'
                 # print(imgi.memMap().shape)
-                # Rearrange axes order from small to big 
+                # Rearrange axes order from small to big
                 geomIm = util.orderAxes(imgi.memMap(),ps.nxf,ps.nyf)
                 geomIm = geomIm[:,ps.cropymin:ps.cropymax,ps.cropxmin:ps.cropxmax]
                 # geomIm = geomIm[:,ps.cropymin:ps.cropymax,ps.cropxmin:ps.cropxmax]
@@ -290,8 +289,8 @@ if ps.crop:
                 del(geomIm)
         else:
             print('no file ' + infile)
-           
-            
+
+
 
 if doDownlook:
     if ps.crop:
@@ -309,23 +308,23 @@ if doDownlook:
         lkObj.setOutputFilename(outfile)
         lkObj.looks()
     for infile in fList:
-        
+
         f = infile.split('/')[-1].split('.')[0]
-        
+
         if os.path.isfile(infile):
             outfile = ps.mergeddir + '/geom_reference/' + f + '_lk.rdr'
-            
+
             if not os.path.isfile(outfile):
                 print('downlooking ' + f)
                 downLook(infile, outfile, ps.alks, ps.rlks)
             else:
                 print(outfile + ' already exists')
-            
+
         else:
             print('no file ' + infile)
 
 
-    
+
 # Get bounding coordinates (Frame)
 f_lon_lk = ps.mergeddir + '/geom_reference/lon_lk.rdr'
 f_lat_lk = ps.mergeddir + '/geom_reference/lat_lk.rdr'
@@ -496,5 +495,3 @@ ps.maxlat =     np.nanmax(lat_ifg)
 
 # Save the namespace
 np.save('./ps.npy',ps)
-
-
