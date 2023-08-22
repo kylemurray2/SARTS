@@ -815,8 +815,8 @@ def writeISCEimg(img,outName,nBands,width,length,dtype):
         img = np.asarray(img,dtype=np.float32)
         out.dataType = 'FLOAT'
     elif dtype=='int':
-        img = np.asarray(img,dtype=np.complex64)
-        out.dataType = 'int'
+        img = np.asarray(img,dtype=int)
+        out.dataType = 'BYTE'
     elif dtype=='Complex':
         img = np.asarray(img,dtype=np.complex64)
         out.dataType = 'CFLOAT'

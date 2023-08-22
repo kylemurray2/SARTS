@@ -133,7 +133,7 @@ def unwrap_snaphu(int_file, cor_file, unw_file,atr, wavelength = 0.056, defo_max
     atr['DATA_TYPE'] = 'float32'
     atr['INTERLEAVE'] = 'BIL'
     atr['BANDS'] = '2'
-    util.write_xml(unw_file,width,length,2,'float32','BIL')
+    util.write_xml(unw_file,width,length,2,'FLOAT','BIL')
     if snp.dumpConnectedComponents:
         print(f'write metadata file: {unw_file}.conncomp.xml')
         # atr['FILE_TYPE'] = '.conncomp'
@@ -141,7 +141,7 @@ def unwrap_snaphu(int_file, cor_file, unw_file,atr, wavelength = 0.056, defo_max
         # atr['INTERLEAVE'] = 'BIP'
         # atr['BANDS'] = '1'
         # writefile.write_isce_xml(atr, f'{unw_file}.conncomp')
-        util.write_xml(f'{unw_file}.conncomp',width,length,1,'uint8','BIP')
+        util.write_xml(f'{unw_file}.conncomp',width,length,1,'BYTE','BIP')
 
     # time usage
     m, s = divmod(time.time() - start_time, 60)
