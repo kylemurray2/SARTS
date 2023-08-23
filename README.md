@@ -18,7 +18,7 @@ Workflow:
     downloadData.py
 
 5. Check that the SLCs can be opened and setup the run_files and configs
-    runsetupStack.
+    runs setupstack.py
 
 6. Run the stack processor/ISCE
     runISCE.py
