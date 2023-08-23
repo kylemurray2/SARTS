@@ -14,16 +14,15 @@ import time
 import requests
 import stackSentinel
 import zipfile
-import asfQuery
+from SARTS import asfQuery,getDEM
 import localParams
-import getDEM
 import pandas as pd
 ps = localParams.getLocalParams()
 
-makeStack = False
+makeStack = True
 dlSlc = True
 dlOrbs = True
-searchData = False
+searchData = True
 setupStack = True
 # def setupStack(makeStack=False,dlSlc=False):
 
@@ -69,6 +68,7 @@ if dlSlc:
 
 #check to make sure all the files are big enough and zipfile is valid
 zips = glob.glob(ps.slc_dirname + '*zip')
+zips.sort()
 for z in zips:
     zipSize = os.stat(z).st_size
     if zipSize < 1e9:
