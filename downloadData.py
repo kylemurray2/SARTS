@@ -12,13 +12,9 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import glob
-import time
-import requests
-import stackSentinel
-import zipfile
-import asfQuery
+import stackSentinel # might need to be stacksentinel
+from SARTS import asfQuery,getDEM
 import localParams
-import getDEM
 import pandas as pd
 ps = localParams.getLocalParams()
 
@@ -60,8 +56,8 @@ if dlSlc:
     for ii, url in enumerate(slcUrls):
         if not os.path.isfile(ps.slc_dirname + gran[ii] + '.zip'):
             print('downloading orbit ' + url)
+            fn_out = url.split('/')[-1]
             os.system('wget -P ' + ps.slc_dirname + ' -nc -c ' + url + ' >> log') # Downloads the zip SLC files
-
 
 def getRectBounds(minlat,maxlat,minlon,maxlon):
     lon_bounds = np.array([minlon,maxlon,maxlon,maxlon,maxlon,minlon,minlon,minlon])
@@ -94,7 +90,6 @@ maxlon = max(maxlons)
 
 demBounds = str(int(np.floor(minlat))) +','+ str(int(np.ceil(maxlat)))+ ','+ str(int(np.floor(minlon))) +','+ str(int(np.ceil(maxlon)))
 
-#os.system('mv run_files run_files_o')
 # Download dem if it doesn't exist
 if not os.path.isdir('./DEM'):
     getDEM.getDEM(demBounds)

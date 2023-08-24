@@ -12,14 +12,14 @@ import os
 import glob
 import time
 
-ps = np.load('./ps.npy',allow_pickle=True).all()
-
 delFiles = False # Incrementally delete files to save space. (can be dangerous)
-start = 0
-stop = 13
 
+ps = np.load('./ps.npy',allow_pickle=True).all()
 runScripts = glob.glob(ps.workdir + '/run_files/run*')
 runScripts.sort()
+
+start = 0
+stop = len(runScripts)
 
 if not os.path.isdir('./logFiles'):
     os.mkdir('./logFiles')
