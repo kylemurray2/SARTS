@@ -80,18 +80,6 @@ def unwrap_snaphu(int_file, cor_file, unw_file,atr, wavelength = 0.056, defo_max
     snp.setCorFileFormat('FLOAT_DATA')
     snp.setWidth(width)
 
-    # Tiles
-    NTILEROW = 3
-    NTILECOL = 3
-    ROWOVRLP = 50
-    COLOVRLP = 50
-    NTHREADS = 9
-    
-    snp.setNTILEROW(NTILEROW)
-    snp.setNTILECOL(NTILECOL)
-    snp.setROWOVRLP(ROWOVRLP)
-    snp.setCOLOVRLP(COLOVRLP)
-    snp.setNTHREADS(NTHREADS)
     
     # runtime options
     snp.setCostMode(cost_mode)
