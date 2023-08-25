@@ -14,16 +14,15 @@ import time
 import requests
 import stackSentinel
 import zipfile
-import asfQuery
+from SARTS import asfQuery,getDEM
 import localParams
-import getDEM
 import pandas as pd
 ps = localParams.getLocalParams()
 
 makeStack = False
-dlSlc = True
+dlSlc = False
 dlOrbs = True
-searchData = False
+searchData = True
 setupStack = True
 # def setupStack(makeStack=False,dlSlc=False):
 
@@ -69,6 +68,7 @@ if dlSlc:
 
 #check to make sure all the files are big enough and zipfile is valid
 zips = glob.glob(ps.slc_dirname + '*zip')
+zips.sort()
 for z in zips:
     zipSize = os.stat(z).st_size
     if zipSize < 1e9:
@@ -177,17 +177,6 @@ np.save('ps.npy',ps)
 if setupStack:
     stackSentinel.main(ps)
 
-with open('./run_files/run_12_merge_reference_secondary_slc', 'r') as input_file:
-    # Open the output file for appending
-    with open('./run_files/run_12_merge_reference_secondary_slc_2', 'a') as output_file:
-        # Loop through each line in the input file
-        for ii,line in enumerate(input_file):
-            date = line.strip().split('_')[-1]
-            new_line = 'rm -r coreg_secondarys/' + date
-            output_file.write(line)
-            if ii>6:
-                output_file.write(new_line + '\n')
-os.system('mv ./run_files/run_12_merge_reference_secondary_slc ./run_files/o_run_12_merge_reference_secondary_slc')
 
 runScripts = glob.glob(ps.workdir + '/run_files/run*')
 runScripts.sort()
@@ -196,7 +185,7 @@ if makeStack:
     if not os.path.isdir('./logFiles'):
         os.mkdir('./logFiles')
     startT = time.time()
-    for ii in np.arange(0,13):
+    for ii in np.arange(0,len(runScripts)):
         print('running ' + runScripts[ii].split('/')[-1])
         os.system('bash ' + runScripts[ii] + ' > logFiles/runlog_' + str(ii+1) )
 #        if ii==5:

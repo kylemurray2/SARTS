@@ -42,8 +42,6 @@ import FilterAndCoherence
 import integratePS
 import multiprocessing
 from SARTS import unwrap
-from isce.components import isceobj
-
 # from Scripts.Fringe import writeStackVRT
 # from matplotlib import pyplot as plt
 # from datetime import date
@@ -59,6 +57,10 @@ makeIfgs = True
 makeVrts = True            
 
 ps = np.load('./ps.npy',allow_pickle=True).all()
+ps.sensor='Sentinel'
+fringeDir = './Fringe/'
+ps.networkType = 'sequential1'
+rmBadPairs = False
 num_processes = 5 # For parallel unwrapping (memory intensive)
 
 nx              = ps.nx
@@ -75,57 +77,37 @@ ymax = int(np.ceil(float(bounds.split(',')[1])))
 xmin = int(np.floor(float(bounds.split(',')[2])))
 xmax = int(np.ceil(float(bounds.split(',')[3])))
 
+ps.intdir  = fringeDir + 'PS_DS/' + ps.networkType
+if ps.sensor=='ALOS':
+    ps.slcdir  = fringeDir + 'PhaseLink'
+    ps.dsStackDir = fringeDir + 'PhaseLink'
 
+else:
+    ps.slcdir  = fringeDir + 'adjusted_wrapped_DS'
+    ps.dsStackDir = fringeDir + 'adjusted_wrapped_DS'
 
 ps.nyl     = ny//ps.azlooks
 ps.nxl     = nx//ps.rglooks
 
+ps.slcStack       = fringeDir + 'coreg_stack/slcs_base.vrt'
+ps.tcorrFile      = fringeDir + 'tcorrMean.bin'
+ps.psPixelsFile   = fringeDir + 'ampDispersion/ps_pixels'
+ps.outDir         = fringeDir + 'PS_DS/' + ps.networkType
+ps.coregSlcDir    = './merged/SLC'
+ps.pairs          = ps.pairs
+ps.unwrapMethod   = None
+inps = ps
+#______________________
+if makeIfgs:
+    integratePS.main(inps)
+#______________________
 
-# Make ifgs from normal SLCs
-def makeIfg(slc1_fn,slc2_fn,ifg_fn):
-    ds1 = gdal.Open(slc1_fn)
-    ds2 = gdal.Open(slc2_fn)
-    slc1 = ds1.GetVirtualMemArray()[ps.cropymin:ps.cropymax,ps.cropxmin:ps.cropxmax]
-    slc2 = ds2.GetVirtualMemArray()[ps.cropymin:ps.cropymax,ps.cropxmin:ps.cropxmax]
-    ifg = np.multiply(slc1,np.conj(slc2))
-    
-    out = isceobj.createIntImage() # Copy the interferogram image from before
-    out.dataType = 'CFLOAT'
-    out.filename = ifg_fn
-    out.width = ifg.shape[1]
-    out.length = ifg.shape[0]
-    out.dump(out.filename + '.xml') # Write out xml
-    fid=open(out.filename,"wb+")
-    fid.write(ifg)
-    out.renderHdr()
-    out.renderVRT()  
-    fid.close()
-    
-    return ifg
 
-if not os.path.isdir(ps.intdir):
-    print('Making merged/interferograms directory')
-    os.mkdir(ps.intdir)
-
-for ii in range(len(ps.dates)-1):
-    d1 = ps.dates[ii]
-    d2 = ps.dates[ii+1]
-    slc1_fn = os.path.join(ps.slcdir,d1,d1+'.slc.full')
-    slc2_fn = os.path.join(ps.slcdir,d2,d2+'.slc.full')
-    pair = d1 + '_' + d2
-    print('creating ' + pair + '.int')
-    ifg_fn = os.path.join(ps.intdir,pair,pair+'.int')
-    if not os.path.isfile(ifg_fn):
-        if not os.path.isdir(os.path.join(ps.intdir,pair)):
-            os.mkdir(os.path.join(ps.intdir,pair))
-        makeIfg(slc1_fn,slc2_fn,ifg_fn)
-    else:
-        print(ifg_fn + ' already exists')
 
 def downlook(pair):
     # Downlook ifgs
-    pairDir    = os.path.join(ps.intdir,pair )
-    ps.infile  = os.path.join(pairDir, pair + '.int')
+    pairDir    = ps.outDir + '/' + pair 
+    ps.infile  = pairDir + '/' +pair + '.int'
     ps.outfile = pairDir + '/fine_lk.int'
     cor_file_out = pairDir + '/filt_lk.cor'
     filt_file_out =  pairDir + '/filt_lk.int'
@@ -137,11 +119,50 @@ def downlook(pair):
         # Filter and coherence
         if not os.path.isfile(filt_file_out):
             print('\n making ' + pair)
-            FilterAndCoherence.runFilter(ps.outfile,filt_file_out,filterStrength)
+            FilterAndCoherence.runFilter(ps.outfile,filt_file_out,.4)
             FilterAndCoherence.estCoherence(filt_file_out, cor_file_out)
     else:
         print(pair + '/' + filt_file_out + ' is already file.')
             
+if rmBadPairs:
+    if not hasattr(ps,'badPairs'):
+        cor_roi = 2800,3000,1950,2200  #snwe  
+        min_cor = .85
+        badPairs = np.zeros(len(ps.pairs2))
+        for ii in range(len(ps.pairs2)):
+            
+            pairDir =  ps.outDir + '/' + ps.pairs2 [ii]
+        
+            cor_file = pairDir + '/filt_lk.cor.vrt'
+            ds = gdal.Open(cor_file)    
+            cor_box = ds.GetVirtualMemArray()[cor_roi[0]:cor_roi[1],cor_roi[2]:cor_roi[3]]
+            cor_med = np.nanmedian(cor_box)
+            if cor_med < min_cor:
+                if ps.pairs2[ii] not in ps.pairs:
+                    badPairs[ii] = 1
+                else:
+                    print(ps.pairs2[ii] + ' is bad, but its a min span tree pair')
+        print('found ' + str(np.sum(badPairs)) + ' ifgs that did not meet the threshold.') 
+            # plt.figure();plt.imshow(cor_box)
+        
+        ps.badPairs = badPairs
+        np.save('ps.npy',ps)
+    
+    
+        if not os.path.isdir( ps.outDir  + '/bad'):
+            os.system('mkdir ' + ps.outDir  + '/bad')
+    
+    
+
+        newPairs = []
+        for ii in range(len(ps.pairs2)):
+            if badPairs[ii] == 0:
+                newPairs.append(ps.pairs2[ii])
+            else:
+                if os.path.isdir(ps.outDir  + '/' + ps.pairs2[ii]):
+                    os.system('mv ' + ps.outDir  + '/' + ps.pairs2[ii] + ' ' + ps.outDir  + '/bad/')
+        ps.pairs2 = newPairs
+        np.save('ps.npy',ps)
 
 # for pair in pairsList:    
 wavelength = 0.056
@@ -157,7 +178,7 @@ atr['ALOOKS']=1
 atr['RLOOKS']=1
 
 def unwrapsnaphu(pair):  
-    pairDir =  ps.intdir + '/' + pair 
+    pairDir =  ps.outDir + '/' + pair 
     if not os.path.isfile(pairDir + '/filt_lk.unw'):
         print(pair + ' unwrapping')
         cor_file = pairDir + '/filt_lk.cor'

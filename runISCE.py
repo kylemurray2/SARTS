@@ -3,45 +3,54 @@
 """
 Created on Fri Aug 11 16:16:14 2023
 
-@author: km
+Author: km
 """
 
-import numpy as np
-from matplotlib import pyplot as plt
 import os
 import glob
 import time
+import numpy as np
 
-ps = np.load('./ps.npy',allow_pickle=True).all()
+# Incrementally delete files to save space (use with caution)
+delFiles = False
 
-delFiles = False # Incrementally delete files to save space. (can be dangerous)
+# Load parameters from 'ps.npy'
+ps = np.load('./ps.npy', allow_pickle=True).all()
+
+# Find and sort run scripts
+runScripts = sorted(glob.glob(os.path.join(ps.workdir, 'run_files', 'run*')))
+
+# Start and stop indices for running scripts
 start = 0
-stop = 13
+stop = len(runScripts)
 
-runScripts = glob.glob(ps.workdir + '/run_files/run*')
-runScripts.sort()
-
+# Create a directory for log files if it doesn't exist
 if not os.path.isdir('./logFiles'):
     os.mkdir('./logFiles')
-    
+
 startT = time.time()
 
-for ii in np.arange(start,stop):
-    print('running ' + runScripts[ii].split('/')[-1])
-    os.system('bash ' + runScripts[ii] + ' > logFiles/runlog_' + str(ii+1) )
+for ii in range(start, stop):
+    script_path = runScripts[ii]
+    script_name = os.path.basename(script_path)
+    print('Running ' + script_name)
+    
+    # Run the script and redirect the output to a log file
+    log_path = os.path.join('./logFiles', 'runlog_' + str(ii + 1))
+    os.system(f'bash {script_path} > {log_path}')
     
     if delFiles:
-        if ii==5:
+        if ii == 5:
             os.system('rm coreg_secondarys/*/overlap/IW?/*off*')
-        if ii==6:
+        elif ii == 6:
             os.system('rm -r ESD coarse_interferograms')
-        if ii==9:
+        elif ii == 9:
             os.system('rm coreg_secondarys/*/IW*/*off*')
             os.system('mv SLCS SLCS_o')
             os.system('mkdir SLCS')
-            os.system('mv SLCS_o/*' + ps.reference_date + '* SLCS/')
-            os.system('rm SLCS_o')
+            os.system(f'mv SLCS_o/*{ps.reference_date}* SLCS/')
+            os.system('rm -r SLCS_o')
 
 endT = time.time()
-elapsed = endT-startT
-print('This run took ' + str(np.round(elapsed/60)) + ' minutes.')
+elapsed = endT - startT
+print(f'This run took {np.round(elapsed/60)} minutes.')
