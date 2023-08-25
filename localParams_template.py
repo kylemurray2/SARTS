@@ -16,7 +16,7 @@ def getLocalParams():
     ps.skip = 1
     ps.alks = int(1) # number of looks in azimuth
     ps.rlks = int(4) # number of looks in range
-    ps.networkType = 'delaunay' # sequential1, sequential#,
+    ps.networkType = 'sequential1' # sequential1, sequential2, delaunay
 
     if 'nx' in ps.__dict__.keys():
         ps.nxl = ps.nx//ps.rlks
@@ -35,7 +35,6 @@ def getLocalParams():
     ps.intdir       = ps.mergeddir + '/interferograms'
     ps.tsdir        = ps.workdir + '/TS'
     ps.slcdir       = ps.mergeddir + '/SLC'
-
 
     # The following are only necessary to run setupStack (not setupPyPS.py)
     #________________________change these______________________________________
@@ -60,7 +59,6 @@ def getLocalParams():
     ps.waterMask = True
     # NLCD raster for landcover and watermask
     ps.nlcd_in = '/d/HI/Landcover/data/hi_oahu_2011_ccap_hr_land_cover20140619.img'
-    ps.nlcd_tif = '/d/HI/Landcover/data/oahu.tif'
     ps.maxMem = 100
     ps.filterFlag      = True
     ps.filterStrength  = 0.3

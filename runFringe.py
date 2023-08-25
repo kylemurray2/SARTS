@@ -66,7 +66,7 @@ else:
     inps.maskDS     = None
 
 inps.linesPerBlock  = 256
-inps.memorySize  = 70000
+inps.memorySize  = ps.maxMem
 inps.halfWindowX = 11
 inps.halfWindowY = 5
 inps.pValue      = 0.05
@@ -79,7 +79,7 @@ inps.weightDS       = inps.outputDS
 inps.outputDir      = './Fringe/Sequential'
 inps.memorySize     = inps.memorySize
 inps.minNeighbors   = 5
-inps.miniStackSize  = 20
+inps.miniStackSize  = 30
 inps.forceprocessing= False
 
 # For adjustMiniStacks

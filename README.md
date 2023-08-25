@@ -20,15 +20,19 @@ Workflow:
 5. Run the stack processor/ISCE:
     runISCE.py
 
-6. Setup Fringe.
+6. Check that merged/SLC/*/*full has all of the full SLCs.  
+
+7. Add the crop bounds to localParams.py
+
+8. Setup Fringe.
     setupFringe.py
 
     This will crop the geometry files, do the watermask, and save some stuff
     to the ps namespace.  
 
-7. Run Fringe
+9. Run Fringe
     runFringe.py
     This does the PS_DS analysis and should output Fringe/adjusted_wrapped_DS/*slc
 
-8. Make interferograms, downlook, coherence, filter, and unwrap
+10. Make interferograms, downlook, coherence, filter, and unwrap
     ifgs.py
