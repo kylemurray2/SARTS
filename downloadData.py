@@ -18,6 +18,8 @@ from stackSentinel import sentinelSLC
 from SARTS import asfQuery, getDEM
 import localParams
 
+ps = localParams.getLocalParams()
+
 def cmdLineParser():
     '''
     Command line parser.
@@ -31,13 +33,20 @@ def cmdLineParser():
 
     return parser.parse_args()
 
-def dlSlc(slcUrls, gran, ps):
+
+def searchData():
+    slcUrls, gran, _ = asfQuery.getGran(ps.path, ps.frame, ps.start, ps.end, ps.sat, ps.bounds, ps.point, ps.poly)
+    return slcUrls, gran
+
+
+def dlSlc(slcUrls, gran):
     for ii, url in enumerate(slcUrls):
         if not os.path.isfile(os.path.join(ps.slc_dirname, gran[ii] + '.zip')):
             print('Downloading orbit ' + url)
             os.system(f'wget -P {ps.slc_dirname} -nc -c {url} >> log')  # Downloads the zip SLC files
 
-def dlOrbs(gran, ps):
+
+def dlOrbs(gran):
     # Make directories and download the slcs and orbits and move them to directories
     orbUrls = [asfQuery.get_orbit_url(g) for g in gran]
 
@@ -51,6 +60,7 @@ def dlOrbs(gran, ps):
         if not os.path.isfile(os.path.join('orbits', orbit_filename)):
             print('Downloading orbit ' + orbit_filename)
             os.system(f'wget -P ./orbits -nc -c {url} >> log')  # Downloads the orbit files
+
 
 def dlDEM():
     zips = glob.glob(os.path.join(ps.slc_dirname, '*zip'))
@@ -90,9 +100,10 @@ def dlDEM():
     os.system(f'fixImageXml.py -f -i {DEM} >> log')
     return demBounds, DEM
 
+
 def main(inps):
     if inps.searchData_flag:
-        slcUrls, gran, _ = asfQuery.getGran(ps.path, ps.frame, ps.start, ps.end, ps.sat, ps.bounds, ps.point, ps.poly)
+        slcUrls, gran  = searchData()
     else:
         print('Using an existing out.csv file.')
         df = pd.read_csv('out.csv')
@@ -103,20 +114,20 @@ def main(inps):
     print(dates)
 
     if inps.dlOrbs_flag:
-        dlOrbs(gran, ps)
+        dlOrbs(gran)
 
     if inps.dlSlc_flag:
-        dlSlc(slcUrls, gran, ps)
+        dlSlc(slcUrls, gran)
 
     demBounds, DEM = dlDEM()
     ps.dem_bounds = demBounds  # Get the DEM and define dem location
     ps.dem = DEM
     np.save('ps.npy', ps)
 
+
 if __name__ == '__main__':
     '''
     Main driver.
     '''
-    ps = localParams.getLocalParams()
     inps = cmdLineParser()
     main(inps)
