@@ -1,6 +1,7 @@
 Wrapper for making PS/DS InSAR time series.
 
 Create Conda library with docs/isce_fringe.yml file.
+conda env create -f docs/isce_fringe.yml
 
 Must first install:
 -isce2
