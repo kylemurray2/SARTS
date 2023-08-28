@@ -14,7 +14,10 @@ Workflow:
 3. Download SLCS and Orbits and DEM:
     downloadData.py
 
-    Note: You need an account with Earthdata for this script to work. It should be in your home directory and called ".netrc" ($HOME/.netrc).  Edit SARTS/docs/.netrc with your account info and move it to your home directory.
+    Note: You need an account with Earthdata for this script to work. Make an account here:
+    https://urs.earthdata.nasa.gov/
+    Go to "applications" in your earth data account and approve ASF data access.
+    Then save you login credentials by editing SARTS/docs/.netrc with your account info and move it to your home directory.
 
 4. Check that the SLCs can be opened and then setup the run_files and configs:
     setupstack.py
