@@ -47,7 +47,7 @@ def getLocalParams():
     #__________________________________________________________________________
 
     ps.start        = '2014-01-01T00:00:00Z'    #'2010-05-01T00:00:00Z'
-    ps.end          = '2028-01-25T23:59:00Z'   #'2020-02-01T23:59:00Z'
+    ps.end          = '2080-01-01T23:59:00Z'   #'2020-02-01T23:59:00Z'
     ps.sat          ='SENTINEL-1'
     ps.sensor       = ps.sat
     ps.point        = None # lon,lat
@@ -59,7 +59,7 @@ def getLocalParams():
     ps.waterMask = True
     # NLCD raster for landcover and watermask
     ps.nlcd_in = '/d/HI/Landcover/data/hi_oahu_2011_ccap_hr_land_cover20140619.img'
-    ps.maxMem = 100
+    ps.maxMem = 80000
     ps.filterFlag      = True
     ps.filterStrength  = 0.3
     ps.unwrap = True
@@ -73,10 +73,10 @@ def getLocalParams():
     ps.include_dates           = None #default=None
     ps.polarization            = 'vv' #default='vv'
     ps.coregistration          = 'NESD' #default='NESD'
-    ps.virtualMerge            = True #default=None
-    ps.useGPU                  = True # default=False
-    ps.numProcess              = 1
-    ps.numProcess4topo         = 1
+    ps.virtualMerge            = False #default=None
+    ps.useGPU                  = False # default=False
+    ps.numProcess              = 20
+    ps.numProcess4topo         = 8
     ps.azimuthLooks            = '1'
     ps.rangeLooks              = '1'
     ps.filtStrength            = '0.1'
