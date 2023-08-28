@@ -29,6 +29,7 @@ Workflow:
 
 7. Add the crop bounds to localParams.py
 
+
 8. Setup Fringe.
     setupFringe.py
 
