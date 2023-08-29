@@ -53,7 +53,7 @@ for ii in range(kk):
 
 
 dates = []
-datesFN = glob.glob('./coreg_secondarys/*')
+datesFN = glob.glob('./SLC/*')
 for d in datesFN:
     dates.append(d.split('/')[2])
 dates.sort()
@@ -78,7 +78,7 @@ if 'secondarys' in delList:
         if d != ps.reference_date: #Don't delete the reference date
             # print('removing ./coreg_secondarys/' + d)
             os.system('rm -r ./secondarys/' + d + '/*')
-            
+
 if 'SLCS' in delList:
     print('removing safe files')
     safeList = glob.glob(ps.slc_dirname + '*zip') # make a list of all the safe files

@@ -17,22 +17,26 @@ import glob
 import os
 from datetime import date
 import isce.components.isceobj as isceobj
-import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
 from mroipac.looks.Looks import Looks
+from scipy.interpolate import griddata
+import cv2
+from scipy import signal
 import localParams
-from SARTS import util
+from PyPS2 import util,makeMap
 from Network import Network
 from osgeo import gdal
 
 
-ALOS        = False
-cropSLCs    = False
-plot_flag   = True
-doDownlook  = True
-replace     = False
+ALOS=False
+
+plot=True;doDownlook=True;replace=False
 
 ps = localParams.getLocalParams()
-plt.close('all')
+
+if plot:
+    import matplotlib.pyplot as plt
+    plt.close('all')
 
 if replace:
     os.system('rm ./merged/geom_reference/*crop*')
@@ -58,7 +62,6 @@ else:
     geomList = glob.glob(ps.mergeddir + '/geom_reference/*full')
     slcList = glob.glob(ps.slcdir + '/*/*full')
     blList = glob.glob(ps.mergeddir + '/baselines/????????/????????')
-
 # if doDownlook:
     # for fname in slcList:
     #     os.system('fixImageXml.py -i ' + fname + ' -f')
@@ -73,14 +76,12 @@ dates = []
 for f in flist:
     dates.append(f[-8:])
 dates.sort()
-print('found' + str(len(dates)) + ' dates')
 
 networkObj = Network()
 networkObj.dateList = dates
 dataDir ='./merged/baselines/'
 refDir = os.path.join(dataDir, ps.reference_date)
 networkObj.baselineDict[ps.reference_date] = 0.0
-
 
 def getbl(secDir):
     bl_file =secDir  + '/' + secDir.split('/')[-1] + '.vrt'
@@ -98,10 +99,6 @@ for d in networkObj.dateList:
         baseline = getbl(secDir)
         networkObj.baselineDict[d] = baseline
         bls.append(float(baseline))
-        
-print('found' + str(len(bls)) + ' baselines')
-
-
 
 if ps.networkType=='singleMaster':
     networkObj.single_master()
@@ -118,11 +115,13 @@ elif ps.networkType=='sequential4':
 elif ps.networkType=='sequential5':
     networkObj.sequential5()
 else:
-    print('ERROR: choose valid networkType in ps.networkType')
+    print('choose valid networkType in ps.networkType')
 
+print(networkObj.pairsDates)
+for pair in networkObj.pairsDates:
+    print(pair)
+print(len(networkObj.pairsDates))
 
-# print(networkObj.pairsDates)
-print('There will be ' + str(len(networkObj.pairsDates)) + ' pairs.')
 
 idxs = []
 dec_year = []
@@ -140,14 +139,12 @@ for d in networkObj.dateList:
 dn = np.asarray(dn)
 dn0 = dn-dn[0] # make relative to first date
 
-
-if plot_flag:
+if plot:
     plt.figure()
     plt.scatter(dec_year,bls)
     plt.xlabel('Time (yrs)')
     plt.ylabel('Perpindicular baseline (m)')
 
-    
 for p in networkObj.pairsDates:
     id1 = networkObj.dateList.index(p.split('_')[0])
     id2 = networkObj.dateList.index(p.split('_')[1])
@@ -155,17 +152,34 @@ for p in networkObj.pairsDates:
     bl2 =bls[id2]
     decy1 =dec_year[id1]
     decy2 = dec_year[id2]
-    if plot_flag:
+    if plot:
         plt.plot([decy1,decy2],[bl1,bl2])
+
+# ifgFiles = glob.glob('./Fringe/PS_DS/delaunay/*')
+# for f in ifgFiles:
+#     p1=f.split('/')[4].split('_')[0]
+#     p2=f.split('/')[4].split('_')[1]
+#     if int(p1)>int(p2):
+#         os.system('rm -r ' + f)
+
 
 
 pairs = []
 for ii,d in enumerate(dates[0:-1]):
     pairs.append(dates[ii] + '_' + dates[ii+1])
 
+
 # Now make pairs2
 pairs2 = networkObj.pairsDates
+
+
 nd = len(pairs)
+
+# for fn in geomList:
+#     if os.path.isfile(fn):
+#         os.system('mv ' + fn + ' ' + fn + './full')
+
+
 
 # Get width and length
 f_lon = ps.mergeddir + '/geom_reference/lon.rdr.full'
@@ -199,33 +213,44 @@ ps.nyf =        nyf
 
 if not os.path.isfile(ps.mergeddir + '/geom_reference/waterMask.rdr.full'):
     from Scripts.Fringe.landCovert2rdr import lc
-    lc.convert_land_cover(ps.nlcd_in, plot_flag=False)
+    lc(ps)
 
-if cropSLCs:
-    # Crop all of the SLCs.  Not sure we need to do this though. It might make loading them faster later
-    for d in dates:
-        infile = ps.slcdir + '/' + d + '/' + d + '.slc.full'
-        if not os.path.isfile(infile+'.crop'):
-            imgi = isceobj.createSlcImage()
-            imgi.load(infile+'.xml')
-            if f in ['los','incLocal']:
-                imgi.scheme = 'BSQ'
-            # Rearrange axes order from small to big
-            slcIm = util.orderAxes(imgi.memMap(),nx,ny)
-            slcIm = slcIm[:,ps.cropymin:ps.cropymax,ps.cropxmin:ps.cropxmax]
+# if ps.crop:
+#     # Crop all of the SLCs.  Not sure we need to do this though. It might make loading them faster later
+#     for d in dates:
+#         infile = ps.slcdir + '/' + d + '/' + d + '.slc.full'
+#         if not os.path.isfile(infile+'.crop'):
+#             imgi = isceobj.createSlcImage()
+#             imgi.load(infile+'.xml')
+#             if f in ['los','incLocal']:
+#                 imgi.scheme = 'BSQ'
+#             # Rearrange axes order from small to big
+#             slcIm = util.orderAxes(imgi.memMap(),nx,ny)
+#             slcIm = slcIm[:,ps.cropymin:ps.cropymax,ps.cropxmin:ps.cropxmax]
 
-            imgo = imgi.clone()
-            imgo.filename = infile+'.crop'
-            imgo.width = ps.cropxmax-ps.cropxmin
-            imgo.length = ps.cropymax-ps.cropymin
-            imgo.dump(imgo.filename+'.xml')
-            slcIm.tofile(imgo.filename)
-            imgo.finalizeImage()
-            del(slcIm)
-            
-else:
-    print('not cropping SLCS')
+#             imgo = imgi.clone()
+#             imgo.filename = infile+'.crop'
+#             imgo.width = ps.cropxmax-ps.cropxmin
+#             imgo.length = ps.cropymax-ps.cropymin
+#             imgo.dump(imgo.filename+'.xml')
+#             slcIm.tofile(imgo.filename)
+#             imgo.finalizeImage()
+#             del(slcIm)
 
+
+# nmapf = glob.glob('./Fringe/KS2/nmap*')
+# for f in nmapf:
+#     os.system('mv ' + f + ' ' + f + 'orig' )
+# infile = './Fringe/KS2/test/nmap_orig'
+# ds = gdal.Open(infile)
+# x_size = ds.RasterXSize
+# y_size = ds.RasterYSize
+# raster_data_unpadded = gdal.Translate(infile, infile, projWin = [ps.cropxmin,ps.cropymin,ps.cropxmax,ps.cropymax])
+
+# infile = 'temp.tif'
+# ds = gdal.Open(infile)
+# ds.RasterXSize
+# nmap = ds.GetVirtualMemArray()
 
 
 geomList = glob.glob(ps.mergeddir + '/geom_reference/*full')
@@ -233,7 +258,6 @@ geomList = [item for item in geomList if '_lk' not in item]
 
 # file_list = list(['lat','lon','hgt','los','shadowMask','incLocal','waterMask'])
 if ps.crop:
-    print('Cropping geom files...')
     for infile in geomList:
         if os.path.isfile(infile):
             if not os.path.isfile(infile+'.crop'):
@@ -263,7 +287,6 @@ if ps.crop:
 
 
 if doDownlook:
-    print('Downlooking geom files...')
     if ps.crop:
         fList = glob.glob(ps.mergeddir + '/geom_reference/*crop')
     else:
@@ -311,7 +334,7 @@ Image.load(f_lon_lk + '.xml')
 lon_ifg = util.orderAxes(Image.memMap(),nxl,nyl)[0,:,:]
 lon_ifg = lon_ifg.copy().astype(np.float32)
 lon_ifg[lon_ifg==0]=np.nan
-# Image.finalizeImage()
+Image.finalizeImage()
 
 
 # LAT --------------
@@ -320,7 +343,7 @@ Image.load(f_lat_lk + '.xml')
 lat_ifg =util.orderAxes(Image.memMap(),nxl,nyl)[0,:,:]
 lat_ifg = lat_ifg.copy().astype(np.float32)
 lat_ifg[lat_ifg==0]=np.nan
-# Image.finalizeImage()
+Image.finalizeImage()
 
 
 # HGT --------------
@@ -329,7 +352,7 @@ Image.load(f_hgt_lk + '.xml')
 hgt_ifg = util.orderAxes(Image.memMap(),nxl,nyl)[0,:,:]
 hgt_ifg = hgt_ifg.copy().astype(np.float32)
 hgt_ifg[hgt_ifg==-500]=np.nan
-# Image.finalizeImage()
+Image.finalizeImage()
 
 # LOS --------------
 Image = isceobj.createImage()
@@ -341,7 +364,7 @@ los_ifg = los_ifg.copy()
 util.show(los_ifg)
 az_ifg = util.orderAxes(Image.memMap(),nxl,nyl)[1,:,:]
 az_ifg = az_ifg.copy()
-# Image.finalizeImage()
+Image.finalizeImage()
 
 # Write out a new los file
 losOutname = ps.mergeddir + '/geom_reference/los2_lk.rdr'
@@ -386,14 +409,14 @@ Image.bands=1
 shm_ifg = util.orderAxes(Image.memMap(),nxl,nyl)[0,:,:]
 shm_ifg = shm_ifg.copy().astype(np.float32)
 shm_ifg[np.isnan(hgt_ifg)]=np.nan
-# Image.finalizeImage()
+Image.finalizeImage()
 
 Image = isceobj.createImage()
 Image.load(f_inc_lk + '.xml')
 Image.bands=2
 Image.scheme='BSQ'
 inc = Image.memMap()
-# plt.figure();plt.imshow(Image.memMap()[0,:,:]);plt.show()
+#plt.figure();plt.imshow(Image.memMap()[0,:,:]);plt.show()
 # inc_ifg1 = Image.memMap()[0,:,:] # relative to the local plane of the ground
 inc_ifg = util.orderAxes(Image.memMap(),nxl,nyl)[1,:,:]# relative to surface normal vector (this is the one we want I think)
 inc_ifg = inc_ifg.copy()
@@ -415,7 +438,7 @@ out.renderVRT()
 
 inc_ifg = inc_ifg.copy().astype(np.float32)
 inc_ifg[inc_ifg==0]=np.nan
-# Image.finalizeImage()
+Image.finalizeImage()
 
 
 # # Get rid of edge artifacts from downlooking
@@ -427,13 +450,17 @@ inc_ifg[inc_ifg==0]=np.nan
 # shm_ifg = signal.convolve2d(shm_ifg,Q, mode='same')
 # inc_ifg = signal.convolve2d(inc_ifg,Q, mode='same')
 
+
+# outputfilename = ps.mergeddir + '/geom_reference/waterMask_lk.rdr.crop'
+# util.getWaterMask(ps.dem, lon_ifg, lat_ifg, outputfilename)
+
 # lon_ifg[3627:,2690:] = np.nan
 # lat_ifg[3627:,2690:] = np.nan
 # lon_ifg[np.isnan(lon_ifg)] = np.nanmax(lon_ifg)
 # lat_ifg[np.isnan(lat_ifg)] = np.nanmax(lat_ifg)
 
 
-if plot_flag:
+if plot:
     cmap = 'Spectral_r'
     fig,ax = plt.subplots(3,2,figsize=(9,9))
     ax[0,0].imshow(lon_ifg,cmap=cmap);ax[0,0].set_title('lon_ifg')
@@ -444,8 +471,6 @@ if plot_flag:
     ax[2,1].imshow(inc_ifg,cmap=cmap);ax[2,1].set_title('inc_ifg')
     plt.savefig(ps.workdir + '/Figs/geom.svg',transparent=True,dpi=100 )
     plt.show()
-else:
-    print('plot_flag is off. Not showing figures :/ ')
 
 
 ps.dates =      dates
@@ -461,6 +486,6 @@ ps.maxlon =     np.nanmax(lon_ifg)
 ps.minlat =     np.nanmin(lat_ifg)
 ps.maxlat =     np.nanmax(lat_ifg)
 
+
 # Save the namespace
 np.save('./ps.npy',ps)
-print('Saved ps namespace to ps.npy')
