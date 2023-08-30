@@ -1,12 +1,12 @@
-import isce
+''' modified from MintPy'''
+
 from contrib.Snaphu.Snaphu import Snaphu
 import time
 import numpy as np
 from SARTS import util
 
-    
-def unwrap_snaphu(int_file, cor_file, unw_file,atr, wavelength = 0.056, defo_max=2.0, max_comp=32,
-                  init_only=True, init_method='MCF', cost_mode='SMOOTH', ):
+
+def unwrap_snaphu(int_file, cor_file, unw_file, ps):
     '''Unwrap interferograms using SNAPHU via isce2.
 
     Modified from ISCE-2/topsStack/unwrap.py
@@ -41,19 +41,19 @@ def unwrap_snaphu(int_file, cor_file, unw_file,atr, wavelength = 0.056, defo_max
                 cost_mode   - str, statistical-cost mode: TOPO, DEFO, SMOOTH, NOSTATCOSTS
     Returns:    unw_file    - str, path to the output unwrapped interferogram file
     '''
-    
 
+    init_only=True            
     start_time = time.time()
-
-    # # configurations - atr
-    # atr = readfile.read_attribute(int_file)
-    width = int(atr['WIDTH'])
-    length = int(atr['LENGTH'])
+    width = ps.nxl
+    length = ps.nyl
+    
     # altitude = float(atr['HEIGHT'])
     # earth_radius = float(atr['EARTH_RADIUS'])
     # wavelength = float(atr['WAVELENGTH'])
-    rg_looks = int(atr['RLOOKS'])
-    az_looks = int(atr['ALOOKS'])
+    wavelength = ps.lam
+    
+    rg_looks = 1
+    az_looks = 1
     # corr_looks = float(atr.get('NCORRLOOKS', rg_looks * az_looks / 1.94))
 
     altitude = 800000.0
@@ -66,10 +66,10 @@ def unwrap_snaphu(int_file, cor_file, unw_file,atr, wavelength = 0.056, defo_max
     # https://web.stanford.edu/group/radar/softwareandlinks/sw/snaphu/snaphu.conf.full
     # https://github.com/isce-framework/isce2/blob/main/contrib/Snaphu/Snaphu.py
     print('phase unwrapping with SNAPHU ...')
-    print(f'SNAPHU cost mode: {cost_mode}')
+    print(f'SNAPHU cost mode: {ps.cost_mode}')
     print(f'SNAPHU init only: {init_only}')
-    print(f'SNAPHU init method: {init_method}')
-    print(f'SNAPHU max number of connected components: {max_comp}')
+    print(f'SNAPHU init method: {ps.init_method}')
+    print(f'SNAPHU max number of connected components: {ps.max_comp}')
 
     snp = Snaphu()
 
@@ -82,9 +82,9 @@ def unwrap_snaphu(int_file, cor_file, unw_file,atr, wavelength = 0.056, defo_max
 
     
     # runtime options
-    snp.setCostMode(cost_mode)
+    snp.setCostMode(ps.cost_mode)
     snp.setInitOnly(init_only)
-    snp.setInitMethod(init_method)
+    snp.setInitMethod(ps.init_method)
 
     # geometry parameters
     # baseline info is not used in deformation mode, but is very important in topography mode
@@ -96,12 +96,12 @@ def unwrap_snaphu(int_file, cor_file, unw_file,atr, wavelength = 0.056, defo_max
     snp.setCorrLooks(corr_looks)
 
     # deformation mode parameters
-    snp.setDefoMaxCycles(defo_max)
+    snp.setDefoMaxCycles(ps.defo_max)
 
     # connected component control
     # grow connectedc components if init_only is True
     # https://github.com/isce-framework/isce2/blob/main/contrib/Snaphu/Snaphu.py#L413
-    snp.setMaxComponents(max_comp)
+    snp.setMaxComponents(ps.max_comp)
 
     ## run SNAPHU
     snp.prepare()
@@ -117,18 +117,9 @@ def unwrap_snaphu(int_file, cor_file, unw_file,atr, wavelength = 0.056, defo_max
 
     ## render metadata
     print(f'write metadata file: {unw_file}.xml')
-    atr['FILE_TYPE'] = '.unw'
-    atr['DATA_TYPE'] = 'float32'
-    atr['INTERLEAVE'] = 'BIL'
-    atr['BANDS'] = '2'
     util.write_xml(unw_file,width,length,2,'FLOAT','BIL')
     if snp.dumpConnectedComponents:
         print(f'write metadata file: {unw_file}.conncomp.xml')
-        # atr['FILE_TYPE'] = '.conncomp'
-        # atr['DATA_TYPE'] = 'uint8'
-        # atr['INTERLEAVE'] = 'BIP'
-        # atr['BANDS'] = '1'
-        # writefile.write_isce_xml(atr, f'{unw_file}.conncomp')
         util.write_xml(f'{unw_file}.conncomp',width,length,1,'BYTE','BIP')
 
     # time usage
