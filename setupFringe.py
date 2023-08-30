@@ -4,12 +4,13 @@
 Created on Mon Feb 13 15:46:09 2023
 
 First, change the crop values in localParams
+Read from ps.npy. this should have all of the processing params
+Crop and downlook geom files (used in mintpy)
+
 
 @author: km
 """
 
-# Read from ps.npy. this should have all of the processing params
-# Crop and downlook geom files (used in mintpy)
 
 
 import numpy as np
