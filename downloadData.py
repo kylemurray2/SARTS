@@ -91,7 +91,6 @@ def dlSlc(slcUrls, gran):
     for ii in range(len(gran)):
         outNames.append(os.path.join(ps.slc_dirname, gran[ii] + '.zip'))
 
-
     nproc = int(os.cpu_count())
     # Download urls in parallel and in chunks
     with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed

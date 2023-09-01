@@ -63,6 +63,13 @@ def unwrap_snaphu(int_file, cor_file, unw_file, ps):
     corr_looks =1
 
     ## setup SNAPHU
+    # Use these defaults if they weren't defined
+    if 'init_method' not in vars(ps):
+        print('params not found in ps namespace. Using defaults')
+        ps.init_method = 'MCF'
+        ps.cost_mode = 'SMOOTH'
+        ps.max_comp = 32
+        ps.defo_max = 0
     # https://web.stanford.edu/group/radar/softwareandlinks/sw/snaphu/snaphu.conf.full
     # https://github.com/isce-framework/isce2/blob/main/contrib/Snaphu/Snaphu.py
     print('phase unwrapping with SNAPHU ...')
@@ -70,6 +77,8 @@ def unwrap_snaphu(int_file, cor_file, unw_file, ps):
     print(f'SNAPHU init only: {init_only}')
     print(f'SNAPHU init method: {ps.init_method}')
     print(f'SNAPHU max number of connected components: {ps.max_comp}')
+    
+
 
     snp = Snaphu()
 

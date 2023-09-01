@@ -65,6 +65,12 @@ def getLocalParams():
     ps.unwrap = True
     #__________________________________________________________________________
 
+    # For SNAPHU_______________________________________________________________
+    ps.init_method = 'MCF'
+    ps.cost_mode = 'SMOOTH'
+    ps.max_comp = 32
+    ps.defo_max = 0
+
     # FOR ISCE STACK PROCESSOR_________________________________________________
     ps.orbit_dirname           = './orbits'
     ps.aux_dirname             = './aux_cal/'
