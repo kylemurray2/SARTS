@@ -75,8 +75,8 @@ def getLocalParams():
     ps.coregistration          = 'NESD' #default='NESD'
     ps.virtualMerge            = False #default=None
     ps.useGPU                  = False # default=False
-    ps.numProcess              = 20
-    ps.numProcess4topo         = 8
+    ps.numProcess              = os.cpu_count()
+    ps.numProcess4topo         = int(ps.numProcess/4) 
     ps.azimuthLooks            = '1'
     ps.rangeLooks              = '1'
     ps.filtStrength            = '0.1'

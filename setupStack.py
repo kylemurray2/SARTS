@@ -13,9 +13,9 @@ import os
 import glob
 import zipfile
 import stackSentinel
+import localParams
 
-# Load parameters from 'ps.npy'
-ps = np.load('./ps.npy', allow_pickle=True).all()
+ps = localParams.getLocalParams()
 flag = True
 
 # Check to make sure all the files are big enough and the zip files are valid

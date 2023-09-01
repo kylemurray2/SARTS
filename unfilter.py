@@ -16,7 +16,9 @@ import matplotlib
 matplotlib.use('svg')
 import os
 from osgeo import gdal
+import localParams
 
+ps = localParams.getLocalParams()
 plt.close('all')
 
 # Load the original IFG

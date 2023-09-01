@@ -27,8 +27,9 @@ import os
 import time
 import glob
 import numpy as np
+import localParams
 
-ps = np.load('./ps.npy',allow_pickle=True).all()
+ps = localParams.getLocalParams()
 
 # It will keep the last six dates in secondarys and coreg_secondarys
 delList = ['SLCS',

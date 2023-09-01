@@ -52,13 +52,13 @@ from isce.components import isceobj
 # import glob
 # from SARTS import util
 from mintpy.utils import readfile, isce_utils
+import localParams
 
+ps = localParams.getLocalParams()
 
 dlunw = True
 makeIfgs = True
 makeVrts = True            
-
-ps = np.load('./ps.npy',allow_pickle=True).all()
 num_processes = 5 # For parallel unwrapping (memory intensive)
 
 nx              = ps.nx

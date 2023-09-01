@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jan  9 17:05:26 2023
+@author: km
 
 Takes output from Fringe
 creates:
@@ -12,7 +13,6 @@ creates:
     filt_lk.cor
     filt_lk.unw
 
-@author: km
 """
 
 import numpy as np
@@ -23,7 +23,9 @@ import integratePS
 import multiprocessing
 from SARTS import unwrap
 import argparse
+import localParams
 
+ps = localParams.getLocalParams()
 
 def cmdLineParser():
     '''
@@ -34,15 +36,47 @@ def cmdLineParser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-d', '--downlook', type=bool, dest='dlunw', default=True)
     parser.add_argument('-m', '--make-ifgs', type=bool, dest='makeIfgs', default=True)
-    parser.add_argument('-n', '--nproc', type=int, dest='num_processes', default=4)
+    parser.add_argument('-n', '--nproc', type=int, dest='num_processes', default=5)
     parser.add_argument('-p', '--parallel', type=bool, dest='parallelProcess', default=True)
 
     return parser.parse_args()
 
 
+def downlook(pair):
+    # Downlook ifgs
+    pairDir         = os.path.join(ps.outDir, pair )
+    ps.infile       = os.path.join(pairDir, f"{pair}.int")
+    ps.outfile      = os.path.join(pairDir, 'fine_lk.int')
+    cor_file_out    = os.path.join(pairDir, 'filt_lk.cor')
+    filt_file_out   = os.path.join(pairDir, 'filt_lk.int')
+
+    if not os.path.isfile(ps.outfile):
+        print(f"Downlooking {pair}")
+        looks.main(ps)
+        
+        # Filter and coherence
+        if not os.path.isfile(filt_file_out):
+            print(f"Filtering and computing coherence for {pair}")
+            FilterAndCoherence.runFilter(ps.outfile,filt_file_out,.4)
+            FilterAndCoherence.estCoherence(filt_file_out, cor_file_out)
+    else:
+        print(pair + '/' + filt_file_out + ' is already file.')
+              
+
+def unwrapsnaphu(pair):  
+    pairDir =  ps.outDir + '/' + pair 
+    if not os.path.isfile(pairDir + '/filt_lk.unw'):
+        print(f"Unwrapping {pair}")
+        cor_file = os.path.join(pairDir, 'filt_lk.cor')
+        int_file = os.path.join(pairDir, 'filt_lk.int')
+        unw_file = os.path.join(pairDir, 'filt_lk.unw')        
+        unwrap.unwrap_snaphu(int_file, cor_file, unw_file, ps)
+    else:
+        print(f"{pair} is already unwrapped.")
+    
+
 def main(inps):
     
-    ps = np.load('./ps.npy',allow_pickle=True).all()
     fringeDir = './Fringe/'
     
     ps.azlooks      = int(ps.alks)
@@ -65,45 +99,14 @@ def main(inps):
     ps.coregSlcDir    = './merged/SLC'
     ps.pairs          = ps.pairs
     ps.unwrapMethod   = None
+    
     #______________________
     if inps.makeIfgs:
         integratePS.main(ps)
     #______________________
     
     
-    
-    def downlook(pair):
-        # Downlook ifgs
-        pairDir         = os.path.join(ps.outDir, pair )
-        ps.infile       = os.path.join(pairDir, f"{pair}.int")
-        ps.outfile      = os.path.join(pairDir, 'fine_lk.int')
-        cor_file_out    = os.path.join(pairDir, 'filt_lk.cor')
-        filt_file_out   = os.path.join(pairDir, 'filt_lk.int')
-    
-        if not os.path.isfile(ps.outfile):
-            print(f"Downlooking {pair}")
-            looks.main(ps)
-            
-            # Filter and coherence
-            if not os.path.isfile(filt_file_out):
-                print(f"Filtering and computing coherence for {pair}")
-                FilterAndCoherence.runFilter(ps.outfile,filt_file_out,.4)
-                FilterAndCoherence.estCoherence(filt_file_out, cor_file_out)
-        else:
-            print(pair + '/' + filt_file_out + ' is already file.')
-                  
-    
-    def unwrapsnaphu(pair):  
-        pairDir =  ps.outDir + '/' + pair 
-        if not os.path.isfile(pairDir + '/filt_lk.unw'):
-            print(f"Unwrapping {pair}")
-            cor_file = os.path.join(pairDir, 'filt_lk.cor')
-            int_file = os.path.join(pairDir, 'filt_lk.int')
-            unw_file = os.path.join(pairDir, 'filt_lk.unw')        
-            unwrap.unwrap_snaphu(int_file, cor_file, unw_file, ps)
-        else:
-            print(f"{pair} is already unwrapped.")
-    
+
     
     if inps.dlunw:
         

@@ -10,7 +10,9 @@ import os
 import glob
 import time
 import numpy as np
+import localParams
 
+ps = localParams.getLocalParams()
 # Incrementally delete files to save space (use with caution)
 delFiles = False
 

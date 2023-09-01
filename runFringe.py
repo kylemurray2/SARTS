@@ -43,8 +43,9 @@ import tops2vrt
 import nmap
 import adjustMiniStacks
 import ampdispersion
+import localParams
 
-ps = np.load('./ps.npy',allow_pickle=True).all()
+ps = localParams.getLocalParams()
 inps = argparse.Namespace()
 
 # For tops2vrt

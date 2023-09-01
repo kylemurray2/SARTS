@@ -81,7 +81,7 @@ def getGran(path, frame, start, end, sat, bounds, point, poly):
     print('Found ' + str(round((sum(sizesMB)/1000),2)) + ' Gb of data')
     gran = pd.read_csv('out.csv')['Granule Name']
     
-    return (slcUrls, gran,dates)
+    return (slcUrls, gran,dates,r)
 
 
 def get_orbit_url(granuleName):

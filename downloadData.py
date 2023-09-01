@@ -35,15 +35,8 @@ def cmdLineParser():
 
 
 def searchData():
-    slcUrls, gran, _ = asfQuery.getGran(ps.path, ps.frame, ps.start, ps.end, ps.sat, ps.bounds, ps.point, ps.poly)
+    slcUrls, gran, _,response = asfQuery.getGran(ps.path, ps.frame, ps.start, ps.end, ps.sat, ps.bounds, ps.point, ps.poly)
     return slcUrls, gran
-
-
-def dlSlc(slcUrls, gran):
-    for ii, url in enumerate(slcUrls):
-        if not os.path.isfile(os.path.join(ps.slc_dirname, gran[ii] + '.zip')):
-            print('Downloading orbit ' + url)
-            os.system(f'wget -P {ps.slc_dirname} -nc -c {url} >> log')  # Downloads the zip SLC files
 
 
 def dlOrbs(gran):
@@ -60,6 +53,101 @@ def dlOrbs(gran):
         if not os.path.isfile(os.path.join('orbits', orbit_filename)):
             print('Downloading orbit ' + orbit_filename)
             os.system(f'wget -P ./orbits -nc -c {url} >> log')  # Downloads the orbit files
+
+
+
+def dlSlc(slcUrls, gran):
+    for ii, url in enumerate(slcUrls):
+        fname = os.path.join(ps.slc_dirname, gran[ii] + '.zip')
+        if not os.path.isfile(fname):
+            print('Downloading orbit ' + url)
+            #os.system(f'wget -P {ps.slc_dirname} -nc -c {url} >> log')  # Downloads the zip SLC files with wget
+            os.system(f'curl -o {fname} -C - {url}')  # Downloads the zip SLC files
+
+
+
+
+def dlSlc(url, gr):
+        fname = os.path.join('test', gr + '.zip')
+        dir = 'test'
+        if not os.path.isfile(fname):
+            print('Downloading orbit ' + url)
+            os.system(f'wget -P {dir} -nc -c {url} >> log')  # Downloads the zip SLC files with wget
+            # os.system(f'curl -o {fname} -C - {url}')  # Downloads the zip SLC files
+
+with concurrent.futures.ThreadPoolExecutor() as exector : 
+   exector.map(download_zip, urls)
+
+print('Using an existing out.csv file.')
+df = pd.read_csv('out.csv')
+slcUrls, gran = df['URL'], df['Granule Name']
+
+
+
+import requests
+from concurrent.futures import ThreadPoolExecutor
+
+
+
+response = requests.get(url,stream=True,allow_redirects=True)
+# Get the content of the response (the file data)
+file_data = response.content
+
+
+def dl(url,outname):
+    import requests
+    response = requests.get(url,stream=True,allow_redirects=True)
+    
+    # Open the local file for writing
+    with open(outname, 'wb') as file:
+        # Iterate through the content and write to the file
+        for data in response.iter_content(chunk_size=int(2**14)):
+            file.write(data)
+      
+url = slcUrls[0]
+gr = gran[0]
+
+outNames = []
+for ii in range(len(gran)):
+    outNames.append(os.path.join('test', gran[ii] + '.zip'))
+
+# dl(url,outname)   
+import concurrent.futures
+     
+with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count) as executor:  # Adjust max_workers as needed
+    futures = [executor.submit(dl, url, outName) for url, outName in zip(slcUrls, outNames)]
+    concurrent.futures.wait(futures)
+
+
+# Open the local file for writing
+with open('./test/file.zip', 'wb') as file:
+    file.write(response.content)
+
+
+# dlSlc(url, gr)
+
+
+with ThreadPoolExecutor(max_workers=15) as exector : 
+   exector.map(dlSlc, slcUrls,gran)
+
+   
+asf_username='kylemurray2'
+asf_password='Kujira8900'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def dlDEM():
