@@ -85,7 +85,7 @@ def dlSlc(slcUrls, gran):
         if not os.path.isfile(fname):
             slcUrls2.append(slcUrls[ii])
             gran2.append(gran[ii])
-            print('fskipping {fname} because it already exists')
+            print(f'skipping {fname} because it already exists')
     # Create a list of file path/names
     outNames = []
     for ii in range(len(gran)):
