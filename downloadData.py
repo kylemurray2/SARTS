@@ -17,6 +17,8 @@ import matplotlib.pyplot as plt
 from stackSentinel import sentinelSLC
 from SARTS import asfQuery, getDEM
 import localParams
+import concurrent.futures
+import requests
 
 ps = localParams.getLocalParams()
 
@@ -27,15 +29,15 @@ def cmdLineParser():
     parser = argparse.ArgumentParser(
         description='Download SLCs, orbits, and DEM for stack processing',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-s', '--search-data', type=bool, dest='searchData_flag', default=True)
-    parser.add_argument('-d', '--download-slc', type=bool, dest='dlSlc_flag', default=True)
-    parser.add_argument('-o', '--download-orbits', type=bool, dest='dlOrbs_flag', default=True)
+    parser.add_argument('-s', '--search-data-off', action='store_false', dest='searchData_flag', default=True)
+    parser.add_argument('-d', '--download-slc-off', action='store_false', dest='dlSlc_flag', default=True)
+    parser.add_argument('-o', '--download-orbits-off', action='store_false', dest='dlOrbs_flag', default=True)
 
     return parser.parse_args()
 
 
 def searchData():
-    slcUrls, gran, _,response = asfQuery.getGran(ps.path, ps.frame, ps.start, ps.end, ps.sat, ps.bounds, ps.point, ps.poly)
+    slcUrls, gran, _,_ = asfQuery.getGran(ps.path, ps.frame, ps.start, ps.end, ps.sat, ps.bounds, ps.point, ps.poly)
     return slcUrls, gran
 
 
@@ -55,47 +57,16 @@ def dlOrbs(gran):
             os.system(f'wget -P ./orbits -nc -c {url} >> log')  # Downloads the orbit files
 
 
-
-def dlSlc(slcUrls, gran):
-    for ii, url in enumerate(slcUrls):
-        fname = os.path.join(ps.slc_dirname, gran[ii] + '.zip')
-        if not os.path.isfile(fname):
-            print('Downloading orbit ' + url)
-            #os.system(f'wget -P {ps.slc_dirname} -nc -c {url} >> log')  # Downloads the zip SLC files with wget
-            os.system(f'curl -o {fname} -C - {url}')  # Downloads the zip SLC files
-
-
-
-
-def dlSlc(url, gr):
-        fname = os.path.join('test', gr + '.zip')
-        dir = 'test'
-        if not os.path.isfile(fname):
-            print('Downloading orbit ' + url)
-            os.system(f'wget -P {dir} -nc -c {url} >> log')  # Downloads the zip SLC files with wget
-            # os.system(f'curl -o {fname} -C - {url}')  # Downloads the zip SLC files
-
-with concurrent.futures.ThreadPoolExecutor() as exector : 
-   exector.map(download_zip, urls)
-
-print('Using an existing out.csv file.')
-df = pd.read_csv('out.csv')
-slcUrls, gran = df['URL'], df['Granule Name']
-
-
-
-import requests
-from concurrent.futures import ThreadPoolExecutor
-
-
-
-response = requests.get(url,stream=True,allow_redirects=True)
-# Get the content of the response (the file data)
-file_data = response.content
+# def dlSlc(slcUrls, gran):
+#     for ii, url in enumerate(slcUrls):
+#         fname = os.path.join(ps.slc_dirname, gran[ii] + '.zip')
+#         if not os.path.isfile(fname):
+#             print('Downloading SLC ' + url)
+#             #os.system(f'wget -P {ps.slc_dirname} -nc -c {url} >> log')  # Downloads the zip SLC files with wget
+#             os.system(f'curl -o {fname} -C - {url}')  # Downloads the zip SLC files
 
 
 def dl(url,outname):
-    import requests
     response = requests.get(url,stream=True,allow_redirects=True)
     
     # Open the local file for writing
@@ -103,51 +74,29 @@ def dl(url,outname):
         # Iterate through the content and write to the file
         for data in response.iter_content(chunk_size=int(2**14)):
             file.write(data)
-      
-url = slcUrls[0]
-gr = gran[0]
+ 
 
-outNames = []
-for ii in range(len(gran)):
-    outNames.append(os.path.join('test', gran[ii] + '.zip'))
-
-# dl(url,outname)   
-import concurrent.futures
-     
-with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count) as executor:  # Adjust max_workers as needed
-    futures = [executor.submit(dl, url, outName) for url, outName in zip(slcUrls, outNames)]
-    concurrent.futures.wait(futures)
-
-
-# Open the local file for writing
-with open('./test/file.zip', 'wb') as file:
-    file.write(response.content)
+def dlSlc(slcUrls, gran):
+    # Only get files that don't already exist in the directory
+    slcUrls2 = []
+    gran2 = []
+    for ii, url in enumerate(slcUrls):
+        fname = os.path.join(ps.slc_dirname, gran[ii] + '.zip')
+        if not os.path.isfile(fname):
+            slcUrls2.append(slcUrls[ii])
+            gran2.append(gran[ii])
+            print('fskipping {fname} because it already exists')
+    # Create a list of file path/names
+    outNames = []
+    for ii in range(len(gran)):
+        outNames.append(os.path.join(ps.slc_dirname, gran[ii] + '.zip'))
 
 
-# dlSlc(url, gr)
-
-
-with ThreadPoolExecutor(max_workers=15) as exector : 
-   exector.map(dlSlc, slcUrls,gran)
-
-   
-asf_username='kylemurray2'
-asf_password='Kujira8900'
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    nproc = int(os.cpu_count())
+    # Download urls in parallel and in chunks
+    with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
+        futures = [executor.submit(dl, url, outName) for url, outName in zip(slcUrls, outNames)]
+        concurrent.futures.wait(futures)
 
 
 def dlDEM():
@@ -190,7 +139,7 @@ def dlDEM():
 
 
 def main(inps):
-    if inps.searchData_flag:
+    if inps.searchData_flag==True:
         slcUrls, gran  = searchData()
     else:
         print('Using an existing out.csv file.')
@@ -202,6 +151,7 @@ def main(inps):
     print(dates)
 
     if inps.dlOrbs_flag:
+        print('hi')
         dlOrbs(gran)
 
     if inps.dlSlc_flag:

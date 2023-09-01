@@ -71,6 +71,7 @@ def getGran(path, frame, start, end, sat, bounds, point, poly):
     if flightDirection:
         data['flightDirection'] = flightDirection
 
+    print('Searching for data')
     r = requests.get(baseurl, params=data, timeout=100)
     print(r)
     with open('out.csv', 'w') as (j):

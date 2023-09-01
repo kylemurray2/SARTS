@@ -17,6 +17,8 @@ import localParams
 
 ps = localParams.getLocalParams()
 flag = True
+doRemove = True
+
 
 # Check to make sure all the files are big enough and the zip files are valid
 zips = glob.glob(ps.slc_dirname + '*zip')
@@ -24,18 +26,27 @@ for z in zips:
     zipSize = os.stat(z).st_size
     if zipSize < 1e9:
         print(f'May want to delete {z} because it is too small.')
-        # os.remove(z)
+        if doRemove:
+            print(f"File {z} is corrupt. Deleting...")
+            os.remove(z)
+        else:
+            print(f"File {z} is corrupt. Recommend deleting.")
         flag = False
-
+        
+        
+zips = glob.glob(ps.slc_dirname + '*zip')
 for z in zips:
     try:
         x = zipfile.ZipFile(z)
         print(f"{z} opened ok")
         x.close()
     except:
-        print(f"File {z} is corrupt. Recommend deleting.")
+        if doRemove:
+            print(f"File {z} is corrupt. Deleting...")
+            os.remove(z)
+        else:
+            print(f"File {z} is corrupt. Recommend deleting.")
         flag = False
-        # os.remove(z)
         continue
 
 if flag:
