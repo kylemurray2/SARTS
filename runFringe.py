@@ -80,7 +80,7 @@ inps.weightDS       = inps.outputDS
 inps.outputDir      = './Fringe/Sequential'
 inps.memorySize     = inps.memorySize
 inps.minNeighbors   = 5
-inps.miniStackSize  = 30
+inps.miniStackSize  = 20
 inps.forceprocessing= False
 
 # For adjustMiniStacks
@@ -94,6 +94,8 @@ inps.unwrapped = False
 inps.meanampDS = './Fringe/ampDispersion/mean'
 inps.refBand = 1
 inps.outputAD = './Fringe/ampDispersion/ampdispersion' # outputDS is different for nmap, so define it here.
+ampDispersionThreshold = '0.35' # conservative to bias towards DS over PS
+
 
 inps.nx = str(ps.nx)
 inps.ny = str(ps.ny)
@@ -123,7 +125,6 @@ ampdispersion.main(inps)
 # plt.figure();plt.imshow(nmap[7,:,:])
 
 #Output the ps pixels by using a threshold on ampdispersion
-ampDispersionThreshold = '0.45'
 os.system('imageMath.py -e="a<' + ampDispersionThreshold + '" --a=./Fringe/ampDispersion/ampdispersion  -o ./Fringe/ampDispersion/ps_pixels -t byte')
 
 #make tcorrMean.bin_____________________________________________________________
