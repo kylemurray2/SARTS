@@ -16,40 +16,54 @@ import stackSentinel
 import localParams
 
 ps = localParams.getLocalParams()
-flag = True
+flag = False
 doRemove = True
 
+def checkSLC(doRemove=True):
+    flag = True
 
-# Check to make sure all the files are big enough and the zip files are valid
-zips = glob.glob(ps.slc_dirname + '*zip')
-for z in zips:
-    zipSize = os.stat(z).st_size
-    if zipSize < 1e9:
-        print(f'May want to delete {z} because it is too small.')
-        if doRemove:
-            print(f"File {z} is corrupt. Deleting...")
-            os.remove(z)
-        else:
-            print(f"File {z} is corrupt. Recommend deleting.")
-        flag = False
-        
-        
-zips = glob.glob(ps.slc_dirname + '*zip')
-for z in zips:
-    try:
-        x = zipfile.ZipFile(z)
-        print(f"{z} opened ok")
-        x.close()
-    except:
-        if doRemove:
-            print(f"File {z} is corrupt. Deleting...")
-            os.remove(z)
-        else:
-            print(f"File {z} is corrupt. Recommend deleting.")
-        flag = False
-        continue
+    # Check to make sure all the files are big enough and the zip files are valid
+    zips = glob.glob(ps.slc_dirname + '*zip')
+    for z in zips:
+        zipSize = os.stat(z).st_size
+        if zipSize < 1e9:
+            print(f'May want to delete {z} because it is too small.')
+            if doRemove:
+                print(f"File {z} is corrupt. Deleting...")
+                os.remove(z)
+            else:
+                print(f"File {z} is corrupt. Recommend deleting.")
+            flag = False
+            
+            
+    zips = glob.glob(ps.slc_dirname + '*zip')
+    for z in zips:
+        try:
+            x = zipfile.ZipFile(z)
+            print(f"{z} opened ok")
+            x.close()
+        except:
+            if doRemove:
+                print(f"File {z} is corrupt. Deleting...")
+                os.remove(z)
+            else:
+                print(f"File {z} is corrupt. Recommend deleting.")
+            flag = False
+            continue
+    
+    return flag
 
-if flag:
-    stackSentinel.main(ps)
-else:
-    print("Failed file check. Make sure all files are fully downloaded or delete corrupt files.")
+def main():
+    flag = checkSLC()
+
+    if flag:
+        stackSentinel.main(ps)
+    else:
+        print("Failed file check. Make sure all files are fully downloaded or delete corrupt files.")
+
+if __name__ == '__main__':
+    '''
+    Main driver.
+    '''
+    # inps = cmdLineParser()
+    main()

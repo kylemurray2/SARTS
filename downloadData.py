@@ -15,12 +15,14 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from stackSentinel import sentinelSLC
-from SARTS import asfQuery, getDEM
+from SARTS import asfQuery, getDEM, setupStack
 import localParams
 import concurrent.futures
 import requests
 
+
 ps = localParams.getLocalParams()
+
 
 def cmdLineParser():
     '''
@@ -77,19 +79,13 @@ def dl(url,outname):
  
 
 def dlSlc(slcUrls, gran):
-    # Only get files that don't already exist in the directory
-    slcUrls2 = []
-    gran2 = []
-    for ii, url in enumerate(slcUrls):
-        fname = os.path.join(ps.slc_dirname, gran[ii] + '.zip')
-        if not os.path.isfile(fname):
-            slcUrls2.append(slcUrls[ii])
-            gran2.append(gran[ii])
-            print(f'skipping {fname} because it already exists')
+
     # Create a list of file path/names
     outNames = []
     for ii in range(len(gran)):
-        outNames.append(os.path.join(ps.slc_dirname, gran[ii] + '.zip'))
+        fname = os.path.join(ps.slc_dirname, gran[ii] + '.zip')
+        if not os.path.isfile(fname):
+            outNames.append(os.path.join(ps.slc_dirname, gran[ii] + '.zip'))
 
     nproc = int(os.cpu_count())
     # Download urls in parallel and in chunks
@@ -138,6 +134,7 @@ def dlDEM():
 
 
 def main(inps):
+    
     if inps.searchData_flag==True:
         slcUrls, gran  = searchData()
     else:
@@ -154,6 +151,12 @@ def main(inps):
         dlOrbs(gran)
 
     if inps.dlSlc_flag:
+        
+        # Check for current SLCs and remove any bad ones
+        zips = glob.glob(os.path.join(ps.slc_dirname,'*.zip'))
+        if len(zips)>0:
+            flag = setupStack.checkSLC()
+
         dlSlc(slcUrls, gran)
 
     demBounds, DEM = dlDEM()
