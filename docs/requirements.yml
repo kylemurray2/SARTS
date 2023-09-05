@@ -1,0 +1,57 @@
+# This is the env setup for installing and running ISCE and FRINGE.
+
+# create environment : conda env create -f requirements.yml
+# update dependencies: conda env update -f requirements.yml
+# remove environment : conda env remove -n isce
+# enter  environment : conda activate isce
+# exit   environment : conda deactivate
+name: isce
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+# For ISCE-2
+#  - isce2
+  - git 
+  - cmake 
+  - cython 
+  - gdal 
+  - h5py 
+  - libgdal 
+  - pytest 
+  - numpy 
+  - fftw 
+  - scipy 
+  - pybind11 
+  - shapely
+# For MDX
+  - openmotif 
+  - openmotif-dev 
+  - xorg-libx11 
+  - xorg-libxt 
+  - xorg-libxmu 
+  - xorg-libxft 
+  - libiconv 
+  - xorg-libxrender 
+  - xorg-libxau 
+  - xorg-libxdmcp 
+# For compiling isce (if you don't have access to system installed compiler [recommended])
+  - gcc_linux-64 
+  - gxx_linux-64 
+  - gfortran_linux-64
+# For Fringe
+  - armadillo
+# Other
+  - mintpy
+  - lxml
+  - scikit-image
+  - matplotlib
+  - cartopy
+  - astropy
+  - pandas
+  - lxml
+  - mintpy
+  - opencv
+  - spyder
+  - "libblas=*=*mkl"

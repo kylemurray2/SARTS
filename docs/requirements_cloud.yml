@@ -10,37 +10,31 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.9
-  - "libblas=*=*mkl"
-  - cmake
-  - cython
-  - gdal
-  - libgdal
-  - armadillo
-  - isce2
-  - h5py
-  - pytest
-  - numpy
-  - fftw
-  - scipy
-  - basemap
-  - opencv
-  - pybind11
+  - python
+# For ISCE-2
+#  - isce2
+  - git 
+  - cmake 
+  - cython 
+  - gdal 
+  - h5py 
+  - libgdal 
+  - pytest 
+  - numpy 
+  - fftw 
+  - scipy 
+  - pybind11 
   - shapely
-  - openmotif
-  - openmotif-dev
-  - xorg-libx11
-  - xorg-libxt
-  - xorg-libxmu
-  - xorg-libxft
-  - libiconv
-  - xorg-libxrender
-  - xorg-libxau
-  - xorg-libxdmcp
-  - gcc_linux-64
-  - gxx_linux-64
+
+# For compiling isce (if you don't have access to system installed compiler [recommended])
+  - gcc_linux-64 
+  - gxx_linux-64 
   - gfortran_linux-64
-  - spyder
+# For Fringe
+  - armadillo
+# Other
+  - mintpy
+  - lxml
   - scikit-image
   - matplotlib
   - cartopy
@@ -48,3 +42,5 @@ dependencies:
   - pandas
   - lxml
   - mintpy
+  - opencv
+
