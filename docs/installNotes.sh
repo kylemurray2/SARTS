@@ -1,30 +1,74 @@
-miniconda
-Fringe
-MintPy
-SARTS
-ISCE
+# This file contains the commands needed to install isce, fringe, mintpy, and sarts. 
+#   It also contains the environment setup commands
 
-git clone https://github.com/kylemurray2/fringe.git
-git clone https://github.com/isce-framework/isce2.git
+#Define path where you want the software to be located
+softwareDir=$HOME/Software
 
-# First get miniconda
-cd $HOME/Software
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-rm Miniconda3-latest-Linux-x86_64.sh
+# First get mamba
+cd $softwareDir
+wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh
+bash Mambaforge-Linux-x86_64.sh
+rm Mambaforge-Linux-x86_64.sh
 
 # Git SARTS. This has a requirements file we'll use 
 git clone https://github.com/kylemurray2/SARTS.git
 # Make the conda env that will work for isce, fringe, SARTS, and mintpy. Takes awhile..go get a snack
-conda env create -f SARTS/docs/isce_fringe.yml
+conda env create -f $softwareDir/SARTS/docs/isce_fringe.yml
 
 # Install ISCE-2
 mkdir src
-cd $HOME/Software/src/
+cd $softwareDir/src/
 git clone https://github.com/isce-framework/isce2.git
-cd $HOME/Software/src/isce2
+cd $softwareDir/src/isce2
 mkdir build
 cd build
 
-cmake .. -DCMAKE_INSTALL_PREFIX=$HOME/Software/isce -DPYTHON_MODULE_DIR=$HOME/Software/isce/python -DCMAKE_PREFIX_PATH=${CONDA_PREFIX} -DCMAKE_BUILD_TYPE=Release
+cmake .. -DCMAKE_INSTALL_PREFIX=$softwareDir/isce -DPYTHON_MODULE_DIR=$softwareDir/isce/python -DCMAKE_PREFIX_PATH=${CONDA_PREFIX} -DCMAKE_BUILD_TYPE=Release
 make -j 16 # to use multiple threads
 make install
+
+#copy the contrib and applications directory from src to the install dir
+cp -r $softwareDir/src/isce2/contrib $softwareDir/isce/
+cp -r $softwareDir/src/isce2/applications $softwareDir/isce/
+
+
+# Install Fringe
+mkdir $softwareDir/Fringe
+cd $softwareDir/Fringe
+mkdir install build src
+git clone https://github.com/kylemurray2/fringe.git
+cd build
+
+CXX=${CXX} cmake -DCMAKE_INSTALL_PREFIX=../install ../src/fringe
+make all
+make install
+
+# Add the following to a setup file and source that file to export the environments
+#__________________________________________________________________________________
+#----------------------------------------------------------------------------------
+softwareDir=$HOME/Software
+# Miniconda
+export PATH=$PATH:$softwareDir/mambaforge/bin
+
+# Fringe
+export PATH=$PATH:$softwareDir/Fringe/install/bin
+export LD_PRELOAD=$softwareDir/mambaforge/envs/isce/lib/libmkl_core.so:$softwareDir/mambaforge/envs/isce/lib/libmkl_sequential.so:$softwareDir/mambaforge/envs/isce/lib/libmkl_avx512.so:$softwareDir/mambaforge/envs/isce/lib/libmkl_def.so
+export PYTHONPATH=$PYTHONPATH:$softwareDir/Fringe/install/bin
+export PYTHONPATH=$PYTHONPATH:$softwareDir/Fringe/install/python
+
+# ISCE
+export ISCE_ROOT=$softwareDir/isce
+export ISCE_SRC_ROOT=$softwareDir/src/isce2
+export PATH=$PATH:$ISCE_ROOT:$ISCE_ROOT/bin:$ISCE_ROOT/applications
+export PYTHONPATH=$PYTHONPATH:$ISCE_ROOT
+export PYTHONPATH=$PYTHONPATH:$ISCE_ROOT/components
+export PYTHONPATH=$PYTHONPATH:$softwareDir:$ISCE_SRC_ROOT/applications:$ISCE_SRC_ROOT/contrib:$ISCE_SRC_ROOT/contrib/stack
+export PYTHONPATH=$PYTHONPATH:$ISCE_SRC_ROOT/contrib/stack/topsStack
+
+# SARTS
+export PATH=$PATH:$softwareDir/SARTS
+
+source activate isce
+
+#----------------------------------------------------------------------------------
+#__________________________________________________________________________________
