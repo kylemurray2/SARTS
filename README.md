@@ -20,6 +20,10 @@ Workflow:
     Go to "applications" in your earth data account and approve ASF data access.
     Then save you login credentials by editing SARTS/docs/.netrc with your account info and move it to your home directory.
 
+    To download the DEM (required), you need to get an API key from OpenTopography. Make a file in your home directory called '~/.otkey' containing just the key on the first line. The script getDEM.py is run in downloadData.py and will download the the Copernicus DEM. 
+    
+    Alternatively, you can get the 30 m SRTM DEM, but that will require some manual configuration. You can use the script dem.py that is packaged with ISCE-2.  just make sure the variable DEM points to the location of the dem you want to use.  
+
 4. Check that the SLCs can be opened and then setup the run_files and configs:
     setupstack.py
 
