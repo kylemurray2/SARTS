@@ -34,7 +34,7 @@ def cmdLineParser():
     parser.add_argument('-s', '--search-data-off', action='store_false', dest='searchData_flag', default=True)
     parser.add_argument('-d', '--download-slc-off', action='store_false', dest='dlSlc_flag', default=True)
     parser.add_argument('-o', '--download-orbits-off', action='store_false', dest='dlOrbs_flag', default=True)
-    parser.add_argument('-srtm', '--get-srtm', action='store_false', dest='get_srtm', default=False)
+    parser.add_argument('-srtm', '--get-srtm', action='store_true', dest='get_srtm', default=False)
 
     return parser.parse_args()
 
@@ -124,15 +124,15 @@ def dlDEM():
 
     # Download dem if it doesn't exist
     if not os.path.isdir('./DEM'):
-        if get_srtm:
+        if inps.get_srtm:
             getDEM.getDEM(demBounds,srtm=True)
-            DEM = glob.glob(os.path.join(workdir, 'DEM', '*.wgs84'))[0]
+            DEM = glob.glob(os.path.join(ps.workdir, 'DEM', '*.wgs84'))[0]
         else:
             getDEM.getDEM(demBounds)
             DEM = glob.glob(os.path.join(ps.workdir, 'DEM', '*wgs84.dem'))[0]
     else:
-        if get_srtm:
-            DEM = glob.glob(os.path.join(workdir, 'DEM', '*.wgs84'))[0]
+        if inps.get_srtm:
+            DEM = glob.glob(os.path.join(ps.workdir, 'DEM', '*.wgs84'))[0]
         else:
             DEM = glob.glob(os.path.join(ps.workdir, 'DEM', '*wgs84.dem'))[0]
 

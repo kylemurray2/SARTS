@@ -51,7 +51,6 @@ dependencies:
   - astropy
   - pandas
   - lxml
-  - mintpy
   - opencv
   - spyder
   - "libblas=*=*mkl"
