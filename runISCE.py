@@ -16,8 +16,6 @@ ps = localParams.getLocalParams()
 # Incrementally delete files to save space (use with caution)
 delFiles = False
 
-# Load parameters from 'ps.npy'
-ps = np.load('./ps.npy', allow_pickle=True).all()
 
 # Find and sort run scripts
 runScripts = sorted(glob.glob(os.path.join(ps.workdir, 'run_files', 'run*')))
