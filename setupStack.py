@@ -14,6 +14,7 @@ import glob
 import zipfile
 import stackSentinel
 import localParams
+from stackSentinel import sentinelSLC
 
 ps = localParams.getLocalParams()
 flag = False
@@ -39,9 +40,11 @@ def checkSLC(doRemove=True):
     zips = glob.glob(ps.slc_dirname + '*zip')
     for z in zips:
         try:
-            x = zipfile.ZipFile(z)
+            safe = sentinelSLC(z)
+            safe.get_lat_lon_v2()
+            # x = zipfile.ZipFile(z)
+            # x.close()
             print(f"{z} opened ok")
-            x.close()
         except:
             if doRemove:
                 print(f"File {z} is corrupt. Deleting...")
