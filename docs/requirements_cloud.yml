@@ -41,6 +41,5 @@ dependencies:
   - astropy
   - pandas
   - lxml
-  - mintpy
   - opencv
 
