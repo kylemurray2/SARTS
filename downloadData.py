@@ -126,13 +126,13 @@ def dlDEM():
     if not os.path.isdir('./DEM'):
         if inps.get_srtm:
             getDEM.getDEM(demBounds,srtm=True)
-            DEM = glob.glob(os.path.join(ps.workdir, 'DEM', '*.wgs84'))[0]
+            DEM = glob.glob(os.path.join(ps.workdir, 'DEM', '*wgs84'))[0]
         else:
             getDEM.getDEM(demBounds)
             DEM = glob.glob(os.path.join(ps.workdir, 'DEM', '*wgs84.dem'))[0]
     else:
         if inps.get_srtm:
-            DEM = glob.glob(os.path.join(ps.workdir, 'DEM', '*.wgs84'))[0]
+            DEM = glob.glob(os.path.join(ps.workdir, 'DEM', '*wgs84'))[0]
         else:
             DEM = glob.glob(os.path.join(ps.workdir, 'DEM', '*wgs84.dem'))[0]
 
