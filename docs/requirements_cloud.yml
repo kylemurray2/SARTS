@@ -33,7 +33,6 @@ dependencies:
 # For Fringe
   - armadillo
 # Other
-  - mintpy
   - lxml
   - scikit-image
   - matplotlib
@@ -41,5 +40,6 @@ dependencies:
   - astropy
   - pandas
   - lxml
+#  - mintpy
   - opencv
 
