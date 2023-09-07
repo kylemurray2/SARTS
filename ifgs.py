@@ -59,7 +59,12 @@ ps = localParams.getLocalParams()
 dlunw = True
 makeIfgs = True
 makeVrts = True            
-num_processes = 5 # For parallel unwrapping (memory intensive)
+num_processes = 10 # For parallel unwrapping (memory intensive)
+
+# According to Snaphu website: approx. 100mb memory per 1e6 pixels
+
+
+
 
 nx              = ps.nx
 ny              = ps.ny
