@@ -32,7 +32,7 @@ def cmdLineParser():
         description='Crop and downlook geom files. Save parameters',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-d', '--downlook', action='store_true', dest='downlook', default=True,help='Downlook interferograms')
-    parser.add_argument('-d', '--unwrap', action='store_true', dest='unwrap', default=True,help='Unwrap interferograms')
+    parser.add_argument('-u', '--unwrap', action='store_true', dest='unwrap', default=True,help='Unwrap interferograms')
     parser.add_argument('-m', '--make-ifgs', action='store_true', dest='makeIfgs', default=True,help='Make the interferograms')
     parser.add_argument('-n', '--nproc', type=int, dest='num_processes', default=5, help='Number of parallel processes. Use 1 for no parallelization')
 
