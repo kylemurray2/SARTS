@@ -128,8 +128,8 @@ def main(inps):
     
     print(networkObj.pairsDates)
     for pair in networkObj.pairsDates:
-        print(pair)
-    print(len(networkObj.pairsDates))
+        # print(pair)
+    print(len(networkObj.pairsDates) + ' pairs')
 
     dec_year = []
     dn = []
