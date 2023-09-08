@@ -38,9 +38,8 @@ def cmdLineParser():
     return parser.parse_args()
 
 
-
 def getbl(secDir):
-    bl_file =secDir  + '/' + secDir.split('/')[-1] + '.vrt'
+    bl_file = os.path.join('./merged/baselines', d, d+'.vrt')
     ds = gdal.Open(bl_file)
     bl = ds.GetVirtualMemArray()
     bl = np.nanmean(bl)
@@ -113,8 +112,7 @@ def main(inps):
         if d == ps.reference_date:
             bls.append(0)
         else:
-            secDir = './merged/baselines/' + d
-            baseline = getbl(secDir)
+            baseline = getbl(d)
             networkObj.baselineDict[d] = baseline
             bls.append(float(baseline))
     
