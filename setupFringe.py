@@ -38,7 +38,7 @@ def cmdLineParser():
     return parser.parse_args()
 
 
-def getbl(secDir):
+def getbl(d):
     bl_file = os.path.join('./merged/baselines', d, d+'.vrt')
     ds = gdal.Open(bl_file)
     bl = ds.GetVirtualMemArray()
