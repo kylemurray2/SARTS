@@ -107,14 +107,7 @@ def main(inps):
     networkObj.baselineDict[ps.reference_date] = 0.0
     
     
-    bls = []
-    for d in networkObj.dateList:
-        if d == ps.reference_date:
-            bls.append(0)
-        else:
-            baseline = getbl(d)
-            networkObj.baselineDict[d] = baseline
-            bls.append(float(baseline))
+
     
     if ps.networkType=='singleMaster':
         networkObj.single_master()
@@ -153,21 +146,31 @@ def main(inps):
     dn = np.asarray(dn)
     dn0 = dn-dn[0] # make relative to first date
     
+    if inps.plot or ps.networkType=='delaunay':
+        bls = []
+        for d in networkObj.dateList:
+            if d == ps.reference_date:
+                bls.append(0)
+            else:
+                baseline = getbl(d)
+                networkObj.baselineDict[d] = baseline
+                bls.append(float(baseline))
+
     if inps.plot:
         plt.figure()
         plt.scatter(dec_year,bls)
         plt.xlabel('Time (yrs)')
         plt.ylabel('Perpindicular baseline (m)')
     
-    for p in networkObj.pairsDates:
-        id1 = networkObj.dateList.index(p.split('_')[0])
-        id2 = networkObj.dateList.index(p.split('_')[1])
-        bl1 = bls[id1]
-        bl2 =bls[id2]
-        decy1 =dec_year[id1]
-        decy2 = dec_year[id2]
-        if inps.plot:
-            plt.plot([decy1,decy2],[bl1,bl2])
+        for p in networkObj.pairsDates:
+            id1 = networkObj.dateList.index(p.split('_')[0])
+            id2 = networkObj.dateList.index(p.split('_')[1])
+            bl1 = bls[id1]
+            bl2 = bls[id2]
+            decy1 =dec_year[id1]
+            decy2 = dec_year[id2]
+            if inps.plot:
+                plt.plot([decy1,decy2],[bl1,bl2])
 
     pairs = []
     for ii,d in enumerate(dates[0:-1]):
