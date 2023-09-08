@@ -10,9 +10,9 @@ import os
 import glob
 import time
 import numpy as np
-import localParams
+from SARTS import config
 
-ps = localParams.getLocalParams()
+ps = config.getPS()
 # Incrementally delete files to save space (use with caution)
 delFiles = False
 

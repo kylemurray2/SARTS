@@ -27,9 +27,9 @@ import os
 import time
 import glob
 import numpy as np
-import localParams
+from SARTS import config
 
-ps = localParams.getLocalParams()
+ps = config.getPS()
 
 # It will keep the last six dates in secondarys and coreg_secondarys
 delList = ['SLCS',

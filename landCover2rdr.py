@@ -16,6 +16,7 @@ from isce.components import isceobj
 from mintpy.utils import writefile
 import argparse
 
+
 def cmdLineParser():
     '''
     Command line parser.
@@ -26,6 +27,7 @@ def cmdLineParser():
     parser.add_argument('-i', '--input_file', type=str, dest='fileName',
         required=True, help='Input nlcd img path/file name')
     return parser.parse_args()
+
 
 def convert_land_cover(fileName, plot_flag=False):
     if not os.path.isdir('./Fringe'):
@@ -102,6 +104,7 @@ def convert_land_cover(fileName, plot_flag=False):
     im2.renderVRT()
     waterMask.tofile(outName)
     im2.finalizeImage()
+
 
 if __name__ == '__main__':
     inps = cmdLineParser()

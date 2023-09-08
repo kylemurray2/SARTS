@@ -41,7 +41,7 @@ from isce.applications import looks
 import FilterAndCoherence
 import integratePS
 import multiprocessing
-from SARTS import unwrap
+from SARTS import unwrap, config
 from isce.components import isceobj
 
 # from Scripts.Fringe import writeStackVRT
@@ -52,9 +52,9 @@ from isce.components import isceobj
 # import glob
 # from SARTS import util
 from mintpy.utils import readfile, isce_utils
-import localParams
 
-ps = localParams.getLocalParams()
+ps = config.getPS()
+
 
 dlunw = True
 makeIfgs = True
@@ -62,9 +62,6 @@ makeVrts = True
 num_processes = 10 # For parallel unwrapping (memory intensive)
 
 # According to Snaphu website: approx. 100mb memory per 1e6 pixels
-
-
-
 
 nx              = ps.nx
 ny              = ps.ny
@@ -79,8 +76,6 @@ ymin = int(np.floor(float(bounds.split(',')[0])))
 ymax = int(np.ceil(float(bounds.split(',')[1])))
 xmin = int(np.floor(float(bounds.split(',')[2])))
 xmax = int(np.ceil(float(bounds.split(',')[3])))
-
-
 
 ps.nyl     = ny//ps.azlooks
 ps.nxl     = nx//ps.rglooks

@@ -15,17 +15,14 @@ creates:
 
 """
 
-import numpy as np
 import os
 from isce.applications import looks
 import FilterAndCoherence
 import integratePS
 import multiprocessing
-from SARTS import unwrap
+from SARTS import unwrap, config
 import argparse
-import localParams
 
-ps = localParams.getLocalParams()
 
 def cmdLineParser():
     '''
@@ -34,15 +31,15 @@ def cmdLineParser():
     parser = argparse.ArgumentParser(
         description='Crop and downlook geom files. Save parameters',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-d', '--downlook', type=bool, dest='dlunw', default=True)
-    parser.add_argument('-m', '--make-ifgs', type=bool, dest='makeIfgs', default=True)
-    parser.add_argument('-n', '--nproc', type=int, dest='num_processes', default=5)
-    parser.add_argument('-p', '--parallel', type=bool, dest='parallelProcess', default=True)
+    parser.add_argument('-d', '--downlook', action='store_true', dest='downlook', default=True,help='Downlook interferograms')
+    parser.add_argument('-d', '--unwrap', action='store_true', dest='unwrap', default=True,help='Unwrap interferograms')
+    parser.add_argument('-m', '--make-ifgs', action='store_true', dest='makeIfgs', default=True,help='Make the interferograms')
+    parser.add_argument('-n', '--nproc', type=int, dest='num_processes', default=5, help='Number of parallel processes. Use 1 for no parallelization')
 
     return parser.parse_args()
 
 
-def downlook(pair):
+def downlook(pair,ps):
     # Downlook ifgs
     pairDir         = os.path.join(ps.outDir, pair )
     ps.infile       = os.path.join(pairDir, f"{pair}.int")
@@ -63,7 +60,7 @@ def downlook(pair):
         print(pair + '/' + filt_file_out + ' is already file.')
               
 
-def unwrapsnaphu(pair):  
+def unwrapsnaphu(pair,ps):  
     pairDir =  ps.outDir + '/' + pair 
     if not os.path.isfile(pairDir + '/filt_lk.unw'):
         print(f"Unwrapping {pair}")
@@ -73,9 +70,10 @@ def unwrapsnaphu(pair):
         unwrap.unwrap_snaphu(int_file, cor_file, unw_file, ps)
     else:
         print(f"{pair} is already unwrapped.")
-    
+
 
 def main(inps):
+    ps = config.getPS()
     
     fringeDir = './Fringe/'
     
@@ -91,7 +89,6 @@ def main(inps):
         ps.slcdir  = fringeDir + 'adjusted_wrapped_DS'
         ps.dsStackDir = fringeDir + 'adjusted_wrapped_DS'
     
-    
     ps.slcStack       = fringeDir + 'coreg_stack/slcs_base.vrt'
     ps.tcorrFile      = fringeDir + 'tcorrMean.bin'
     ps.psPixelsFile   = fringeDir + 'ampDispersion/ps_pixels'
@@ -100,33 +97,33 @@ def main(inps):
     ps.pairs          = ps.pairs
     ps.unwrapMethod   = None
     
+    
     #______________________
     if inps.makeIfgs:
         integratePS.main(ps)
     #______________________
     
-    
-
-    
-    if inps.dlunw:
+    if inps.num_processes>1:
+        if inps.downlook:
+            pool = multiprocessing.Pool(processes=inps.num_processes)
+            pool.map(downlook, ps.pairs,ps)
+            pool.close()
+            pool.join()
         
-        if inps.parallelProcess:
+        if inps.unwrap:
             pool = multiprocessing.Pool(processes=inps.num_processes)
-            pool.map(downlook, ps.pairs)
+            pool.map(unwrapsnaphu, ps.pairs,ps)
             pool.close()
             pool.join()
-            
-            pool = multiprocessing.Pool(processes=inps.num_processes)
-            pool.map(unwrapsnaphu, ps.pairs)
-            pool.close()
-            pool.join()
-            
-        else:
+        
+    else:
+        if inps.downlook:
             for pair in ps.pairs:
-                downlook(pair)
+                downlook(pair,ps)
+        if inps.unwrap:
             for pair in ps.pairs:
-                unwrapsnaphu(pair)
-                
+                unwrapsnaphu(pair,ps)
+            
 if __name__ == '__main__':
     '''
     Main driver.

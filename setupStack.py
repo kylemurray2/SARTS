@@ -13,14 +13,15 @@ import os
 import glob
 import zipfile
 import stackSentinel
-import localParams
 from stackSentinel import sentinelSLC
+from SARTS import config
 
-ps = localParams.getLocalParams()
+
+
 flag = False
 doRemove = True
 
-def checkSLC(doRemove=True):
+def checkSLC(ps,doRemove=True):
     flag = True
 
     # Check to make sure all the files are big enough and the zip files are valid
@@ -57,7 +58,9 @@ def checkSLC(doRemove=True):
     return flag
 
 def main():
-    flag = checkSLC()
+    ps = config.getPS()
+
+    flag = checkSLC(ps)
 
     if flag:
         stackSentinel.main(ps)

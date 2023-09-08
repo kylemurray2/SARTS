@@ -15,13 +15,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from stackSentinel import sentinelSLC
-from SARTS import asfQuery, getDEM, setupStack
-import localParams
+from SARTS import asfQuery, getDEM, setupStack, config
 import concurrent.futures
 import requests
-
-
-ps = localParams.getLocalParams()
 
 
 def cmdLineParser():
@@ -31,20 +27,20 @@ def cmdLineParser():
     parser = argparse.ArgumentParser(
         description='Download SLCs, orbits, and DEM for stack processing',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-s', '--search-data-off', action='store_false', dest='searchData_flag', default=True)
-    parser.add_argument('-d', '--download-slc-off', action='store_false', dest='dlSlc_flag', default=True)
-    parser.add_argument('-o', '--download-orbits-off', action='store_false', dest='dlOrbs_flag', default=True)
-    parser.add_argument('-srtm', '--get-srtm', action='store_true', dest='get_srtm', default=False)
+    parser.add_argument('-s', '--search-data', action='store_true', dest='searchData_flag', default=True, help='Search ASF for data and output to out.csv')
+    parser.add_argument('-d', '--download-slc', action='store_true', dest='dlSlc_flag', default=True, help='download SLCs from ASF')
+    parser.add_argument('-o', '--download-orbits', action='store_true', dest='dlOrbs_flag', default=True, help='download orbit files')
+    parser.add_argument('-srtm', '--get-srtm', action='store_true', dest='get_srtm', default=False, help='Use SRTM dem instead of copernicus')
 
     return parser.parse_args()
 
 
-def searchData():
+def searchData(ps):
     slcUrls, gran, _,_ = asfQuery.getGran(ps.path, ps.frame, ps.start, ps.end, ps.sat, ps.bounds, ps.point, ps.poly)
     return slcUrls, gran
 
 
-def dlOrbs(gran):
+def dlOrbs(gran,ps):
     # Make directories and download the slcs and orbits and move them to directories
     orbUrls = [asfQuery.get_orbit_url(g) for g in gran]
 
@@ -79,7 +75,7 @@ def dl(url,outname):
             file.write(data)
  
 
-def dlSlc(slcUrls, gran):
+def dlSlc(slcUrls, gran,ps):
 
     # Create a list of file path/names
     outNames = []
@@ -95,7 +91,7 @@ def dlSlc(slcUrls, gran):
         concurrent.futures.wait(futures)
 
 
-def dlDEM():
+def dlDEM(ps):
     zips = glob.glob(os.path.join(ps.slc_dirname, '*zip'))
     # Figure out what bounds to use for the DEM
     minlats, maxlats, minlons, maxlons = [], [], [], []
@@ -147,8 +143,10 @@ def dlDEM():
 
 def main(inps):
     
+    ps = config.getPS()
+
     if inps.searchData_flag==True:
-        slcUrls, gran  = searchData()
+        slcUrls, gran  = searchData(ps)
     else:
         print('Using an existing out.csv file.')
         df = pd.read_csv('out.csv')
@@ -169,9 +167,9 @@ def main(inps):
         if len(zips)>0:
             flag = setupStack.checkSLC()
 
-        dlSlc(slcUrls, gran)
+        dlSlc(slcUrls, gran,ps)
 
-    demBounds, DEM = dlDEM()
+    demBounds, DEM = dlDEM(ps)
     ps.dem_bounds = demBounds  # Get the DEM and define dem location
     ps.dem = DEM
     np.save('ps.npy', ps)
@@ -181,5 +179,6 @@ if __name__ == '__main__':
     '''
     Main driver.
     '''
+
     inps = cmdLineParser()
     main(inps)

@@ -9,9 +9,6 @@ Read from ps.npy. this should have all of the processing params
 Crop and downlook geom files (used in mintpy)
 
 """
-
-
-
 import numpy as np
 import glob
 import os
@@ -19,7 +16,7 @@ from datetime import date
 import isce.components.isceobj as isceobj
 from mroipac.looks.Looks import Looks
 import localParams
-from SARTS import util
+from SARTS import util,config
 from Network import Network
 from osgeo import gdal
 import argparse
@@ -32,12 +29,15 @@ def cmdLineParser():
     parser = argparse.ArgumentParser(
         description='Crop and downlook geom files. Save parameters',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-p', '--plot', type=bool, dest='plot', default=True)
-    parser.add_argument('-d', '--downlook', type=bool, dest='doDownlook', default=True)
-    parser.add_argument('-r', '--replace', type=bool, dest='replace', default=False)
-    parser.add_argument('-f', '--fix-images', type=bool, dest='fixImages', default=False)
+    parser.add_argument('-d', '--downlook', action='store_true', dest='doDownlook',help='Downlook geometry files.')
+    parser.add_argument('-r', '--replace', action='store_true', dest='replace',help='Overwrite cropped/downlooked geometry files')
+    parser.add_argument('-f', '--fix-images', action='store_true', dest='fixImages',help='Fix file path in xml files (use if files were moved to different directory')
+    parser.add_argument('-p', '--plot-off', action='store_false', dest='plot',help='Turn plotting off')
+
 
     return parser.parse_args()
+
+
 
 def getbl(secDir):
     bl_file =secDir  + '/' + secDir.split('/')[-1] + '.vrt'
@@ -47,7 +47,7 @@ def getbl(secDir):
     return bl
 
 def main(inps):
-    ps = localParams.getLocalParams()
+    ps = config.getPS()
 
     if inps.plot:
         import matplotlib.pyplot as plt

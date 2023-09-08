@@ -36,16 +36,15 @@ import glob
 from matplotlib import pyplot as plt
 from osgeo import gdal
 from PyPS2 import util
-from mintpy.utils import readfile, writefile
 import argparse
 import sequential_PL 
 import tops2vrt
 import nmap
 import adjustMiniStacks
 import ampdispersion
-import localParams
+from SARTS import config
 
-ps = localParams.getLocalParams()
+ps = config.getPS()
 inps = argparse.Namespace()
 
 # For tops2vrt
