@@ -35,7 +35,7 @@ def getPS():
         if os.path.isfile('./ps.npy'):
             ps = np.load('./ps.npy',allow_pickle=True).all()
         else:
-            ps = configs.copy()
+            ps = configs
         
         # Update ps with any changes to configs
         for attr in dir(configs):

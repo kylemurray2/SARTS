@@ -1,16 +1,15 @@
 #________________________Required to search for data______________________________________
-path         : ''  # '###'
-fl           : ''  #'Ascending' or 'Descending
-bounds       : '' #'minlat,maxlat,minlon,maxlon'  # it won't use bursts outside of this area
-poly         : ''
-swath_num    : '' #default:'1 2 3'
-reference_date : '' # YYYYMMDD default:None
+path           :    # '###'
+fl             :    #'Ascending' or 'Descending
+bounds         :    #'minlat,maxlat,minlon,maxlon'  # it won't use bursts outside of this area
+poly           : 
+swath_num      :    #default:'1 2 3'
+reference_date :    # YYYYMMDD default:None
 #__________________________________________________________________________
 #________________________Optional to search for data______________________________________
 start        : '2014-01-01T00:00:00Z'    #'2010-05-01T00:00:00Z'
 end          : '2080-01-01T23:59:00Z'   #'2020-02-01T23:59:00Z'
 sat          : 'SENTINEL-1'
-sensor       : sat
 point        : None # lon,lat
 frame        : None #'472,473,474,475'   #'####'
 slc_dirname  : './SLCS/'
@@ -25,7 +24,7 @@ rlks : 4 # number of looks in range
 networkType : sequential3 # sequential1, sequential2, delaunay
 ifgMode     : False # Usually set to false because we are starting with SLCs
 
-crop: False
+crop     : False
 cropymin : 0
 cropymax : 0
 cropxmin : 0
@@ -43,8 +42,8 @@ unwrap         : True
 #__________________________________________________________________________
 
 # For SNAPHU_______________________________________________________________
-init_method : 'MCF'
-cost_mode   : 'SMOOTH'
+init_method : MCF
+cost_mode   : SMOOTH
 max_comp    : 32
 defo_max    : 0
 
@@ -64,8 +63,6 @@ azimuthLooks            : '1'
 rangeLooks              : '1'
 filtStrength            : '0.1'
 esdCoherenceThreshold   : '0.85'
-startDate               : start[0:10]
-stopDate                : end[0:10]
 num_connections         : '1'
 num_overlap_connections : '3'
 workflow                : 'slc' #default:'interferogram'
