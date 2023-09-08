@@ -15,7 +15,6 @@ import os
 from datetime import date
 import isce.components.isceobj as isceobj
 from mroipac.looks.Looks import Looks
-import localParams
 from SARTS import util,config
 from Network import Network
 from osgeo import gdal
@@ -30,6 +29,7 @@ def cmdLineParser():
         description='Crop and downlook geom files. Save parameters',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-d', '--downlook', action='store_true', dest='doDownlook',help='Downlook geometry files.')
+    parser.add_argument('-c', '--crop', action='store_true', dest='doCrop',help='Crop geometry files.')
     parser.add_argument('-r', '--replace', action='store_true', dest='replace',help='Overwrite cropped/downlooked geometry files')
     parser.add_argument('-f', '--fix-images', action='store_true', dest='fixImages',help='Fix file path in xml files (use if files were moved to different directory')
     parser.add_argument('-p', '--plot-off', action='store_false', dest='plot',help='Turn plotting off')
@@ -210,8 +210,7 @@ def main(inps):
     ps.nxf =        nxf
     ps.nyf =        nyf
 
-    
-    if ps.crop:
+    if inps.doCrop and ps.crop:
         for infile in geomList:
             if os.path.isfile(infile):
                 if not os.path.isfile(infile+'.crop'):
@@ -237,6 +236,8 @@ def main(inps):
                     del(geomIm)
             else:
                 print('no file ' + infile)
+    else:
+        print('Skipping cropping')
     
     
     
@@ -270,7 +271,8 @@ def main(inps):
     
             else:
                 print('no file ' + infile)
-    
+    else:
+        print('skipping donwlooking')
     
     # Get bounding coordinates (Frame)
     f_lon_lk = ps.mergeddir + '/geom_reference/lon_lk.rdr'
