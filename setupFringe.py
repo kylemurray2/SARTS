@@ -113,7 +113,7 @@ def main(inps):
         if d == ps.reference_date:
             bls.append(0)
         else:
-            secDir = './merged/baselines/' + d + '.vrt'
+            secDir = './merged/baselines/' + d
             baseline = getbl(secDir)
             networkObj.baselineDict[d] = baseline
             bls.append(float(baseline))
