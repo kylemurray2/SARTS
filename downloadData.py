@@ -27,10 +27,10 @@ def cmdLineParser():
     parser = argparse.ArgumentParser(
         description='Download SLCs, orbits, and DEM for stack processing',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-s', '--search-data', action='store_true', dest='searchData_flag', default=True, help='Search ASF for data and output to out.csv')
-    parser.add_argument('-d', '--download-slc', action='store_true', dest='dlSlc_flag', default=True, help='download SLCs from ASF')
-    parser.add_argument('-o', '--download-orbits', action='store_true', dest='dlOrbs_flag', default=True, help='download orbit files')
-    parser.add_argument('-srtm', '--get-srtm', action='store_true', dest='get_srtm', default=False, help='Use SRTM dem instead of copernicus')
+    parser.add_argument('-s', '--search-data', action='store_true', dest='searchData_flag', help='Search ASF for data and output to out.csv')
+    parser.add_argument('-d', '--download-slc', action='store_true', dest='dlSlc_flag', help='download SLCs from ASF')
+    parser.add_argument('-o', '--download-orbits', action='store_true', dest='dlOrbs_flag', help='download orbit files')
+    parser.add_argument('-srtm', '--get-srtm', action='store_true', dest='get_srtm', help='Use SRTM dem instead of copernicus')
 
     return parser.parse_args()
 
@@ -41,21 +41,48 @@ def searchData(ps):
 
 
 def dlOrbs(gran,ps):
+    nproc = int(os.cpu_count())
+
     # Make directories and download the slcs and orbits and move them to directories
-    orbUrls = [asfQuery.get_orbit_url(g) for g in gran]
+    # orbUrls = [asfQuery.get_orbit_url(g) for g in gran]
+
+    # Create an empty list to store the returned URLs
+    orbUrls = []
+    
+    with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
+        futures = [executor.submit(asfQuery.get_orbit_url, g) for g in gran]
+    
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                url = future.result()
+                orbUrls.append(url)
+            except Exception as e:
+                print(f"An exception occurred: {e}")
 
     if not os.path.isdir(ps.slc_dirname):
         os.mkdir(ps.slc_dirname)
     if not os.path.isdir('orbits'):
         os.mkdir('orbits')
 
+    
+    outNames = []
     for url in orbUrls:
-        orbit_filename = url[39:]
-        if not os.path.isfile(os.path.join('orbits', orbit_filename)):
-            print('Downloading orbit ' + orbit_filename)
-            os.system(f'wget -P ./orbits -nc -c {url} >> log')  # Downloads the orbit files
+        outNames.append(os.path.join('orbits',url.split('/')[-1]))
+
+    # Download urls in parallel and in chunks
+    with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
+        futures = [executor.submit(dl, url, outName) for url, outName in zip(orbUrls, outNames)]
+        concurrent.futures.wait(futures)
+
+    # Or do it in series with wget
+    # for url in orbUrls:
+    #     orbit_filename = url[39:]
+    #     if not os.path.isfile(os.path.join('orbits', orbit_filename)):
+    #         print('Downloading orbit ' + orbit_filename)
+    #         os.system(f'wget -P ./orbits -nc -c {url} >> log')  # Downloads the orbit files
 
 
+# The old way to download slcs (in series with wget or curl)
 # def dlSlc(slcUrls, gran):
 #     for ii, url in enumerate(slcUrls):
 #         fname = os.path.join(ps.slc_dirname, gran[ii] + '.zip')
@@ -157,7 +184,7 @@ def main(inps):
     print(dates)
 
     if inps.dlOrbs_flag:
-        print('hi')
+        print('Downloading orbits')
         dlOrbs(gran,ps)
 
     if inps.dlSlc_flag:
