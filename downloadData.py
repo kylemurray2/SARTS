@@ -191,7 +191,7 @@ def main(inps):
         # Check for current SLCs and remove any bad ones
         zips = glob.glob(os.path.join(ps.slc_dirname,'*.zip'))
         if len(zips)>0:
-            flag = setupStack.checkSLC()
+            flag = setupStack.checkSLC(ps)
 
         dlSlc(slcUrls, gran,ps)
 
