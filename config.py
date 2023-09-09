@@ -40,7 +40,7 @@ def getPS():
         # Update ps with any changes to configs
         for attr in dir(configs):
             if not attr.startswith('_'):
-                print(attr)
+                # print(attr)
                 setattr(ps, attr, getattr(configs, attr))
     
 # Set up some additional variables 

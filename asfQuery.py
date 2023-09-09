@@ -23,11 +23,11 @@ those bounds.
 import os, requests, pandas as pd
 from lxml import html
 import shapely, shapely.geometry, shapely.wkt
+import sys
 
-def getGran(path, frame, start, end, sat, bounds, point, poly):
+def getGran(path, start, end, sat, bounds, poly):
 
     # path=ps.path
-    # frame=ps.frame
     # start=ps.start
     # end=ps.end
     # sat=ps.sat
@@ -53,17 +53,12 @@ def getGran(path, frame, start, end, sat, bounds, point, poly):
         roi = shapely.geometry.box(float(minx), float(miny), float(maxx), float(maxy))
         polygonWKT = roi.wkt
         data['intersectsWith'] = polygonWKT
-    elif point: # Prefer points over bounds
-        print('Using point. It is better to use a polygon instead.')
-        pointLon, pointLat = point.split(sep=',')
-        pointObj = shapely.geometry.point.Point(float(pointLon),float(pointLat))
-        pointWKT = pointObj.wkt
-        data['intersectsWith'] = pointWKT
+    else:
+        print('Need to specify the polygon search area')
+        sys.exit(1)
 
     if path:
         data['relativeOrbit'] = path
-    if frame:
-        data['frame'] = frame
     if start:
         data['start'] = start
     if end:

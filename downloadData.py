@@ -36,7 +36,7 @@ def cmdLineParser():
 
 
 def searchData(ps):
-    slcUrls, gran, _,_ = asfQuery.getGran(ps.path, ps.frame, ps.start, ps.end, ps.sat, ps.bounds, ps.point, ps.poly)
+    slcUrls, gran, _,_ = asfQuery.getGran(ps.path, ps.start, ps.end, ps.sat, ps.bounds, ps.poly)
     return slcUrls, gran
 
 
@@ -158,10 +158,9 @@ def main(inps):
 
     if inps.dlOrbs_flag:
         print('hi')
-        dlOrbs(gran)
+        dlOrbs(gran,ps)
 
     if inps.dlSlc_flag:
-        
         # Check for current SLCs and remove any bad ones
         zips = glob.glob(os.path.join(ps.slc_dirname,'*.zip'))
         if len(zips)>0:
