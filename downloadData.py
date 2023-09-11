@@ -298,10 +298,10 @@ def main(inps):
         print('Downloading orbits')
         dlOrbs(gran,ps.orbit_dirname)
     
-    # Check if aux_cal files exist:
-    result = check_aux_cal(ps.aux_dirname)
-    if not result:
-        dlAuxCal(ps.aux_dirname)
+        # # Check if aux_cal files exist:
+        # result = check_aux_cal(ps.aux_dirname)
+        # if not result:
+        #     dlAuxCal(ps.aux_dirname)
 
     if inps.dlSlc_flag:
         # Check for current SLCs and remove any bad ones
