@@ -40,10 +40,8 @@ def searchData(ps):
     slcUrls, gran, _,_ = asfQuery.getGran(ps.path, ps.start, ps.end, ps.sat, ps.bounds, ps.poly)
     return slcUrls, gran
 
-# url = 'https://datapool.asf.alaska.edu/SLC/SA/S1B_IW_SLC__1SDV_20211218T043052_20211218T043119_030075_039745_9DF5.zip'
+# Example url
 # url = 'https://datapool.asf.alaska.edu/SLC/SA/S1A_IW_SLC__1SDV_20221226T163241_20221226T163300_046505_059280_1BDE.zip'
-
-
 
 def checkSizes(slcUrls,ps):
     bad= []
@@ -76,13 +74,13 @@ def dlOrbs(gran,outdir):
                 orbUrls.append(url)
             except Exception as e:
                 print(f"An exception occurred: {e}")
+    
+    if not os.path.isdir(outdir):
+        os.mkdir(outdir)
 
     with open('orbits/orbUrls.txt', 'w') as file:
         for item in orbUrls:
             file.write(f"{item}\n")
-
-    if not os.path.isdir(outdir):
-        os.mkdir(outdir)
     
     outNames = []
     for url in orbUrls:
@@ -172,6 +170,7 @@ def check_aux_cal(dir_path):
         print(f"The directory {dir_path} exists but does not have more than 80 files ending in 'SAFE'.")
         return False
     
+
 def get_download_links(base_url, num_pages):
     all_links = []
     for page in range(1, num_pages + 1):
@@ -228,6 +227,7 @@ def dlAuxCal(aux_cal_out_dir):
     
             # Remove the zip file
             os.remove(zip_path)
+
 
 def dlDEM(ps):
     zips = glob.glob(os.path.join(ps.slc_dirname, '*zip'))
