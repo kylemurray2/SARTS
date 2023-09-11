@@ -1,10 +1,10 @@
 #________________________Required to search for data______________________________________
-path           :    # '###'
-fl             :    #'Ascending' or 'Descending
+path           :    # 124
+fl             :    # Ascending or Descending
 bounds         :    #'minlat,maxlat,minlon,maxlon'  # it won't use bursts outside of this area
 poly           : 
 swath_num      :    #default:'1 2 3'
-reference_date :    # YYYYMMDD default:None
+reference_date :    # YYYYMMDD default:
 #__________________________________________________________________________
 #________________________Optional to search for data______________________________________
 start        : '2014-01-01T00:00:00Z'    #'2010-05-01T00:00:00Z'
@@ -48,13 +48,13 @@ max_comp    : 32
 defo_max    : 0
 
 # FOR ISCE STACK PROCESSOR_________________________________________________
-orbit_dirname           : '/d/S1/orbs'
-aux_dirname             : '/d/S1/aux/'
+orbit_dirname           : './orbits'
+aux_dirname             : './aux_cal/'
 work_dir                : './'
 exclude_dates           : None #default:None
 include_dates           : None #default:None
-polarization            : 'vv' #default:'vv'
-coregistration          : 'NESD' #default:'NESD'
+polarization            : vv #default:vv
+coregistration          : NESD #default:NESD
 virtualMerge            : False #default:None
 useGPU                  : False # default:False
 numProcess              : auto # either set an integer, or auto to use all available cpus
@@ -65,10 +65,10 @@ filtStrength            : '0.1'
 esdCoherenceThreshold   : '0.85'
 num_connections         : '1'
 num_overlap_connections : '3'
-workflow                : 'slc' #default:'interferogram'
+workflow                : slc #default:'interferogram'
 text_cmd                : ''
 snrThreshold            : '10'
-unwMethod               : 'snaphu'
+unwMethod               : snaphu
 rmFilter                : False
 param_ion               : None
 num_connections_ion     : '3'

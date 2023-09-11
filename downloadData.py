@@ -77,7 +77,7 @@ def dlOrbs(gran,outdir):
             except Exception as e:
                 print(f"An exception occurred: {e}")
 
-
+    np.save('./Npy/orbUrls.npy',orbUrls)
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
     
@@ -109,7 +109,16 @@ def dlOrbs(gran,outdir):
 
 
 def dl(url,outname):
-    response = requests.get(url,stream=True,allow_redirects=True)
+    
+    # Parse .netrc...This shouldn't be necessary, should change in future
+    homeDir = os.path.expanduser("~")
+    with open(os.path.join(homeDir,'.netrc'), 'r') as f:
+        lines = f.readlines()
+    uname = lines[1].split()[1]
+    pword = lines[2].split()[1]
+    #______________________________________
+    
+    response = requests.get(url,auth=(uname, pword),stream=True,allow_redirects=True)
     
     # Open the local file for writing
     with open(outname, 'wb') as file:
@@ -175,10 +184,11 @@ def get_download_links(base_url, num_pages):
             print(f"Failed to fetch page {page}")
     return all_links
     
+
 def dlAuxCal(aux_cal_out_dir):
-   
-    
-   
+    '''
+    Download aux_cal files from ESA website. 
+    '''
     if not os.path.isdir(aux_cal_out_dir):
         print('did not find aux_cal directory. Creating new one, and downloading files.')
         os.mkdir(aux_cal_out_dir)
@@ -286,9 +296,9 @@ def main(inps):
         dlOrbs(gran,ps.orbit_dirname)
     
     # Check if aux_cal files exist:
-    result = check_aux_cal(ps.aux_cal)
+    result = check_aux_cal(ps.aux_dirname)
     if not result:
-        dlAuxCal(ps.aux_cal)
+        dlAuxCal(ps.aux_dirname)
 
     if inps.dlSlc_flag:
         # Check for current SLCs and remove any bad ones

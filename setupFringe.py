@@ -127,7 +127,7 @@ def main(inps):
         print('choose valid networkType in ps.networkType')
     
     print(networkObj.pairsDates)
-    for pair in networkObj.pairsDates:
+    # for pair in networkObj.pairsDates:
         # print(pair)
     print(len(networkObj.pairsDates) + ' pairs')
 
