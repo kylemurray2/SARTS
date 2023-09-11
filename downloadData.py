@@ -77,7 +77,10 @@ def dlOrbs(gran,outdir):
             except Exception as e:
                 print(f"An exception occurred: {e}")
 
-    np.save('./Npy/orbUrls.npy',orbUrls)
+    with open('orbits/orbUrls.txt', 'w') as file:
+        for item in orbUrls:
+            file.write(f"{item}\n")
+
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
     
