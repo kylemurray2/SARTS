@@ -48,8 +48,8 @@ max_comp    : 32
 defo_max    : 0
 
 # FOR ISCE STACK PROCESSOR_________________________________________________
-orbit_dirname           : './orbits'
-aux_dirname             : './aux_cal/'
+orbit_dirname           : '/d/S1/orbs'
+aux_dirname             : '/d/S1/aux/'
 work_dir                : './'
 exclude_dates           : None #default:None
 include_dates           : None #default:None

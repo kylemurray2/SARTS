@@ -18,6 +18,7 @@ from stackSentinel import sentinelSLC
 from SARTS import asfQuery, getDEM, setupStack, config
 import concurrent.futures
 import requests
+import zipfile,re
 
 
 def cmdLineParser():
@@ -39,8 +40,25 @@ def searchData(ps):
     slcUrls, gran, _,_ = asfQuery.getGran(ps.path, ps.start, ps.end, ps.sat, ps.bounds, ps.poly)
     return slcUrls, gran
 
+# url = 'https://datapool.asf.alaska.edu/SLC/SA/S1B_IW_SLC__1SDV_20211218T043052_20211218T043119_030075_039745_9DF5.zip'
+# url = 'https://datapool.asf.alaska.edu/SLC/SA/S1A_IW_SLC__1SDV_20221226T163241_20221226T163300_046505_059280_1BDE.zip'
 
-def dlOrbs(gran,ps):
+
+
+def checkSizes(slcUrls,ps):
+    bad= []
+    for url in slcUrls:
+        with requests.get(url, stream=True) as response:
+            file_size_remote = int(response.headers['Content-Length'])
+            
+        fn = ps.slc_dirname + url.split('/')[-1]
+        local_file_size = os.path.getsize(fn)
+        if file_size_remote != local_file_size:
+            print('bad file ' + url)
+            bad.append(url)
+    
+    
+def dlOrbs(gran,outdir):
     nproc = int(os.cpu_count())
 
     # Make directories and download the slcs and orbits and move them to directories
@@ -59,15 +77,13 @@ def dlOrbs(gran,ps):
             except Exception as e:
                 print(f"An exception occurred: {e}")
 
-    if not os.path.isdir(ps.slc_dirname):
-        os.mkdir(ps.slc_dirname)
-    if not os.path.isdir('orbits'):
-        os.mkdir('orbits')
 
+    if not os.path.isdir(outdir):
+        os.mkdir(outdir)
     
     outNames = []
     for url in orbUrls:
-        outNames.append(os.path.join('orbits',url.split('/')[-1]))
+        outNames.append(os.path.join(outdir,url.split('/')[-1]))
 
     # Download urls in parallel and in chunks
     with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
@@ -102,21 +118,103 @@ def dl(url,outname):
             file.write(data)
  
 
-def dlSlc(slcUrls, gran,ps):
+def dlSlc(slcUrls, gran,outdir):
 
     # Create a list of file path/names
     outNames = []
+    dlSLCs = []
     for ii in range(len(gran)):
-        fname = os.path.join(ps.slc_dirname, gran[ii] + '.zip')
+        fname = os.path.join(outdir, gran[ii] + '.zip')
         if not os.path.isfile(fname):
-            outNames.append(os.path.join(ps.slc_dirname, gran[ii] + '.zip'))
-
+            outNames.append(os.path.join(outdir, gran[ii] + '.zip'))
+            dlSLCs.append(slcUrls[ii])
+            
+    if not os.path.isdir(outdir):
+        os.mkdir(outdir)
+        
     nproc = int(os.cpu_count())
     # Download urls in parallel and in chunks
+    
+    print('Downloading the following files:')
+    print(dlSLCs)
+    
     with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
-        futures = [executor.submit(dl, url, outName) for url, outName in zip(slcUrls, outNames)]
+        futures = [executor.submit(dl, url, outName) for url, outName in zip(dlSLCs, outNames)]
         concurrent.futures.wait(futures)
 
+
+def check_aux_cal(dir_path):
+    # Check if directory exists
+    if not os.path.exists(dir_path):
+        print(f"The directory {dir_path} does not exist.")
+        return False
+
+    # Count the number of files that end with 'SAFE'
+    safe_files_count = sum(1 for filename in os.listdir(dir_path) if filename.endswith('SAFE'))
+
+    # Check if the directory has more than 80 such files
+    if safe_files_count > 80:
+        print(f"The directory {dir_path} exists and has more than 80 files ending in 'SAFE'.")
+        return True
+    else:
+        print(f"The directory {dir_path} exists but does not have more than 80 files ending in 'SAFE'.")
+        return False
+    
+def get_download_links(base_url, num_pages):
+    all_links = []
+    for page in range(1, num_pages + 1):
+        url = f"{base_url}?page={page}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            # Using regular expression to find all download links
+            download_links = re.findall(r'href="(/download/[^"]+)', response.text)
+            # Construct the full URLs
+            full_urls = [f"https://sar-mpc.eu{link}" for link in download_links]
+            all_links.extend(full_urls)
+        else:
+            print(f"Failed to fetch page {page}")
+    return all_links
+    
+def dlAuxCal(aux_cal_out_dir):
+   
+    
+   
+    if not os.path.isdir(aux_cal_out_dir):
+        print('did not find aux_cal directory. Creating new one, and downloading files.')
+        os.mkdir(aux_cal_out_dir)
+        
+    # Base URL and number of pages to scrape
+    base_url = "https://sar-mpc.eu/adf/aux_cal/"
+    num_pages = 5
+    
+    download_links = get_download_links(base_url, num_pages)
+    
+    # aux_cal_out_dir = '/d/S1/aux'
+    
+    for url in download_links:
+        response = requests.head(url)
+        location = response.headers['Location']
+        outname = location.split('/')[-1].split('?')[0]
+        outFile = os.path.join(aux_cal_out_dir, outname)
+        dl(location,outFile)
+        
+    # Loop through each file in the directory
+    for filename in os.listdir(aux_cal_out_dir):
+        if filename.endswith('.zip'):
+            # Construct the full path of the zip file and the folder to unzip to
+            zip_path = os.path.join(aux_cal_out_dir, filename)
+            unzip_dir = os.path.join(aux_cal_out_dir, filename[:-4])  # Removes '.zip'
+    
+            # Create a new directory to unzip files into
+            if not os.path.exists(unzip_dir):
+                os.makedirs(unzip_dir)
+    
+            # Unzip the zip file
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                zip_ref.extractall(unzip_dir)
+    
+            # Remove the zip file
+            os.remove(zip_path)
 
 def dlDEM(ps):
     zips = glob.glob(os.path.join(ps.slc_dirname, '*zip'))
@@ -185,7 +283,12 @@ def main(inps):
 
     if inps.dlOrbs_flag:
         print('Downloading orbits')
-        dlOrbs(gran,ps)
+        dlOrbs(gran,ps.orbit_dirname)
+    
+    # Check if aux_cal files exist:
+    result = check_aux_cal(ps.aux_cal)
+    if not result:
+        dlAuxCal(ps.aux_cal)
 
     if inps.dlSlc_flag:
         # Check for current SLCs and remove any bad ones
@@ -193,7 +296,7 @@ def main(inps):
         if len(zips)>0:
             flag = setupStack.checkSLC(ps)
 
-        dlSlc(slcUrls, gran,ps)
+        dlSlc(slcUrls, gran, ps.slc_dirname)
 
     demBounds, DEM = dlDEM(ps)
     ps.dem_bounds = demBounds  # Get the DEM and define dem location
@@ -205,6 +308,12 @@ if __name__ == '__main__':
     '''
     Main driver.
     '''
+    # For debugging
+    inps = argparse.Namespace()
+    inps.searchData_flag = True
+    inps.dlSlc_flag = True
+    inps.dlOrbs_flag = True
+    inps.get_srtm = False
 
     inps = cmdLineParser()
     main(inps)
