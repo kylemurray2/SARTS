@@ -1,4 +1,4 @@
-Wrapper for making PS/DS InSAR time series.
+Wrapper for making PS/DS InSAR time series. For Linux Ubuntu
 
 Must first install:
 -isce2
@@ -49,7 +49,9 @@ Workflow:
 
     runISCE.py
 
-    This will likely take multiple days to run.  You can check progress by looking at logFiles/* files. 
+    This will likely take multiple days to run.  You can check progress by looking at logFiles/runlog_# files. 
+    For example, you can watch the output of runlog_1 using:
+        watch -n 1 tail -n 30 logFiles/runlog_1
 
 6. If step 5 completed without errors, check that merged/SLC/*/*full has all of the full SLCs.  
 
