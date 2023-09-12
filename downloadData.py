@@ -20,6 +20,8 @@ import concurrent.futures
 import requests
 import zipfile,re
 
+nproc = int(os.cpu_count())
+
 
 def cmdLineParser():
     '''
@@ -54,10 +56,29 @@ def checkSizes(slcUrls,ps):
         if file_size_remote != local_file_size:
             print('bad file ' + url)
             bad.append(url)
+
+
+def dl(url,outname):
     
+    # Parse .netrc...This shouldn't be necessary, should change in future
+    # homeDir = os.path.expanduser("~")
+    # with open(os.path.join(homeDir,'.netrc'), 'r') as f:
+    #     lines = f.readlines()
+    # uname = lines[1].split()[1]
+    # pword = lines[2].split()[1]
+    #,auth=(uname, pword)
+    #______________________________________
+    
+    response = requests.get(url,stream=True,allow_redirects=True)
+    
+    # Open the local file for writing
+    with open(outname, 'wb') as file:
+        # Iterate through the content and write to the file
+        for data in response.iter_content(chunk_size=int(2**14)):
+            file.write(data)
+ 
     
 def dlOrbs(gran,outdir):
-    nproc = int(os.cpu_count())
 
     # Make directories and download the slcs and orbits and move them to directories
     # orbUrls = [asfQuery.get_orbit_url(g) for g in gran]
@@ -66,7 +87,7 @@ def dlOrbs(gran,outdir):
     orbUrls = []
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
-        futures = [executor.submit(asfQuery.get_orbit_url, g) for g in gran[0:10]]
+        futures = [executor.submit(asfQuery.get_orbit_url, g) for g in gran]
     
         for future in concurrent.futures.as_completed(futures):
             try:
@@ -82,13 +103,20 @@ def dlOrbs(gran,outdir):
         for item in orbUrls:
             file.write(f"{item}\n")
     
+
     outNames = []
+    dlorbs = []
     for url in orbUrls:
-        outNames.append(os.path.join(outdir,url.split('/')[-1]))
+        fname = os.path.join(outdir,url.split('/')[-1])
+        if not os.path.isfile(fname):
+            outNames.append(fname)
+            dlorbs.append(url)
+        else:
+            print('already exists ' + fname)
 
     # Download urls in parallel and in chunks
     with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
-        futures = [executor.submit(dl, url, outName) for url, outName in zip(orbUrls, outNames)]
+        futures = [executor.submit(dl, url, outName) for url, outName in zip(dlorbs, outNames)]
         concurrent.futures.wait(futures)
 
     # Or do it in series with wget
@@ -109,24 +137,7 @@ def dlOrbs(gran,outdir):
 #             os.system(f'curl -o {fname} -C - {url}')  # Downloads the zip SLC files
 
 
-def dl(url,outname):
-    
-    # Parse .netrc...This shouldn't be necessary, should change in future
-    homeDir = os.path.expanduser("~")
-    with open(os.path.join(homeDir,'.netrc'), 'r') as f:
-        lines = f.readlines()
-    uname = lines[1].split()[1]
-    pword = lines[2].split()[1]
-    #______________________________________
-    
-    response = requests.get(url,auth=(uname, pword),stream=True,allow_redirects=True)
-    
-    # Open the local file for writing
-    with open(outname, 'wb') as file:
-        # Iterate through the content and write to the file
-        for data in response.iter_content(chunk_size=int(2**14)):
-            file.write(data)
- 
+
 
 def dlSlc(slcUrls, gran,outdir):
 
@@ -142,7 +153,6 @@ def dlSlc(slcUrls, gran,outdir):
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
         
-    nproc = int(os.cpu_count())
     # Download urls in parallel and in chunks
     
     print('Downloading the following files:')
@@ -202,13 +212,20 @@ def dlAuxCal(aux_cal_out_dir):
     download_links = get_download_links(base_url, num_pages)
     
     # aux_cal_out_dir = '/d/S1/aux'
-    
+    auxUrls = []
+    outNames = []
     for url in download_links:
         response = requests.head(url)
         location = response.headers['Location']
         outname = location.split('/')[-1].split('?')[0]
         outFile = os.path.join(aux_cal_out_dir, outname)
-        dl(location,outFile)
+        outNames.append(outFile)
+        auxUrls.append(location)
+    
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
+        futures = [executor.submit(dl, url, outName) for url, outName in zip(auxUrls, outNames)]
+        concurrent.futures.wait(futures)
         
     # Loop through each file in the directory
     for filename in os.listdir(aux_cal_out_dir):
@@ -296,12 +313,12 @@ def main(inps):
 
     if inps.dlOrbs_flag:
         print('Downloading orbits')
-        dlOrbs(gran,ps.orbit_dirname)
+        # dlOrbs(gran,ps.orbit_dirname)
     
-        # # Check if aux_cal files exist:
-        # result = check_aux_cal(ps.aux_dirname)
-        # if not result:
-        #     dlAuxCal(ps.aux_dirname)
+        # Check if aux_cal files exist:
+        result = check_aux_cal(ps.aux_dirname)
+        if not result:
+            dlAuxCal(ps.aux_dirname)
 
     if inps.dlSlc_flag:
         # Check for current SLCs and remove any bad ones
