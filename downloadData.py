@@ -313,7 +313,7 @@ def main(inps):
 
     if inps.dlOrbs_flag:
         print('Downloading orbits')
-        # dlOrbs(gran,ps.orbit_dirname)
+        dlOrbs(gran,ps.orbit_dirname)
     
         # Check if aux_cal files exist:
         result = check_aux_cal(ps.aux_dirname)
