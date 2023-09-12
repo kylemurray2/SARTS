@@ -98,11 +98,7 @@ def dlOrbs(gran,outdir):
     
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
-
-    with open('orbits/orbUrls.txt', 'w') as file:
-        for item in orbUrls:
-            file.write(f"{item}\n")
-    
+  
 
     outNames = []
     dlorbs = []
