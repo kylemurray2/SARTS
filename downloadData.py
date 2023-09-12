@@ -87,7 +87,7 @@ def dlOrbs(gran,outdir):
     orbUrls = []
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
-        futures = [executor.submit(asfQuery.get_orbit_url, g) for g in gran[0:10]]
+        futures = [executor.submit(asfQuery.get_orbit_url, g) for g in gran]
 
         for future in concurrent.futures.as_completed(futures):
             print(future.result())
