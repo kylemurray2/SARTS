@@ -100,6 +100,8 @@ def dlOrbs(gran,outdir):
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
 
+    if not os.path.isdir('./orbits'):
+        os.system('ln -s ' + outdir + ' ./')
 
     outNames = []
     dlorbs = []

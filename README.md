@@ -1,11 +1,9 @@
 Wrapper for making PS/DS InSAR time series.
 
-Create Conda library with docs/isce_fringe.yml file.
-conda env create -f docs/isce_fringe.yml
-
 Must first install:
 -isce2
 -FRINGE (forked version from kylemurray2/)
+see docs/installNotes.sh for all commands needed to do these installs. 
 
 Workflow:
 1. Copy the localParams_template.py to localParams.py in your working directory.
@@ -13,7 +11,14 @@ Workflow:
 2. Edit that file with all of the settings you need, like bounding lat/lon, etc.
 
 3. Download SLCS and Orbits and DEM:
-    downloadData.py
+    downloadData.py -sdo
+
+    optional arguments:
+    -h, --help            show this help message and exit
+    -s, --search-data     Search ASF for data and output to out.csv (default: False)
+    -d, --download-slc    download SLCs from ASF (default: False)
+    -o, --download-orbits  download orbit files (default: False)
+    -srtm, --get-srtm     Use SRTM dem instead of copernicus (default: False)
 
     *Note: You need an account with Earthdata for this script to work. Make an account here:
     https://urs.earthdata.nasa.gov/
@@ -34,16 +39,34 @@ Workflow:
 
 7. Add the crop bounds to localParams.py
 
-
 8. Setup Fringe.
-    setupFringe.py
+    setupFringe.py -dcr
 
     This will crop the geometry files, do the watermask, and save some stuff
     to the ps namespace.  
+
+    -h, --help        show this help message and exit
+    -d, --downlook    Downlook geometry files. (default: False)
+    -c, --crop        Crop geometry files. (default: False)
+    -r, --replace     Overwrite cropped/downlooked geometry files (default: False)
+    -f, --fix-images  Fix file path in xml files (use if files were moved to different directory)
+    -p, --plot-off    Turn plotting off (default: True)
+
 
 9. Run Fringe
     runFringe.py
     This does the PS_DS analysis and should output Fringe/adjusted_wrapped_DS/*slc
 
 10. Make interferograms, downlook, coherence, filter, and unwrap
-    ifgs.py
+    ifgs_fringe.py -dum
+
+    optional arguments:
+    -h, --help            show this help message and exit
+    -d, --downlook        Downlook interferograms (default: True)
+    -u, --unwrap          Unwrap interferograms (default: True)
+    -m, --make-ifgs       Make the interferograms (default: True)
+    -n NUM_PROCESSES, --nproc NUM_PROCESSES
+                            Number of parallel processes. Use 1 for no parallelization (default: 5)
+
+
+11. Recommended to use MintPy to estimate the time series and velocities. MintPy can use the unwrapped ifgs and geom_files we created. 
