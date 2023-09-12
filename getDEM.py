@@ -10,7 +10,7 @@ directory called '~/.otkey' containing just the key on the first line.
 
 @author: km
 """
-import os, requests
+import os, requests, sys
 
 def getDEM(bounds,demtype='COP30',apiKey=None, srtm=False):
     '''
@@ -31,8 +31,13 @@ def getDEM(bounds,demtype='COP30',apiKey=None, srtm=False):
     else:
         if apiKey == None:
             print("Didn't inlcude API key. Reading the file ~/.otkey for open topography API key...")
-            with open(home_dir + '/.otkey') as f:
-                apiKey = f.readline().rstrip()
+            
+            if os.path.isfile(home_dir + '/.otkey'):
+                with open(home_dir + '/.otkey') as f:
+                    apiKey = f.readline().rstrip()
+            else:
+                print('No .otkey file found. Include API key and try again.')
+                sys.exit(1)
         
         baseurl = "https://portal.opentopography.org/API/globaldem?"
         
