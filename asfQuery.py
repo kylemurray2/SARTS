@@ -81,62 +81,6 @@ def getGran(path, start, end, sat, bounds, poly):
     return (slcUrls, gran,dates,r)
 
 
-# def fetch_orbit(granuleName, base_url):
-#     sat = granuleName[:3]
-#     date = granuleName[17:25]
-#     print(f"Retrieving precise orbit URL for {sat}, {date}")
-
-#     try:
-#         r = requests.get(base_url, stream=True)
-#         r.raise_for_status()
-#     except requests.RequestException as e:
-#         print(f"Failed to fetch data: {e}")
-#         return None
-
-#     orbits = html.fromstring(r.content).xpath('//a/@href')
-#     return find_matching_orbit(orbits, sat, date)
-
-
-# def find_matching_orbit(orbits, sat, date):
-#     df = pd.DataFrame({'orbit': orbits})
-#     filtered_orbits = df[df['orbit'].str.startswith(sat)].copy()
-#     previous_day = pd.to_datetime(date) - timedelta(days=1)
-#     previous_day_str = previous_day.strftime('%Y%m%d')
-
-#     filtered_orbits['startTime'] = filtered_orbits['orbit'].str[42:50]
-#     matched_orbit = filtered_orbits[filtered_orbits['startTime'] == previous_day_str]['orbit'].values
-
-#     if matched_orbit:
-#         return matched_orbit[0]
-#     else:
-#         print(f"No matching orbit found for {sat} on {previous_day_str}")
-#         return None
-
-# def get_orbit_url(granuleName):
-#     """Retrieve precise orbit file for a specific Sentinel-1 granule."""
-
-#     precise_url = 'https://s1qc.asf.alaska.edu/aux_poeorb'
-#     resorb_url = 'https://s1qc.asf.alaska.edu/aux_resorb'
-
-#     matched_orbit = fetch_orbit(granuleName, precise_url)
-
-#     if matched_orbit:
-#         return f"{precise_url}/{matched_orbit}"
-#     else:
-#         print('Using resorb for this date (it is probably too recent).')
-#         matched_orbit = fetch_orbit(granuleName, resorb_url)
-
-#         if matched_orbit:
-#             os.system('mv ./orbits/2*/*EOF ./orbits/')
-#             return f"{resorb_url}/{matched_orbit}"
-
-#     return None
-
-
-
-
-
-
 def get_orbit_url(granuleName):
     """Retrieve precise orbit file for a specific Sentinel-1 granule.
     Precise orbits available ~3 weeks after aquisition.
