@@ -35,14 +35,13 @@ import os
 import glob
 from matplotlib import pyplot as plt
 from osgeo import gdal
-from PyPS2 import util
 import argparse
 import sequential_PL 
 import tops2vrt
 import nmap
 import adjustMiniStacks
 import ampdispersion
-from SARTS import config
+from SARTS import config,util
 
 ps = config.getPS()
 inps = argparse.Namespace()
