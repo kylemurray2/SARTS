@@ -13,7 +13,7 @@ import os
 from osgeo import gdal
 from matplotlib import pyplot as plt
 from isce.components import isceobj
-from mintpy.utils import writefile
+# from mintpy.utils import writefile
 import argparse
 
 
@@ -79,7 +79,7 @@ def convert_land_cover(fileName, plot_flag=False):
         'LENGTH': LCimage.shape[0],
         'FILE_TYPE': 'landCover'
     }
-    writefile.write(LCimage, out_file=lc_fn, metadata=atr)
+    # writefile.write(LCimage, out_file=lc_fn, metadata=atr)
     
     waterMask = np.zeros(cropped.shape, dtype=np.uint8)
     waterMask[cropped != 22] = 1

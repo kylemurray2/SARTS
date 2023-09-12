@@ -50,7 +50,7 @@ Workflow:
     runISCE.py
 
     This will likely take multiple days to run.  You can check progress by looking at logFiles/runlog_# files. 
-    For example, you can watch the output of runlog_1 using:
+    To monitor, you can watch the output of runlog_1 for example using:
         watch -n 1 tail -n 30 logFiles/runlog_1
 
 6. If step 5 completed without errors, check that merged/SLC/*/*full has all of the full SLCs.  
