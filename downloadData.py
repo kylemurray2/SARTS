@@ -332,7 +332,8 @@ def main(inps):
     ps.dem = DEM
     np.save('ps.npy', ps)
 
-
+    print('Next step is setupStack.py')
+    
 if __name__ == '__main__':
     '''
     Main driver.

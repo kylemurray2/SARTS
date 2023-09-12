@@ -17,12 +17,14 @@ creates:
 
 import os
 from isce.applications import looks
+from isce.components import isceobj
 import FilterAndCoherence
 import integratePS
 import multiprocessing
 from SARTS import unwrap, config
 import argparse
-
+from osgeo import gdal
+import numpy as np
 
 def cmdLineParser():
     '''
@@ -35,8 +37,32 @@ def cmdLineParser():
     parser.add_argument('-u', '--unwrap', action='store_true', dest='unwrap', default=True,help='Unwrap interferograms')
     parser.add_argument('-m', '--make-ifgs', action='store_true', dest='makeIfgs', default=True,help='Make the interferograms')
     parser.add_argument('-n', '--nproc', type=int, dest='num_processes', default=5, help='Number of parallel processes. Use 1 for no parallelization')
+    parser.add_argument('-f', '--noFringe', action='store_false', dest='doFringe', help='Use this flag if you are not using Fringe psds.')
 
     return parser.parse_args()
+
+
+# Make ifgs from normal SLCs
+def makeIfg(slc1_fn,slc2_fn,ifg_fn,ps):
+    ds1 = gdal.Open(slc1_fn)
+    ds2 = gdal.Open(slc2_fn)
+    slc1 = ds1.GetVirtualMemArray()[ps.cropymin:ps.cropymax,ps.cropxmin:ps.cropxmax]
+    slc2 = ds2.GetVirtualMemArray()[ps.cropymin:ps.cropymax,ps.cropxmin:ps.cropxmax]
+    ifg = np.multiply(slc1,np.conj(slc2))
+    
+    out = isceobj.createIntImage() # Copy the interferogram image from before
+    out.dataType = 'CFLOAT'
+    out.filename = ifg_fn
+    out.width = ifg.shape[1]
+    out.length = ifg.shape[0]
+    out.dump(out.filename + '.xml') # Write out xml
+    fid=open(out.filename,"wb+")
+    fid.write(ifg)
+    out.renderHdr()
+    out.renderVRT()  
+    fid.close()
+    
+    return ifg
 
 
 def downlook(pair,ps):
@@ -75,38 +101,63 @@ def unwrapsnaphu(pair,ps):
 def main(inps):
     ps = config.getPS()
     
-    fringeDir = './Fringe/'
-    
     ps.azlooks      = int(ps.alks)
     ps.rglooks      = int(ps.rlks)
-    
-    ps.intdir  = fringeDir + 'PS_DS/' + ps.networkType
-    if ps.sensor=='ALOS':
-        ps.slcdir  = fringeDir + 'PhaseLink'
-        ps.dsStackDir = fringeDir + 'PhaseLink'
-    
-    else:
-        ps.slcdir  = fringeDir + 'adjusted_wrapped_DS'
-        ps.dsStackDir = fringeDir + 'adjusted_wrapped_DS'
-    
-    ps.slcStack       = fringeDir + 'coreg_stack/slcs_base.vrt'
-    ps.tcorrFile      = fringeDir + 'tcorrMean.bin'
-    ps.psPixelsFile   = fringeDir + 'ampDispersion/ps_pixels'
-    ps.outDir         = fringeDir + 'PS_DS/' + ps.networkType
     ps.coregSlcDir    = './merged/SLC'
     ps.pairs          = ps.pairs
     ps.unwrapMethod   = None
     
+    if inps.doFringe:
+        fringeDir = './Fringe/'
+        ps.intdir  = fringeDir + 'PS_DS/' + ps.networkType
+        if ps.sensor=='ALOS':
+            ps.slcdir  = fringeDir + 'PhaseLink'
+            ps.dsStackDir = fringeDir + 'PhaseLink'
+        
+        else:
+            ps.slcdir  = fringeDir + 'adjusted_wrapped_DS'
+            ps.dsStackDir = fringeDir + 'adjusted_wrapped_DS'
+        ps.slcStack       = fringeDir + 'coreg_stack/slcs_base.vrt'
+        ps.tcorrFile      = fringeDir + 'tcorrMean.bin'
+        ps.psPixelsFile   = fringeDir + 'ampDispersion/ps_pixels'
+        ps.outDir     = fringeDir + 'PS_DS/' + ps.networkType
+    else:
+        print("Not using Fringe for IFG formation")
+        ps.outDir     = ps.intdir
     
-    #______________________
-    if inps.makeIfgs:
-        integratePS.main(ps)
+    #__Make IFGS____________________
+    if inps.doFringe:
+        # Make ifgs with fringe
+        if inps.makeIfgs:
+            integratePS.main(ps)
+    else:
+        # Make ifgs without fringe
+        if inps.makeIfgs:
+
+            if not os.path.isdir(ps.intdir):
+                print('Making merged/interferograms directory')
+                os.mkdir(ps.intdir)
+    
+            for ii in range(len(ps.dates)-1):
+                d1 = ps.dates[ii]
+                d2 = ps.dates[ii+1]
+                slc1_fn = os.path.join(ps.slcdir,d1,d1+'.slc.full')
+                slc2_fn = os.path.join(ps.slcdir,d2,d2+'.slc.full')
+                pair = d1 + '_' + d2
+                print('creating ' + pair + '.int')
+                ifg_fn = os.path.join(ps.intdir,pair,pair+'.int')
+                if not os.path.isfile(ifg_fn):
+                    if not os.path.isdir(os.path.join(ps.intdir,pair)):
+                        os.mkdir(os.path.join(ps.intdir,pair))
+                    makeIfg(slc1_fn,slc2_fn,ifg_fn)
+                else:
+                    print(ifg_fn + ' already exists')
     #______________________
     
     if inps.num_processes>1:
         if inps.downlook:
             pool = multiprocessing.Pool(processes=inps.num_processes)
-            pool.map(downlook, ps.pairs,ps)
+            pool.map(downlook, ps.pairs, ps)
             pool.close()
             pool.join()
         

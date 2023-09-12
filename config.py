@@ -24,24 +24,24 @@ def load_yaml_to_namespace(yaml_file):
 
 def getPS():
     
-    # Load the configs from the yaml file
-    yaml_file = 'configs.yaml'
+    # Load the params from the yaml file
+    yaml_file = 'params.yaml'
     
     
     if os.path.isfile(yaml_file):
         print('Parsing yaml file and updating ps namespace...')
-        configs = load_yaml_to_namespace(yaml_file)
+        params = load_yaml_to_namespace(yaml_file)
         # Load the ps namespace
         if os.path.isfile('./ps.npy'):
             ps = np.load('./ps.npy',allow_pickle=True).all()
         else:
-            ps = configs
+            ps = params
         
-        # Update ps with any changes to configs
-        for attr in dir(configs):
+        # Update ps with any changes to params
+        for attr in dir(params):
             if not attr.startswith('_'):
                 # print(attr)
-                setattr(ps, attr, getattr(configs, attr))
+                setattr(ps, attr, getattr(params, attr))
     
 # Set up some additional variables 
         ps.workdir = os.getcwd()
@@ -70,7 +70,7 @@ def getPS():
         ps = localParams.getLocalParams()
     
     else:
-        print('No config file was found.')
+        print('No params file was found.')
         sys.exit(1)
             
     # Save the updated ps namespace 

@@ -8,6 +8,6 @@ setupStack.py
 # Run the files in run_files and output to log files
 runISCE.py
 # Downlook and Crop geom files, replace existing, plot on or off
-setupFringe.py -dcrp
+adjustGeom.py -dcrp
 # Make ifgs, downlook, filter, unwrap
 ifgs_fringe.py -dum -n 8

@@ -64,9 +64,10 @@ def main():
 
     if flag:
         stackSentinel.main(ps)
+        print('Next step is to make the co-registered SLC stack with runISCE.py')
     else:
         print("Failed file check. Make sure all files are fully downloaded or delete corrupt files.")
-
+        
 if __name__ == '__main__':
     '''
     Main driver.

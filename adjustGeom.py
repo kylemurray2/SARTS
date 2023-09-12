@@ -106,9 +106,7 @@ def main(inps):
     networkObj.dateList = dates
     networkObj.baselineDict[ps.reference_date] = 0.0
     
-    
 
-    
     if ps.networkType=='singleMaster':
         networkObj.single_master()
     elif ps.networkType=='delaunay':
