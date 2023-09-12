@@ -11,6 +11,7 @@ Workflow:
 2. Edit that file with all of the settings you need, like bounding lat/lon, etc.
 
 3. Download SLCS and Orbits and DEM:
+
     downloadData.py -sdo
 
     optional arguments:
@@ -30,16 +31,19 @@ Workflow:
     Alternatively, you can get the 30 m SRTM DEM by using the --get-srtm flag. 
 
 4. Check that the SLCs can be opened and then setup the run_files and configs:
+
     setupstack.py
 
 5. Run the stack processor/ISCE:
+
     runISCE.py
 
 6. Check that merged/SLC/*/*full has all of the full SLCs.  
 
 7. Add the crop bounds to localParams.py
 
-8. Setup Fringe.
+8. Setup Fringe:
+
     setupFringe.py -dcr
 
     This will crop the geometry files, do the watermask, and save some stuff
@@ -53,11 +57,13 @@ Workflow:
     -p, --plot-off    Turn plotting off (default: True)
 
 
-9. Run Fringe
+9. Run Fringe:
+
     runFringe.py
     This does the PS_DS analysis and should output Fringe/adjusted_wrapped_DS/*slc
 
-10. Make interferograms, downlook, coherence, filter, and unwrap
+10. Make interferograms, downlook, coherence, filter, and unwrap:
+
     ifgs_fringe.py -dum
 
     optional arguments:
