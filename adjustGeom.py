@@ -124,10 +124,10 @@ def main(inps):
     else:
         print('choose valid networkType in ps.networkType')
     
-    print(networkObj.pairsDates)
+    #print(networkObj.pairsDates)
     # for pair in networkObj.pairsDates:
         # print(pair)
-    print(len(networkObj.pairsDates) + ' pairs')
+    print(str(len(networkObj.pairsDates)) + ' pairs')
 
     dec_year = []
     dn = []
