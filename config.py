@@ -11,6 +11,7 @@ import os
 import yaml
 import argparse
 import sys
+import importlib.util
 
 def load_yaml_to_namespace(yaml_file):
     # Load the YAML file into a dictionary
@@ -22,11 +23,11 @@ def load_yaml_to_namespace(yaml_file):
     
     return namespace
 
-def getPS():
+def getPS(directory='/d/HI/S1/Asc/Oahu'):
     
     # Load the params from the yaml file
-    yaml_file = 'params.yaml'
-    
+    yaml_file = os.path.join(directory,'params.yaml')
+    lp_file = os.path.join(directory,'localParams.py')
     
     if os.path.isfile(yaml_file):
         print('Parsing yaml file and updating ps namespace...')
@@ -64,16 +65,22 @@ def getPS():
             ps.nyl = ps.ny//ps.alks
 
 
-    elif os.path.isfile('localParams.py'):
+    elif os.path.isfile(lp_file):
         print('Using localParams.py...  This will be depricated in future versions. Use a yaml file instead.')
-        import localParams
-        ps = localParams.getLocalParams()
+        # import localParams
+        
+        # Load the module
+        spec = importlib.util.spec_from_file_location('localParams', lp_file)
+        localParams = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(localParams)
+        
+        ps = localParams.getLocalParams(directory)
     
     else:
         print('No params file was found.')
         sys.exit(1)
             
     # Save the updated ps namespace 
-    np.save('ps.npy',ps)
+    np.save(os.path.join(directory, 'ps.npy'),ps)
     
     return ps
