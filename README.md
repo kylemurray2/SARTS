@@ -12,12 +12,13 @@ Workflow:
 
 2. Edit the params.yaml file with all of the settings you need. Spend some extra time double-checking all of these parameters are exactly how you want them before moving on, because most issues will be related to mistakes in this step. 
 
-    -Bounding lat/lon, and a polygon of your area of interst for ASF search
-    -Path number
-    -Swath number(s)
-    -reference date
-    -Downlooking factors (azimuth and range)
-    -Date ranges
+    -Bounding lat/lon, and a polygon of your area of interst for ASF search  
+
+    -Path number  
+    -Swath number(s)  
+    -reference date  
+    -Downlooking factors (azimuth and range)  
+    -Date ranges  
     -Make sure to set the aux_cal and orbit path to a directory where you want to save those.  If they don't exists, they will be created, but it's best to always point to a central source which can be used in future stacks. 
     -Adjust any other parameters before starting.   
 
