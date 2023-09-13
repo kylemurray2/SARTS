@@ -23,7 +23,7 @@ def load_yaml_to_namespace(yaml_file):
     
     return namespace
 
-def getPS(directory='/d/HI/S1/Asc/Oahu'):
+def getPS(directory='.'):
     
     # Load the params from the yaml file
     yaml_file = os.path.join(directory,'params.yaml')
