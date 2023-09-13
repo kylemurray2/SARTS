@@ -10,15 +10,13 @@ Crop and downlook geom files (used in mintpy)
 
 """
 import numpy as np
-import glob
-import os
+import os,sys,glob,argparse
 from datetime import date
 import isce.components.isceobj as isceobj
 from mroipac.looks.Looks import Looks
 from SARTS import util,config
 from Network import Network
 from osgeo import gdal
-import argparse
 
 
 def cmdLineParser():
@@ -44,6 +42,11 @@ def getbl(d):
     bl = ds.GetVirtualMemArray()
     bl = np.nanmean(bl)
     return bl
+
+
+# def checkFiles(ps):
+#     for ii in len
+
 
 def main(inps):
     ps = config.getPS()
@@ -96,12 +99,21 @@ def main(inps):
     geomList = [item for item in geomList if '_lk' not in item]
     
     # Get the acquisition dates
-    flist = glob.glob(ps.slcdir + '/2*')
+    flist = glob.glob( os.path.join(ps.slcdir, '2*'))
     dates = []
     for f in flist:
         dates.append(f[-8:])
     dates.sort()
     
+    ghosts = []
+    for ii in range(len(dates)):
+        date = dates[ii]
+        fn = os.path.join(ps.slcdir,date,date + '.slc.full')
+        if not os.path.isfile(fn):
+            ghosts.append(date)
+            print('Warning: ' + fn + ' was not found.')
+            sys.exit(2)
+
     networkObj = Network()
     networkObj.dateList = dates
     networkObj.baselineDict[ps.reference_date] = 0.0

@@ -111,6 +111,10 @@ def dlOrbs(gran,outdir):
             outNames.append(fname)
             dlorbs.append(url)
         else:
+            if os.path.getsize(fname) < 1024: 
+                print('Overwriting ' + fname + ' because it was too small...')
+                outNames.append(fname)
+                dlorbs.append(url)
             print('already exists ' + fname)
 
     # Download urls in parallel and in chunks
