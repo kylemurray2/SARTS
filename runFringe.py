@@ -104,10 +104,24 @@ tops2vrt.main(inps)
 nmap.main(inps)
 
 sequential_PL.main(inps)
+ds_SLCS = glob.glob(inps.outDir + '/*slc')
+for fn_slc in ds_SLCS:
+    util.write_xml(fn_slc,inps.nx,inps.ny,1,dataType='CFLOAT',scheme='BIP')
+ds_tcorrs= glob.glob(inps.outDir + '/*bin')
+for fn_slc in ds_tcorrs:
+    util.write_xml(fn_slc,inps.nx,inps.ny,1,dataType='CFLOAT',scheme='BIP')
+ds_SLCS = glob.glob('./Fringe/Sequential/Datum_connection/EVD/*slc')
+for fn_slc in ds_SLCS:
+    util.write_xml(fn_slc,inps.nx,inps.ny,1,dataType='CFLOAT',scheme='BIP')
 
 adjustMiniStacks.main(inps)
+slcFns = glob.glob( inps.outDir + '/*slc')
+for  f in slcFns:
+    util.write_xml(f,inps.nx,inps.ny,1,'CFLOAT','BSQ')
 
 ampdispersion.main(inps)
+util.write_xml(inps.outputAD,inps.nx,inps.ny,1,'FLOAT','BSQ')
+util.write_xml(inps.meanampDS,inps.nx,inps.ny,1,'FLOAT','BSQ')
 #______________________________________________________________________________
 
 # if ps.sensor=='ALOS':

@@ -105,6 +105,8 @@ def convert_land_cover(fileName, plot_flag=False):
     waterMask.tofile(outName)
     im2.finalizeImage()
 
+    import imageio
+    imageio.imwrite('watermask.tif',waterMask)
 
 if __name__ == '__main__':
     inps = cmdLineParser()
