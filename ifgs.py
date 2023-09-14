@@ -104,7 +104,7 @@ def main(inps):
     ps.azlooks      = int(ps.alks)
     ps.rglooks      = int(ps.rlks)
     ps.coregSlcDir    = './merged/SLC'
-    ps.pairs          = ps.pairs
+    ps.pairs          = ps.pairs2
     ps.unwrapMethod   = None
     
     if inps.doFringe:

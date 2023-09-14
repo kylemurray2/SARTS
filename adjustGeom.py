@@ -264,6 +264,7 @@ def main(inps):
             fList = glob.glob(ps.mergeddir + '/geom_reference/*crop')
         else:
             fList = glob.glob(ps.mergeddir + '/geom_reference/*rdr')
+
         def downLook(infile, outfile,alks,rlks):
             inImage = isceobj.createImage()
             inImage.load(infile + '.xml')
@@ -274,6 +275,7 @@ def main(inps):
             lkObj.setInputImage(inImage)
             lkObj.setOutputFilename(outfile)
             lkObj.looks()
+            
         for infile in fList:
     
             f = infile.split('/')[-1].split('.')[0]

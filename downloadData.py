@@ -58,17 +58,7 @@ def checkSizes(slcUrls,ps):
             bad.append(url)
 
 
-def dl(url,outname):
-    
-    # Parse .netrc...This shouldn't be necessary, should change in future
-    # homeDir = os.path.expanduser("~")
-    # with open(os.path.join(homeDir,'.netrc'), 'r') as f:
-    #     lines = f.readlines()
-    # uname = lines[1].split()[1]
-    # pword = lines[2].split()[1]
-    #,auth=(uname, pword)
-    #______________________________________
-    
+def dl(url,outname):   
     response = requests.get(url,stream=True,allow_redirects=True)
     
     # Open the local file for writing
@@ -79,10 +69,6 @@ def dl(url,outname):
  
     
 def dlOrbs(gran,outdir):
-
-    # Make directories and download the slcs and orbits and move them to directories
-    # orbUrls = [asfQuery.get_orbit_url(g) for g in gran]
-
     # Create an empty list to store the returned URLs
     orbUrls = []
     
@@ -122,13 +108,37 @@ def dlOrbs(gran,outdir):
         futures = [executor.submit(dl, url, outName) for url, outName in zip(dlorbs, outNames)]
         concurrent.futures.wait(futures)
 
-    # Or do it in series with wget
-    # for url in orbUrls:
-    #     orbit_filename = url[39:]
-    #     if not os.path.isfile(os.path.join('orbits', orbit_filename)):
-    #         print('Downloading orbit ' + orbit_filename)
-    #         os.system(f'wget -P ./orbits -nc -c {url} >> log')  # Downloads the orbit files
+    # Sometimes files don't download the first time, so do the same thing again to check for bad ones:
+    outNames = []
+    dlorbs = []
+    for url in orbUrls:
+        fname = os.path.join(outdir,url.split('/')[-1])
+        if not os.path.isfile(fname):
+            outNames.append(fname)
+            dlorbs.append(url)
+        else:
+            if os.path.getsize(fname) < 1024: 
+                print('Overwriting ' + fname + ' because it was too small...')
+                outNames.append(fname)
+                dlorbs.append(url)
+            else:
+                print('already exists ' + fname)
 
+
+    # do it this time in series with wget
+    for url in dlorbs:
+        orbit_filename = os.path.join(outdir,url.split('/')[-1])
+        print('Downloading orbit ' + orbit_filename)
+        os.system(f'wget -P ./orbits -nc -c {url} >> log')  # Downloads the orbit files
+
+    # Do one last check of the files
+    for url in orbUrls:
+        fname = os.path.join(outdir,url.split('/')[-1])
+        if not os.path.isfile(fname):
+            print('Warning: File does not exist ' + fname)
+        else:
+            if os.path.getsize(fname) < 1024: 
+                print('Warning: ' + fname + ' is too small. Try again.')
 
 # The old way to download slcs (in series with wget or curl)
 # def dlSlc(slcUrls, gran):
@@ -164,6 +174,15 @@ def dlSlc(slcUrls, gran,outdir):
     with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
         futures = [executor.submit(dl, url, outName) for url, outName in zip(dlSLCs, outNames)]
         concurrent.futures.wait(futures)
+
+    # check the files
+    for ii in range(len(gran)):
+        fname = os.path.join(outdir, gran[ii] + '.zip')
+        if not os.path.isfile(fname):
+            print('Warning: File does not exist ' + fname)
+        else:
+            if os.path.getsize(fname) < 2**30: # If it's smaller than 1 Gb
+                print('Warning: ' + fname + ' is too small. Try again.')
 
 
 def check_aux_cal(dir_path):
