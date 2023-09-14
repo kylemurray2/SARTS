@@ -106,8 +106,9 @@ def main(inps):
     dates.sort()
     
     ghosts = []
+    print('searching for ghosts...')
+
     for ii in range(len(dates)):
-        print('searching for ghosts...')
         date = dates[ii]
         fn = os.path.join(ps.slcdir,date,date + '.slc.full')
         if not os.path.isfile(fn):
@@ -115,9 +116,10 @@ def main(inps):
             print('Warning: ' + fn + ' was not found.')
     
     if len(ghosts)>0:
-        sys.exit(2)
+        print('Missing SLCs.  Either processes them or delete the directory in merged/SLC/')
+        sys.exit(1)
 
-        
+
     networkObj = Network()
     networkObj.dateList = dates
     networkObj.baselineDict[ps.reference_date] = 0.0
