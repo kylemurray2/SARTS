@@ -109,15 +109,17 @@ def main(inps):
     print('searching for ghosts...')
 
     for ii in range(len(dates)):
-        date = dates[ii]
-        fn = os.path.join(ps.slcdir,date,date + '.slc.full')
+        da = dates[ii]
+        fn = os.path.join(ps.slcdir,da,da + '.slc.full')
         if not os.path.isfile(fn):
-            ghosts.append(date)
+            ghosts.append(da)
             print('Warning: ' + fn + ' was not found.')
     
     if len(ghosts)>0:
         print('Missing SLCs.  Either processes them or delete the directory in merged/SLC/')
         sys.exit(1)
+    else:
+        print('No missing files found')
 
 
     networkObj = Network()
