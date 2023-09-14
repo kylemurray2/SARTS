@@ -107,13 +107,17 @@ def main(inps):
     
     ghosts = []
     for ii in range(len(dates)):
+        print('searching for ghosts...')
         date = dates[ii]
         fn = os.path.join(ps.slcdir,date,date + '.slc.full')
         if not os.path.isfile(fn):
             ghosts.append(date)
             print('Warning: ' + fn + ' was not found.')
-            sys.exit(2)
+    
+    if len(ghosts)>0:
+        sys.exit(2)
 
+        
     networkObj = Network()
     networkObj.dateList = dates
     networkObj.baselineDict[ps.reference_date] = 0.0
