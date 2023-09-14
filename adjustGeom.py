@@ -234,7 +234,7 @@ def main(inps):
                 if not os.path.isfile(infile+'.crop'):
                     imgi = isceobj.createImage()
                     imgi.load(infile+'.xml')
-                    if infile.split('/')[-1] in ['los.rdr']:
+                    if infile.split('/')[-1] in ['los.rdr.full']:
                         imgi.scheme = 'BSQ'
                         imgi.imageType = 'bsq'
                     # print(imgi.memMap().shape)
@@ -246,7 +246,7 @@ def main(inps):
                     imgo.filename = infile+'.crop'
                     imgo.width  = ps.nx #ps.cropxmax-ps.cropxmin
                     imgo.length = ps.ny #ps.cropymax-ps.cropymin
-                    if infile.split('/')[-1] in ['incLocal.rdr']:
+                    if infile.split('/')[-1] in ['incLocal.rdr.full']:
                         imgo.scheme = 'BSQ'
                     geomIm.tofile(imgo.filename)
                     imgo.dump(imgo.filename+'.xml')
