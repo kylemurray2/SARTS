@@ -65,7 +65,8 @@ def makeIfg(slc1_fn,slc2_fn,ifg_fn,ps):
     return ifg
 
 
-def downlook(pair,ps):
+def downlook(args):
+    pair, ps = args
     # Downlook ifgs
     pairDir         = os.path.join(ps.outDir, pair )
     ps.infile       = os.path.join(pairDir, f"{pair}.int")
@@ -86,7 +87,8 @@ def downlook(pair,ps):
         print(pair + '/' + filt_file_out + ' is already file.')
               
 
-def unwrapsnaphu(pair,ps):  
+def unwrapsnaphu(args):  
+    pair, ps = args
     pairDir =  ps.outDir + '/' + pair 
     if not os.path.isfile(pairDir + '/filt_lk.unw'):
         print(f"Unwrapping {pair}")
@@ -104,7 +106,6 @@ def main(inps):
     ps.azlooks      = int(ps.alks)
     ps.rglooks      = int(ps.rlks)
     ps.coregSlcDir    = './merged/SLC'
-    ps.pairs          = ps.pairs2
     ps.unwrapMethod   = None
     
     if inps.doFringe:
@@ -154,16 +155,20 @@ def main(inps):
                     print(ifg_fn + ' already exists')
     #______________________
     
+
+    args_list = [(pair, ps) for pair in ps.pairs]
+
+
     if inps.num_processes>1:
         if inps.downlook:
             pool = multiprocessing.Pool(processes=inps.num_processes)
-            pool.map(downlook, ps.pairs, ps)
+            pool.map(downlook, args_list)
             pool.close()
             pool.join()
         
         if inps.unwrap:
             pool = multiprocessing.Pool(processes=inps.num_processes)
-            pool.map(unwrapsnaphu, ps.pairs,ps)
+            pool.map(unwrapsnaphu,args_list)
             pool.close()
             pool.join()
         

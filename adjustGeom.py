@@ -190,13 +190,13 @@ def main(inps):
             if inps.plot:
                 plt.plot([decy1,decy2],[bl1,bl2])
 
-    pairs = []
+    pairs_seq = []
     for ii,d in enumerate(dates[0:-1]):
-        pairs.append(dates[ii] + '_' + dates[ii+1])
+        pairs_seq.append(dates[ii] + '_' + dates[ii+1])
     
     
     # Now make pairs2
-    pairs2 = networkObj.pairsDates
+    pairs = networkObj.pairsDates
     nd = len(pairs)
 
     # Get width and length
@@ -426,7 +426,7 @@ def main(inps):
     
     ps.dates =      dates
     ps.pairs =      pairs
-    ps.pairs2 =     pairs2
+    ps.pairs_seq =     pairs_seq
     ps.dec_year =   dec_year
     ps.dn =         dn
     ps.dn0 =        dn0
