@@ -74,19 +74,20 @@ def downlook(args):
     cor_file_out    = os.path.join(pairDir, 'filt_lk.cor')
     filt_file_out   = os.path.join(pairDir, 'filt_lk.int')
 
+    # Downlook
     if not os.path.isfile(ps.outfile):
         print(f"Downlooking {pair}")
         looks.main(ps)
-        
-        # Filter and coherence
-        if not os.path.isfile(filt_file_out):
-            print(f"Filtering {pair}")
-            FilterAndCoherence.runFilter(ps.outfile,filt_file_out,ps.filterStrength)
-        if not os.path.isfile(cor_file_out):
-            print(f"Computing coherence for {pair}")
-            FilterAndCoherence.estCoherence(filt_file_out, cor_file_out)
-    else:
-        print(pair + '/' + filt_file_out + ' is already file.')
+    # Filter
+    if not os.path.isfile(filt_file_out):
+        print(f"Filtering {pair}")
+        FilterAndCoherence.runFilter(ps.outfile,filt_file_out,ps.filterStrength)
+    # coherence
+    if not os.path.isfile(cor_file_out):
+        print(f"Computing coherence for {pair}")
+        FilterAndCoherence.estCoherence(filt_file_out, cor_file_out)
+    # else:
+    #     print(pair + '/' + filt_file_out + ' is already file.')
               
 
 def unwrapsnaphu(args):  
