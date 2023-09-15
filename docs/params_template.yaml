@@ -5,6 +5,7 @@ bounds         :    #'minlat,maxlat,minlon,maxlon'  # it won't use bursts outsid
 poly           : 
 swath_num      :    #default:'1 2 3'
 reference_date :    # YYYYMMDD default:
+
 #__________________________________________________________________________
 #________________________Optional to search for data______________________________________
 start        : '2014-01-01T00:00:00Z'    #'2010-05-01T00:00:00Z'
@@ -14,7 +15,6 @@ point        : None # lon,lat
 frame        : None #'472,473,474,475'   #'####'
 slc_dirname  : './SLCS/'
 lam          : 0.56
-
 
 workdir : os.getcwd() # Use current directory as working directory
   # working directory (should be where merged is)
@@ -29,24 +29,25 @@ cropymin : 0
 cropymax : 0
 cropxmin : 0
 cropxmax : 0
-#__________________________________________________________________________
 
+#__________________________________________________________________________
 # Fringe___________________________________
 waterMask      : True
      # NLCD raster for landcover and watermask
 nlcd_in        : '/d/HI/Landcover/data/hi_oahu_2011_ccap_hr_land_cover20140619.img'
 maxMem         : 80000
 filterFlag     : True
-filterStrength : 0.3
+filterStrength : 0.2
 unwrap         : True
-#__________________________________________________________________________
 
+#__________________________________________________________________________
 # For SNAPHU_______________________________________________________________
 init_method : MCF
 cost_mode   : SMOOTH
 max_comp    : 32
 defo_max    : 0
 
+#__________________________________________________________________________
 # FOR ISCE STACK PROCESSOR_________________________________________________
 orbit_dirname           : './orbits'
 aux_dirname             : './aux_cal/'
