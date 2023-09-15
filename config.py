@@ -56,6 +56,9 @@ def getPS(directory='.'):
             ps.numProcess = os.cpu_count()
             ps.numProcess4topo = int(ps.numProcess/3) 
 
+        ps.swath_num = str(ps.swath_num)
+        ps.reference_date = str(ps.reference_date)
+
         ps.mergeddir= ps.workdir + '/merged'
         ps.intdir   = ps.mergeddir + '/interferograms'
         ps.tsdir    = ps.workdir + '/TS'
