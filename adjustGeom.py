@@ -53,9 +53,13 @@ def main(inps):
 
     if inps.plot:
         import matplotlib.pyplot as plt
+        import logging
+        # Set the logging level for matplotlib to suppress DEBUG messages
+        logging.getLogger('matplotlib').setLevel(logging.INFO)  
         plt.close('all')
     
     if inps.replace:
+        print('replacing files...')
         os.system('rm ./merged/geom_reference/*crop*')
         os.system('rm ./merged/geom_reference/*lk*')
         os.system('rm ./merged/SLC/*/*crop*')
