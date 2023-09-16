@@ -3,30 +3,6 @@
 """
 Created on Mon Jan  9 15:06:09 2023
 
-Reads input from file ./Fringe/params.cfg
-for example:
-    # --bbox/-b  S N W E
-    bounds = 2600 6300 17400 38100
-    maxMem = 100000
-    nx = 20700
-    ny = 3700
-    filterFlag      = True
-    unwrap          = True 
-    filterStrength  = '.4'
-    fixImage        = False  
-    azlooks = 1
-    rglooks = 4
-
-    waterMask = True
-    # NLCD raster for landcover and watermask
-    nlcd_in = /d/HI/Landcover/data/hi_oahu_2011_ccap_hr_land_cover20140619.img 
-    nlcd_tif = /d/HI/Landcover/data/oahu.tif
-
-
-    Run this from Fringe directory
-    Run this before starting spyder: export LD_PRELOAD=/home/km/Software/miniconda3/envs/isce/lib/libmkl_core.so.2:/home/km/Software/miniconda3/envs/isce/lib/libmkl_sequential.so.2:/home/km/Software/miniconda3/envs/isce/lib/libmkl_avx512.so.2:/home/km/Software/miniconda3/envs/isce/lib/libmkl_def.so.2
-
-
 @author: km
 """
 
