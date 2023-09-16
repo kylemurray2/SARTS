@@ -30,6 +30,19 @@ if not os.path.isdir('./logFiles'):
 
 startT = time.time()
 
+
+def append_wait_to_files(file_list):
+    """
+    Append the string "wait" to the end of each file in the provided list.
+    This is needed so each parallel process finishes before the next file is run
+    :param file_list: List of file paths to be processed.
+    """
+    for filename in file_list:
+        with open(filename, 'a') as f:
+            f.write("\nwait\n")
+
+append_wait_to_files(runScripts)
+
 for ii in range(start, stop):
     script_path = runScripts[ii]
     script_name = os.path.basename(script_path)
