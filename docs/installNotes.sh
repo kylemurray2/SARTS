@@ -7,8 +7,11 @@ softwareDir=$HOME/Software
 # First get mamba
 cd $softwareDir
 wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh
-bash Mambaforge-Linux-x86_64.sh
+chmod +x Mambaforge-Linux-x86_64.sh
+PREFIX=$HOME/Software/mambaforge ./Mambaforge-Linux-x86_64.sh -b
 rm Mambaforge-Linux-x86_64.sh
+
+export PATH=$softwareDir/mambaforge/bin:$PATH
 
 # Git SARTS. This has a requirements file we'll use 
 git clone https://github.com/kylemurray2/SARTS.git
@@ -16,7 +19,7 @@ git clone https://github.com/kylemurray2/SARTS.git
 mamba update -n base -c conda-forge mamba
 #conda env create -f $softwareDir/SARTS/docs/requirements.yml
 # use the cloud version if you don't want mdx and spyder
-mamba env create -f $softwareDir/SARTS/docs/requirements_cloud.yml
+mamba env create -f $softwareDir/SARTS/docs/requirements.yml
 
 # Install ISCE-2
 mkdir src
@@ -30,11 +33,10 @@ cmake .. -DCMAKE_INSTALL_PREFIX=$softwareDir/isce2 -DPYTHON_MODULE_DIR=$software
 make -j 16 # to use multiple threads
 make install
 
-#copy the contrib directory from src to the install dir, or just source to src/isce2
-# cp -r $softwareDir/src/isce2/contrib $softwareDir/isce/
 
 
 # Install Fringe
+rm -rf $softwareDir/Fringe
 mkdir $softwareDir/Fringe
 cd $softwareDir/Fringe
 mkdir install build src
@@ -49,17 +51,17 @@ make install
 #__________________________________________________________________________________
 #----------------------------------------------------------------------------------
 softwareDir=$HOME/Software
-# Miniconda
+# mambaforge
 export PATH=$PATH:$softwareDir/mambaforge/bin
 
 # Fringe
 export PATH=$PATH:$softwareDir/Fringe/install/bin
-export LD_PRELOAD=$softwareDir/mambaforge/envs/isce/lib/libmkl_core.so:$softwareDir/mambaforge/envs/isce/lib/libmkl_sequential.so:$softwareDir/mambaforge/envs/isce/lib/libmkl_avx512.so:$softwareDir/mambaforge/envs/isce/lib/libmkl_def.so
+#export LD_PRELOAD=$softwareDir/mambaforge/envs/isce/lib/libmkl_core.so:$softwareDir/mambaforge/envs/isce/lib/libmkl_sequential.so:$softwareDir/mambaforge/envs/isce/lib/libmkl_avx512.so:$softwareDir/mambaforge/envs/isce/lib/libmkl_def.so
 export PYTHONPATH=$PYTHONPATH:$softwareDir/Fringe/install/bin
 export PYTHONPATH=$PYTHONPATH:$softwareDir/Fringe/install/python
 
 # ISCE
-export ISCE_ROOT=$softwareDir/isce2
+export ISCE_ROOT=$softwareDir/isce
 export ISCE_SRC_ROOT=$softwareDir/src/isce2
 export PATH=$PATH:$ISCE_ROOT:$ISCE_ROOT/bin:$ISCE_ROOT/applications
 export PYTHONPATH=$PYTHONPATH:$ISCE_ROOT
@@ -69,8 +71,15 @@ export PYTHONPATH=$PYTHONPATH:$ISCE_SRC_ROOT/contrib/stack/topsStack
 
 # SARTS
 export PATH=$PATH:$softwareDir/SARTS
+export PYTHONPATH=$PYTHONPATH:$softwareDir/SARTS
 
 source activate isce
 
 #----------------------------------------------------------------------------------
 #__________________________________________________________________________________
+
+
+# Potential errors:
+#   ImportError: libgdal.so.31: cannot open shared object file: No such file or directory
+# Solution:
+#   ln -s $softwareDir/mambaforge/envs/isce/lib/libgdal.so.33 $softwareDir/mambaforge/envs/isce/lib/libgdal.so.31

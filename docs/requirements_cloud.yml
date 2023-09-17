@@ -10,7 +10,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python
+  - python==3.10.0
 # For ISCE-2
 #  - isce2
   - git 
@@ -25,7 +25,6 @@ dependencies:
   - scipy 
   - pybind11 
   - shapely
-
 # For compiling isce (if you don't have access to system installed compiler [recommended])
   - gcc_linux-64 
   - gxx_linux-64 
@@ -40,6 +39,7 @@ dependencies:
   - astropy
   - pandas
   - lxml
-#  - mintpy
+  - mintpy
   - opencv
+  - mkl
 

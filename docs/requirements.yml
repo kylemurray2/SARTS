@@ -10,7 +10,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python
+  - python==3.10.0
 # For ISCE-2
 #  - isce2
   - git 
@@ -54,3 +54,4 @@ dependencies:
   - opencv
   - spyder
   - "libblas=*=*mkl"
+  - mkl
