@@ -20,7 +20,7 @@ mamba update -n base -c conda-forge mamba
 #conda env create -f $softwareDir/SARTS/docs/requirements.yml
 # use the cloud version if you don't want mdx and spyder
 mamba env create -f $softwareDir/SARTS/docs/requirements.yml
-
+source activate isce
 
 # Install ISCE-2
 cd $softwareDir
