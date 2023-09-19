@@ -23,6 +23,7 @@ mamba env create -f $softwareDir/SARTS/docs/requirements.yml
 
 
 # Install ISCE-2
+cd $softwareDir
 mkdir src
 cd $softwareDir/src/
 git clone https://github.com/isce-framework/isce2.git
@@ -35,6 +36,7 @@ make install
 
 
 # Install Fringe
+cd $softwareDir
 rm -rf $softwareDir/Fringe
 mkdir $softwareDir/Fringe
 cd $softwareDir/Fringe
