@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # This file contains the commands needed to install isce, fringe, mintpy, and sarts. 
 #   It also contains the environment setup commands
 
@@ -8,23 +10,27 @@ cd $softwareDir
 # Git SARTS. This has a requirements file we'll use 
 # git clone https://github.com/kylemurray2/SARTS.git
 
-# First get mamba
-wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh
-chmod +x Mambaforge-Linux-x86_64.sh
-./Mambaforge-Linux-x86_64.sh -b -p $softwareDir/mambaforge
-rm Mambaforge-Linux-x86_64.sh
+# First get mamba if it doesn't exist
+if [ -d $softwareDir/mambaforge ]; then
+    wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh
+    chmod +x Mambaforge-Linux-x86_64.sh
+    ./Mambaforge-Linux-x86_64.sh -b -p $softwareDir/mambaforge
+    rm Mambaforge-Linux-x86_64.sh
+fi
+
 export PATH=$softwareDir/mambaforge/bin:$PATH
 
-# Make the conda env that will work for isce, fringe, SARTS, and mintpy. Takes awhile..go get a snack
-mamba update -n base -c conda-forge mamba
-#conda env create -f $softwareDir/SARTS/docs/requirements.yml
-# use the cloud version if you don't want mdx and spyder
+# Make the conda env that will work for isce, fringe, SARTS, and mintpy. Takes awhile..
+mamba update -n base -c conda-forge mamba -y
 mamba env create -f $softwareDir/SARTS/docs/requirements.yml
 source activate isce
 
 # Install ISCE-2
 cd $softwareDir
-mkdir src
+mkdir -p src
+if [ -f $softwareDir/src/isce2 ]; then
+    rm -rf $softwareDir/src/isce2
+fi
 cd $softwareDir/src/
 git clone https://github.com/isce-framework/isce2.git
 cd $softwareDir/src/isce2
@@ -37,8 +43,10 @@ make install
 
 # Install Fringe
 cd $softwareDir
-rm -rf $softwareDir/Fringe
-mkdir $softwareDir/Fringe
+if [ -f $softwareDir/Fringe ]; then
+    rm -rf $softwareDir/Fringe
+fi
+mkdir -p $softwareDir/Fringe
 cd $softwareDir/Fringe
 mkdir install build src
 cd src

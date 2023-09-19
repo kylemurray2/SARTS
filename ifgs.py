@@ -121,10 +121,11 @@ def main(inps):
         else:
             ps.slcdir  = fringeDir + 'adjusted_wrapped_DS'
             ps.dsStackDir = fringeDir + 'adjusted_wrapped_DS'
+        
         ps.slcStack       = fringeDir + 'coreg_stack/slcs_base.vrt'
         ps.tcorrFile      = fringeDir + 'tcorrMean.bin'
         ps.psPixelsFile   = fringeDir + 'ampDispersion/ps_pixels'
-        ps.outDir     = fringeDir + 'PS_DS/' + ps.networkType
+        ps.outDir         = fringeDir + 'PS_DS/' + ps.networkType
     else:
         print("Not using Fringe for IFG formation")
         ps.outDir     = ps.intdir

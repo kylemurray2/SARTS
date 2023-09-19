@@ -5,7 +5,7 @@ Created on Fri Aug 11 15:10:53 2023
 
 Download SAR SLCs, Orbit files, and DEM
 
-@author: km
+@author: Kyle Murray
 """
 
 import os
@@ -19,6 +19,7 @@ from SARTS import asfQuery, getDEM, setupStack, config
 import concurrent.futures
 import requests
 import zipfile,re
+
 
 nproc = int(os.cpu_count())
 print('downloading with '  + str(nproc) + ' cpus')
