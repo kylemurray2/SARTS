@@ -11,7 +11,7 @@ cd $softwareDir
 # First get mamba
 wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh
 chmod +x Mambaforge-Linux-x86_64.sh
-PREFIX=$HOME/Software/mambaforge ./Mambaforge-Linux-x86_64.sh -b
+./Mambaforge-Linux-x86_64.sh -b -p $softwareDir/mambaforge
 rm Mambaforge-Linux-x86_64.sh
 export PATH=$softwareDir/mambaforge/bin:$PATH
 
