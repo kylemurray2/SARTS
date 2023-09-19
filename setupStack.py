@@ -64,38 +64,38 @@ def main():
 
     if flag:
         # stackSentinel.main(ps)
-        if os.path.exists(os.path.join(inps.work_dir, 'run_files')):
+        if os.path.exists(os.path.join(ps.work_dir, 'run_files')):
             print('')
             print('**************************')
             print('run_files folder exists.')
-            print(os.path.join(inps.work_dir, 'run_files'), ' already exists.')
+            print(os.path.join(ps.work_dir, 'run_files'), ' already exists.')
             print('Please remove or rename this folder and try again.')
             print('')
             print('**************************')
             sys.exit(1)
 
-        acquisitionDates, stackReferenceDate, secondaryDates, safe_dict, updateStack = stackSentinel.checkCurrentStatus(inps)
+        acquisitionDates, stackReferenceDate, secondaryDates, safe_dict, updateStack = stackSentinel.checkCurrentStatus(ps)
         # selecting pairs for interferograms / correlation / offset workflows
-        pairs = selectNeighborPairs(acquisitionDates, stackReferenceDate, secondaryDates, inps.num_connections, updateStack)
+        pairs = selectNeighborPairs(acquisitionDates, stackReferenceDate, secondaryDates, ps.num_connections, updateStack)
 
         print ('*****************************************')
-        print ('Coregistration method: ', inps.coregistration )
-        print ('Workflow: ', inps.workflow)
+        print ('Coregistration method: ', ps.coregistration )
+        print ('Workflow: ', ps.workflow)
         print ('*****************************************')
 
-        i = slcStack(inps, acquisitionDates, stackReferenceDate, secondaryDates, safe_dict, updateStack, mergeSLC=True)
+        i = slcStack(ps, acquisitionDates, stackReferenceDate, secondaryDates, safe_dict, updateStack, mergeSLC=True)
 
         #Checks presence of ion parameter file. If it exists, do ionosphere estimation.
-        if inps.param_ion is None:
+        if ps.param_ion is None:
             print("Ion parameter file is not specified. Ionospheric estimation will not be done.")
-        elif not os.path.isfile(inps.param_ion):
+        elif not os.path.isfile(ps.param_ion):
             print("Ion parameter file is missing. Ionospheric estimation will not be done.")
         else:
-            dateListIon, pairs_same_starting_ranges_update, pairs_diff_starting_ranges_update, safe_dict = checkCurrentStatusIonosphere(inps)
-            i = ionosphereStack(inps, dateListIon, stackReferenceDate, pairs_same_starting_ranges_update, pairs_diff_starting_ranges_update, safe_dict, i)
+            dateListIon, pairs_same_starting_ranges_update, pairs_diff_starting_ranges_update, safe_dict = checkCurrentStatusIonosphere(ps)
+            i = ionosphereStack(ps, dateListIon, stackReferenceDate, pairs_same_starting_ranges_update, pairs_diff_starting_ranges_update, safe_dict, i)
 
         print('Next step is to make the co-registered SLC stack with runISCE.py')
-        
+
     else:
         print("Failed file check. Make sure all files are fully downloaded or delete corrupt files.")
         
