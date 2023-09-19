@@ -8,11 +8,10 @@ reference_date :    # YYYYMMDD
 
 #__________________________________________________________________________
 #________________________Optional to search for data______________________________________
-start        : 2014-01-01T00:00:00Z    #'2010-05-01T00:00:00Z'
-end          : 2080-01-01T23:59:00Z   #'2020-02-01T23:59:00Z'
+start        : '2014-01-01T00:00:00Z'    #'2010-05-01T00:00:00Z'
+end          : '2080-01-01T23:59:00Z'   #'2020-02-01T23:59:00Z'
 sat          : SENTINEL-1
-point        : None # lon,lat
-frame        : None #'472,473,474,475'   #'####'
+point        :  # lon,lat (Usually leave this blank unless you dont want to use poly)
 slc_dirname  : ./SLCS/
 lam          : 0.56
 
