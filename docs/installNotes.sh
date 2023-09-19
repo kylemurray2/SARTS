@@ -3,16 +3,18 @@
 
 #Define path where you want the software to be located
 softwareDir=$HOME/Software
+cd $softwareDir
+
+# Git SARTS. This has a requirements file we'll use 
+# git clone https://github.com/kylemurray2/SARTS.git
 
 # First get mamba
-cd $softwareDir
 wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh
 chmod +x Mambaforge-Linux-x86_64.sh
 PREFIX=$HOME/Software/mambaforge ./Mambaforge-Linux-x86_64.sh -b
 rm Mambaforge-Linux-x86_64.sh
 export PATH=$softwareDir/mambaforge/bin:$PATH
-# Git SARTS. This has a requirements file we'll use 
-git clone https://github.com/kylemurray2/SARTS.git
+
 # Make the conda env that will work for isce, fringe, SARTS, and mintpy. Takes awhile..go get a snack
 mamba update -n base -c conda-forge mamba
 #conda env create -f $softwareDir/SARTS/docs/requirements.yml
