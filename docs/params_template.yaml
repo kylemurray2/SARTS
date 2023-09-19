@@ -1,19 +1,19 @@
 #________________________Required to search for data______________________________________
 path           :    # 124
 fl             :    # Ascending or Descending
-bounds         :    #'minlat,maxlat,minlon,maxlon'  # it won't use bursts outside of this area
-poly           : 
-swath_num      :    #default:'1 2 3'
-reference_date :    # YYYYMMDD default:
+bounds         :    # 'minlat,maxlat,minlon,maxlon'  # ISCE won't process bursts outside of this area
+poly           :    # POLYGON((lon1 lat1,lon2 lat2,...)) # This is the search area
+swath_num      :    # default:'1 2 3'
+reference_date :    # YYYYMMDD 
 
 #__________________________________________________________________________
 #________________________Optional to search for data______________________________________
-start        : '2014-01-01T00:00:00Z'    #'2010-05-01T00:00:00Z'
-end          : '2080-01-01T23:59:00Z'   #'2020-02-01T23:59:00Z'
-sat          : 'SENTINEL-1'
+start        : 2014-01-01T00:00:00Z    #'2010-05-01T00:00:00Z'
+end          : 2080-01-01T23:59:00Z   #'2020-02-01T23:59:00Z'
+sat          : SENTINEL-1
 point        : None # lon,lat
 frame        : None #'472,473,474,475'   #'####'
-slc_dirname  : './SLCS/'
+slc_dirname  : ./SLCS/
 lam          : 0.56
 
 workdir : os.getcwd() # Use current directory as working directory
@@ -24,7 +24,7 @@ rlks : 4 # number of looks in range
 networkType : sequential3 # sequential1, sequential2, delaunay
 ifgMode     : False # Usually set to false because we are starting with SLCs
 
-crop     : False
+crop     : True
 cropymin : 0
 cropymax : 0
 cropxmin : 0
@@ -34,7 +34,7 @@ cropxmax : 0
 # Fringe___________________________________
 waterMask      : True
      # NLCD raster for landcover and watermask
-nlcd_in        : '/d/HI/Landcover/data/hi_oahu_2011_ccap_hr_land_cover20140619.img'
+nlcd_in        : /d/HI/Landcover/data/hi_maui_2010_ccap_hr_land_cover_20150213.img
 maxMem         : 80000
 filterFlag     : True
 filterStrength : 0.2
@@ -50,7 +50,7 @@ defo_max    : 0
 #__________________________________________________________________________
 # FOR ISCE STACK PROCESSOR_________________________________________________
 orbit_dirname           : './orbits'
-aux_dirname             : './aux_cal/'
+aux_dirname             : '/d/S1/aux_cal/'
 work_dir                : './'
 exclude_dates           : None #default:None
 include_dates           : None #default:None

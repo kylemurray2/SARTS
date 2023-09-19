@@ -21,7 +21,7 @@ import requests
 import zipfile,re
 
 nproc = int(os.cpu_count())
-
+print('downloading with '  + str(nproc) + ' cpus')
 
 def cmdLineParser():
     '''
@@ -139,17 +139,6 @@ def dlOrbs(gran,outdir):
         else:
             if os.path.getsize(fname) < 1024: 
                 print('Warning: ' + fname + ' is too small. Try again.')
-
-# The old way to download slcs (in series with wget or curl)
-# def dlSlc(slcUrls, gran):
-#     for ii, url in enumerate(slcUrls):
-#         fname = os.path.join(ps.slc_dirname, gran[ii] + '.zip')
-#         if not os.path.isfile(fname):
-#             print('Downloading SLC ' + url)
-#             #os.system(f'wget -P {ps.slc_dirname} -nc -c {url} >> log')  # Downloads the zip SLC files with wget
-#             os.system(f'curl -o {fname} -C - {url}')  # Downloads the zip SLC files
-
-
 
 
 def dlSlc(slcUrls, gran,outdir):

@@ -76,7 +76,8 @@ Workflow:
 
     At this point you could simply make downlooked IFGs with the coregistered stack and then unwrap those. Do this by running ifgs.py -dumf.  This will turn the Fringe mode off and make the unwrapped ifgs. By default, we are doing PS-DS analysis with Fringe, so we can run that using:
 
-    runFringe.py  
+    runFringe.py   
+
     This does the PS_DS analysis and should output Fringe/adjusted_wrapped_DS/*slc
 
 10. Make interferograms, downlook, coherence, filter, and unwrap:
