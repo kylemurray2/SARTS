@@ -76,14 +76,14 @@ def main():
 
         acquisitionDates, stackReferenceDate, secondaryDates, safe_dict, updateStack = stackSentinel.checkCurrentStatus(ps)
         # selecting pairs for interferograms / correlation / offset workflows
-        pairs = selectNeighborPairs(acquisitionDates, stackReferenceDate, secondaryDates, ps.num_connections, updateStack)
+        pairs = stackSentinel.selectNeighborPairs(acquisitionDates, stackReferenceDate, secondaryDates, ps.num_connections, updateStack)
 
         print ('*****************************************')
         print ('Coregistration method: ', ps.coregistration )
         print ('Workflow: ', ps.workflow)
         print ('*****************************************')
 
-        i = slcStack(ps, acquisitionDates, stackReferenceDate, secondaryDates, safe_dict, updateStack, mergeSLC=True)
+        i = stackSentinel.slcStack(ps, acquisitionDates, stackReferenceDate, secondaryDates, safe_dict, updateStack, mergeSLC=True)
 
         #Checks presence of ion parameter file. If it exists, do ionosphere estimation.
         if ps.param_ion is None:
@@ -91,8 +91,8 @@ def main():
         elif not os.path.isfile(ps.param_ion):
             print("Ion parameter file is missing. Ionospheric estimation will not be done.")
         else:
-            dateListIon, pairs_same_starting_ranges_update, pairs_diff_starting_ranges_update, safe_dict = checkCurrentStatusIonosphere(ps)
-            i = ionosphereStack(ps, dateListIon, stackReferenceDate, pairs_same_starting_ranges_update, pairs_diff_starting_ranges_update, safe_dict, i)
+            dateListIon, pairs_same_starting_ranges_update, pairs_diff_starting_ranges_update, safe_dict = stackSentinel.checkCurrentStatusIonosphere(ps)
+            i = stackSentinel.ionosphereStack(ps, dateListIon, stackReferenceDate, pairs_same_starting_ranges_update, pairs_diff_starting_ranges_update, safe_dict, i)
 
         print('Next step is to make the co-registered SLC stack with runISCE.py')
 
