@@ -9,14 +9,10 @@ Check that the SLCs can be opened and set up the run_files and configs
 """
 
 import numpy as np
-import os
-import glob
-import zipfile
+import os,glob,sys,zipfile
 import stackSentinel
 from stackSentinel import sentinelSLC
 from SARTS import config
-
-
 
 flag = False
 doRemove = True
