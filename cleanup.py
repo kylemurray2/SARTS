@@ -54,14 +54,14 @@ for ii in range(kk):
 
 
 dates = []
-datesFN = glob.glob('./SLC/*')
+datesFN = glob.glob(os.path.join(ps.mergeddir,'SLC/*'))
 for d in datesFN:
-    dates.append(d.split('/')[2])
+    dates.append(d.split('/')[-1])
 dates.sort()
 
 
 numDatesToKeep = len(ps.dates) - ps.dates.index(ps.reference_date) + 6
-
+numDatesToKeep+=1
 print('keeping dates: ')
 print(dates[-numDatesToKeep:])
 

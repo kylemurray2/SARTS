@@ -4,7 +4,6 @@ fl             :    # Ascending or Descending
 bounds         :    # 'minlat,maxlat,minlon,maxlon'  # ISCE won't process bursts outside of this area
 poly           :    # POLYGON((lon1 lat1,lon2 lat2,...)) # This is the search area
 swath_num      :    # default:'1 2 3'
-reference_date :    # YYYYMMDD 
 
 #__________________________________________________________________________
 #________________________Optional to search for data______________________________________
@@ -48,11 +47,12 @@ defo_max    : 0
 
 #__________________________________________________________________________
 # FOR ISCE STACK PROCESSOR_________________________________________________
+reference_date          :    # YYYYMMDD (first date of stack if left blank)
 orbit_dirname           : './orbits'
 aux_dirname             : '/d/S1/aux_cal/'
 work_dir                : './'
-exclude_dates           : None #default:None
-include_dates           : None #default:None
+exclude_dates           :  #default:None
+include_dates           :  #default:None
 polarization            : vv #default:vv
 coregistration          : NESD #default:NESD
 virtualMerge            : False #default:None

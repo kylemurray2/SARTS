@@ -55,7 +55,7 @@ def checkSLC(ps,doRemove=True):
 
 def main():
     ps = config.getPS()
-
+    inps=ps
     flag = checkSLC(ps)
 
     if flag:

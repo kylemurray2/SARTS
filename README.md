@@ -15,7 +15,7 @@ Workflow:
     -Bounding lat/lon, and a polygon of your area of interst for ASF search  
     -Path number  
     -Swath number(s)  
-    -reference date  
+    -reference date 
     -Downlooking factors (azimuth and range)  
     -Date ranges  
     -Make sure to set the aux_cal and orbit path to a directory where you want to save those.  If they don't exists, they will be created, but it's best to always point to a central source which can be used in future stacks.   
