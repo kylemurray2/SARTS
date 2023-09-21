@@ -1,4 +1,11 @@
-import os,glob,yaml,argparse
+#!/usr/bin/env python3
+'''
+Wrapper for running Fringe in SARTS workflow
+
+KM
+
+'''
+import os,glob,argparse
 import numpy as np
 from matplotlib import pyplot as plt
 from osgeo import gdal
@@ -9,7 +16,9 @@ def cmdLineParser():
     '''
     Command line parser.
     '''
-    parser = argparse.ArgumentParser(description='Run fringe sequential estimator.')
+    parser = argparse.ArgumentParser(
+        description='Run Fringe sequential estimator with phase linking',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)    
     parser.add_argument('-t','--tops2vrt', action='store_true', help='Run tops2vrt function.')
     parser.add_argument('-n','--nmap', action='store_true', help='Run nmap function.')
     parser.add_argument('-s','--sequential_PL', action='store_true', help='Run sequential_PL function.')
@@ -37,47 +46,16 @@ def run_adjustMiniStacks(inps):
     for  f in slcFns:
         util.write_xml(f,inps.nx,inps.ny,1,'CFLOAT','BSQ')
         
-def run_ampdispersion(inps):
+def run_ampdispersion(ps):
     ampdispersion.main(inps)
     util.write_xml(inps.outputAD,inps.nx,inps.ny,1,'FLOAT','BSQ')
     util.write_xml(inps.meanampDS,inps.nx,inps.ny,1,'FLOAT','BSQ')
     
-def main(inps):
-    
-    ps = config.getPS()   
-    inps.indir      = ps.mergeddir
-    inps.bbox       = np.array([ps.cropymin,ps.cropymax,ps.cropxmin,ps.cropxmax])
-    inps.memorySize = ps.maxMem
-    inps.inputDir   = ps.slcdir
-    inps.weightDS   = inps.outputDS
-    inps.nx = str(ps.nx)
-    inps.ny = str(ps.ny)
-    
-    if inps.tops2vrt:
-        tops2vrt.main(inps)
-
-    if inps.nmap:
-        nmap.main(inps)
-
-    if inps.sequential_PL:
-        run_sequential_PL(inps)
-        
-    if inps.adjustMiniStacks:
-        run_adjustMiniStacks(inps)
-
-    if inps.ampdispersion:
-        run_ampdispersion(inps)
-        
-        
-    # if ps.sensor=='ALOS':
-    #     os.system('phase_link.py -i ./Fringe/coreg_stack/slcs_base.vrt -w ./Fringe/KS2/nmap -o ./Fringe/PhaseLink -r 70000 -x 11 -y 5')
-    #     ds_SLCS = glob.glob('./Fringe/PhaseLink/*slc')
-    #     for fn_slc in ds_SLCS:
-    #         util.write_xml(fn_slc,nx,ny,1,dataType='CFLOAT',scheme='BIP')
-    
     #Output the ps pixels by using a threshold on ampdispersion
     os.system('imageMath.py -e="a<' + int(ps.ampDispersionThreshold) + '" --a=./Fringe/ampDispersion/ampdispersion  -o ./Fringe/ampDispersion/ps_pixels -t byte')
 
+
+def makeTcorrMean(ps):
     #make tcorrMean.bin_____________________________________________________________
     miniStacks_tcorr_files = glob.glob('./Fringe/Sequential/miniStacks/*/EVD/tcorr.bin')
     tcorrsMean = np.zeros((ps.ny, ps.nx),dtype='float32')
@@ -106,6 +84,34 @@ def main(inps):
     bnd.WriteArray(tcorrsMean)
     bnd.FlushCache()
 
+def main(inps):
+    
+    ps = config.getPS()   
+    ps.indir      = ps.mergeddir
+    ps.bbox       = np.array([ps.cropymin,ps.cropymax,ps.cropxmin,ps.cropxmax])
+    ps.memorySize = ps.maxMem
+    ps.inputDir   = ps.slcdir
+    ps.weightDS   = ps.outputDS
+    ps.nx = str(ps.nx)
+    ps.ny = str(ps.ny)
+    
+    if inps.tops2vrt:
+        tops2vrt.main(ps)
+
+    if inps.nmap:
+        nmap.main(ps)
+
+    if inps.sequential_PL:
+        run_sequential_PL(ps)
+        
+    if inps.adjustMiniStacks:
+        run_adjustMiniStacks(ps)
+
+    if inps.ampdispersion:
+        run_ampdispersion(ps)
+    
+    if inps.makeTcorrMean:
+        makeTcorrMean(ps)
 
     # Now use the script ifgs.py to make unwrapped ifgs
 if __name__ == '__main__':
