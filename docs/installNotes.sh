@@ -74,7 +74,7 @@ export ISCE_ROOT=$softwareDir/isce
 export ISCE_SRC_ROOT=$softwareDir/src/isce2
 
 export PATH=$PATH:$ISCE_ROOT:$ISCE_ROOT/bin:$ISCE_ROOT/applications
-export PATH=$PATH:$ISCE_SRC_ROOT:/contrib/stack/topsStack
+export PATH=$PATH:$ISCE_SRC_ROOT/contrib/stack/topsStack
 
 export PYTHONPATH=$PYTHONPATH:$ISCE_ROOT
 export PYTHONPATH=$PYTHONPATH:$ISCE_ROOT/components
