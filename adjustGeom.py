@@ -10,7 +10,7 @@ Crop and downlook geom files (used in mintpy)
 
 """
 import numpy as np
-import os,sys,glob,argparse
+import os,sys,glob,argparse,time
 from datetime import date
 import isce.components.isceobj as isceobj
 from mroipac.looks.Looks import Looks
@@ -46,6 +46,15 @@ def getbl(d):
 
 # def checkFiles(ps):
 #     for ii in len
+
+if ps.crop:
+    if np.sum([int(ps.cropymin),int(ps.cropymax),int(ps.cropxmin),int(ps.cropxmax)]) ==0:
+        print('Crop is set to True but values are all zero. Set crop bounds and rerun.')
+    else:
+        print('Crop bounds found.')
+else:
+    print('Crop set to False... not cropping')
+    time.sleep(5)
 
 
 def main(inps):

@@ -1,27 +1,21 @@
-#________________________Required to search for data______________________________________
-path           :    # 124
-fl             :    # Ascending or Descending
-bounds         :    # 'minlat,maxlat,minlon,maxlon'  # ISCE won't process bursts outside of this area
-poly           :    # POLYGON((lon1 lat1,lon2 lat2,...)) # This is the search area
-swath_num      :    # default:'1 2 3'
+#__________________________________________________________________________
+# search for data________________________________________________________
+# Required 
+path      :    # 124
+fl        :    # Ascending or Descending
+bounds    :    # 'minlat,maxlat,minlon,maxlon'  # ISCE won't process bursts outside of this area
+poly      :    # POLYGON((lon1 lat1,lon2 lat2,...)) # This is the search area
+swath_num :    # default:'1 2 3'
+# Optional
+start       : '2014-01-01T00:00:00Z'    #'2010-05-01T00:00:00Z'
+end         : '2080-01-01T23:59:00Z'   #'2020-02-01T23:59:00Z'
+sat         : SENTINEL-1
+point       :  # lon,lat (Usually leave this blank unless you dont want to use poly)
+slc_dirname : ./SLCS/
+workdir     : os.getcwd() # Use current directory as working directory
 
 #__________________________________________________________________________
-#________________________Optional to search for data______________________________________
-start        : '2014-01-01T00:00:00Z'    #'2010-05-01T00:00:00Z'
-end          : '2080-01-01T23:59:00Z'   #'2020-02-01T23:59:00Z'
-sat          : SENTINEL-1
-point        :  # lon,lat (Usually leave this blank unless you dont want to use poly)
-slc_dirname  : ./SLCS/
-lam          : 0.56
-
-workdir : os.getcwd() # Use current directory as working directory
-  # working directory (should be where merged is)
-skip : 1
-alks : 1 # number of looks in azimuth
-rlks : 4 # number of looks in range
-networkType : sequential3 # sequential1, sequential2, delaunay
-ifgMode     : False # Usually set to false because we are starting with SLCs
-
+# adjustGeom.py___________________________________________________________
 crop     : True
 cropymin : 0
 cropymax : 0
@@ -29,21 +23,52 @@ cropxmin : 0
 cropxmax : 0
 
 #__________________________________________________________________________
-# Fringe___________________________________
-waterMask      : True
-     # NLCD raster for landcover and watermask
-nlcd_in        : /d/HI/Landcover/data/hi_maui_2010_ccap_hr_land_cover_20150213.img
-maxMem         : 80000
-filterFlag     : True
-filterStrength : 0.2
-unwrap         : True
-
-#__________________________________________________________________________
-# For SNAPHU_______________________________________________________________
+# ifgs.py_________________________________________________________________
+alks : 1 # number of looks in azimuth
+rlks : 4 # number of looks in range
+networkType : sequential3 # sequential1, sequential2, delaunay
+# snaphu
 init_method : MCF
 cost_mode   : SMOOTH
 max_comp    : 32
 defo_max    : 0
+
+#__________________________________________________________________________
+# Fringe__________________________________________________________________
+waterMask : True
+nlcd_in   : /d/HI/Landcover/data/hi_maui_2010_ccap_hr_land_cover_20150213.img  # Optional: NLCD raster for landcover and watermask
+maxMem    : 80000
+# tops2vrt:
+stackdir: './Fringe/coreg_stack'
+geomdir: './Fringe/geometry'
+outdir: './Fringe/slcs'
+# nmap:
+inputDS: './Fringe/coreg_stack/slcs_base.vrt'
+outputDS: './Fringe/KS2/nmap'
+countDS: './Fringe/KS2/count'
+maskDS: './merged/geom_reference/waterMask.rdr.full.crop.vrt'
+linesPerBlock: 256
+halfWindowX: 11
+halfWindowY: 5
+pValue: 0.05
+method: 'KS2'
+noGPU: 'True'
+# sequential_PL:
+outputDir: './Fringe/Sequential'
+minNeighbors: 5
+miniStackSize: 20
+forceprocessing: false
+# adjustMiniStacks:
+slcDir: './Fringe/slcs/'
+miniStackDir: './Fringe/Sequential/miniStacks/'
+datumDir: './Fringe/Sequential/Datum_connection/'
+outDir: './Fringe/adjusted_wrapped_DS'
+unwrapped: false
+# ampdispersion:
+meanampDS: './Fringe/ampDispersion/mean'
+refBand: 1
+outputAD: './Fringe/ampDispersion/ampdispersion'
+ampDispersionThreshold: '0.35'
 
 #__________________________________________________________________________
 # FOR ISCE STACK PROCESSOR_________________________________________________
