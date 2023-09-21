@@ -15,6 +15,34 @@ slc_dirname : ./SLCS/
 workdir     : os.getcwd() # Use current directory as working directory
 
 #__________________________________________________________________________
+# For setupStack.py __________________________________________________________
+reference_date          :    # YYYYMMDD (first date of stack if left blank)
+orbit_dirname           : './orbits'
+aux_dirname             : '/d/S1/aux_cal/'
+work_dir                : './'
+exclude_dates           :  #default:None
+include_dates           :  #default:None
+polarization            : vv #default:vv
+coregistration          : NESD #default:NESD
+virtualMerge            : False #default:None
+useGPU                  : False # default:False
+numProcess              : auto # either set an integer, or auto to use all available cpus
+numProcess4topo         : auto # either set an integer, or auto to use 1/3 of available cpus
+#azimuthLooks            : '1'
+#rangeLooks              : '1'
+##filtStrength            : '0.1'
+esdCoherenceThreshold   : '0.85'
+num_connections         : '1'
+num_overlap_connections : '3'
+workflow                : slc #default:'interferogram'
+text_cmd                : ''
+snrThreshold            : '10'
+#unwMethod               : snaphu
+#rmFilter                : False
+param_ion               : None
+num_connections_ion     : '3'
+
+#__________________________________________________________________________
 # adjustGeom.py___________________________________________________________
 crop     : True
 cropymin : 0
@@ -70,30 +98,4 @@ refBand: 1
 outputAD: './Fringe/ampDispersion/ampdispersion'
 ampDispersionThreshold: '0.35'
 
-#__________________________________________________________________________
-# FOR ISCE STACK PROCESSOR_________________________________________________
-reference_date          :    # YYYYMMDD (first date of stack if left blank)
-orbit_dirname           : './orbits'
-aux_dirname             : '/d/S1/aux_cal/'
-work_dir                : './'
-exclude_dates           :  #default:None
-include_dates           :  #default:None
-polarization            : vv #default:vv
-coregistration          : NESD #default:NESD
-virtualMerge            : False #default:None
-useGPU                  : False # default:False
-numProcess              : auto # either set an integer, or auto to use all available cpus
-numProcess4topo         : auto # either set an integer, or auto to use 1/3 of available cpus
-azimuthLooks            : '1'
-rangeLooks              : '1'
-filtStrength            : '0.1'
-esdCoherenceThreshold   : '0.85'
-num_connections         : '1'
-num_overlap_connections : '3'
-workflow                : slc #default:'interferogram'
-text_cmd                : ''
-snrThreshold            : '10'
-unwMethod               : snaphu
-rmFilter                : False
-param_ion               : None
-num_connections_ion     : '3'
+
