@@ -81,6 +81,19 @@ def getGran(path, start, end, sat, bounds, poly):
     return (slcUrls, gran,dates,r)
 
 
+def get_with_retry(url, max_retries=3):
+    retries = 0
+    while retries < max_retries:
+        response = requests.get(url, stream=True)
+        if response.status_code != 429:
+            return response
+        wait_time = (2 ** retries)
+        print(f"Rate limited! Waiting for {wait_time} seconds before retrying...")
+        time.sleep(wait_time)
+        retries += 1
+    response.raise_for_status()
+
+
 def get_orbit_url(granuleName):
     """Retrieve precise orbit file for a specific Sentinel-1 granule.
     Precise orbits available ~3 weeks after aquisition.
@@ -105,7 +118,7 @@ def get_orbit_url(granuleName):
     print(f"retrieving precise orbit URL for {sat}, {date}")
     
     try:
-        r = requests.get(urlPrecise,stream=True)
+        r = get_with_retry(urlPrecise)
         webpage = html.fromstring(r.content)
         orbits = webpage.xpath('//a/@href')
         df = pd.DataFrame(dict(orbit=orbits))
@@ -118,7 +131,7 @@ def get_orbit_url(granuleName):
     except:
         try:
             print('using resorb for this date (it is probably too recent)')
-            r = requests.get(urlResorb)
+            r = get_with_retry(urlResorb)
             webpage = html.fromstring(r.content)
             orbits = webpage.xpath('//a/@href')
             df = pd.DataFrame(dict(orbit=orbits))
@@ -132,6 +145,5 @@ def get_orbit_url(granuleName):
         except Exception as e:
             print(f"Error encountered: {e}")
             raise RuntimeError("Both precise and resorb URL retrieval failed!") from e
-
 
     return orbitUrl
