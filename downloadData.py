@@ -93,6 +93,7 @@ def dlOrbs(gran,outdir):
     for url in orbUrls:
         fname = os.path.join(outdir,url.split('/')[-1])
         if not os.path.isfile(fname):
+            print('No file ' + fname)
             outNames.append(fname)
             dlorbs.append(url)
         else:
@@ -107,6 +108,8 @@ def dlOrbs(gran,outdir):
     with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
         futures = [executor.submit(dl, url, outName) for url, outName in zip(dlorbs, outNames)]
         concurrent.futures.wait(futures)
+
+    print('112')
 
     outNames = []
     dlorbs = []
@@ -128,6 +131,7 @@ def dlOrbs(gran,outdir):
                 redflag=True
             else:
                 print('Downloaded OK ' + fname)
+    print('134')
 
     if redflag:
         print('Some orbit files may have not been properly downloaded. Please try again.')
@@ -318,7 +322,7 @@ def main(inps):
     if inps.dlOrbs_flag:
         
         dlOrbs(gran,ps.orbit_dirname)
-    
+        
         # Check if aux_cal files exist:
         result = check_aux_cal(ps.aux_dirname)
         if not result:
