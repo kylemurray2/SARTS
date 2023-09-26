@@ -24,32 +24,33 @@ def cmdLineParser():
     parser.add_argument('-s','--sequential_PL', action='store_true', help='Run sequential_PL function.')
     parser.add_argument('-a','--adjustMiniStacks', action='store_true', help='Run adjustMiniStacks function.')
     parser.add_argument('-d','--ampdispersion', action='store_true', help='Run ampdispersion function.')
+    parser.add_argument('-c','--makeTcorr', action='store_true', help='Make Tcorr average')
     
     return parser.parse_args()
 
 
-def run_sequential_PL(inps):
-    sequential_PL.main(inps)
-    ds_SLCS = glob.glob(inps.outDir + '/*slc')
+def run_sequential_PL(ps):
+    sequential_PL.main(ps)
+    ds_SLCS = glob.glob(ps.outDir + '/*slc')
     for fn_slc in ds_SLCS:
-        util.write_xml(fn_slc,inps.nx,inps.ny,1,dataType='CFLOAT',scheme='BIP')
-    ds_tcorrs= glob.glob(inps.outDir + '/*bin')
+        util.write_xml(fn_slc,ps.nx,ps.ny,1,dataType='CFLOAT',scheme='BIP')
+    ds_tcorrs= glob.glob(ps.outDir + '/*bin')
     for fn_slc in ds_tcorrs:
-        util.write_xml(fn_slc,inps.nx,inps.ny,1,dataType='CFLOAT',scheme='BIP')
+        util.write_xml(fn_slc,ps.nx,ps.ny,1,dataType='CFLOAT',scheme='BIP')
     ds_SLCS = glob.glob('./Fringe/Sequential/Datum_connection/EVD/*slc')
     for fn_slc in ds_SLCS:
-        util.write_xml(fn_slc,inps.nx,inps.ny,1,dataType='CFLOAT',scheme='BIP')
+        util.write_xml(fn_slc,ps.nx,ps.ny,1,dataType='CFLOAT',scheme='BIP')
 
-def run_adjustMiniStacks(inps):
-    adjustMiniStacks.main(inps)
-    slcFns = glob.glob( inps.outDir + '/*slc')
+def run_adjustMiniStacks(ps):
+    adjustMiniStacks.main(ps)
+    slcFns = glob.glob( ps.outDir + '/*slc')
     for  f in slcFns:
-        util.write_xml(f,inps.nx,inps.ny,1,'CFLOAT','BSQ')
+        util.write_xml(f,ps.nx,ps.ny,1,'CFLOAT','BSQ')
         
 def run_ampdispersion(ps):
-    ampdispersion.main(inps)
-    util.write_xml(inps.outputAD,inps.nx,inps.ny,1,'FLOAT','BSQ')
-    util.write_xml(inps.meanampDS,inps.nx,inps.ny,1,'FLOAT','BSQ')
+    ampdispersion.main(ps)
+    util.write_xml(ps.outputAD,ps.nx,ps.ny,1,'FLOAT','BSQ')
+    util.write_xml(ps.meanampDS,ps.nx,ps.ny,1,'FLOAT','BSQ')
     
     #Output the ps pixels by using a threshold on ampdispersion
     os.system('imageMath.py -e="a<' + int(ps.ampDispersionThreshold) + '" --a=./Fringe/ampDispersion/ampdispersion  -o ./Fringe/ampDispersion/ps_pixels -t byte')
@@ -84,7 +85,7 @@ def makeTcorrMean(ps):
     bnd.WriteArray(tcorrsMean)
     bnd.FlushCache()
 
-def main(inps):
+def main(flags):
     
     ps = config.getPS()   
     ps.indir      = ps.mergeddir
@@ -95,22 +96,22 @@ def main(inps):
     ps.nx = str(ps.nx)
     ps.ny = str(ps.ny)
     
-    if inps.tops2vrt:
+    if flags.tops2vrt:
         tops2vrt.main(ps)
 
-    if inps.nmap:
+    if flags.nmap:
         nmap.main(ps)
 
-    if inps.sequential_PL:
+    if flags.sequential_PL:
         run_sequential_PL(ps)
         
-    if inps.adjustMiniStacks:
+    if flags.adjustMiniStacks:
         run_adjustMiniStacks(ps)
 
-    if inps.ampdispersion:
+    if flags.ampdispersion:
         run_ampdispersion(ps)
     
-    if inps.makeTcorrMean:
+    if flags.makeTcorr:
         makeTcorrMean(ps)
 
     # Now use the script ifgs.py to make unwrapped ifgs
@@ -118,12 +119,12 @@ if __name__ == '__main__':
     '''
     Main driver.
     '''
-    # inps = argparse.Namespace()
-    # inps.tops2vrt = True
-    # inps.nmap = True
-    # inps.sequential_PL = True
-    # inps.adjustministacks = True
-    # inps.ampdispersion = True
+    # flags = argparse.Namespace()
+    # flags.tops2vrt = True
+    # flags.nmap = True
+    # flags.sequential_PL = True
+    # flags.adjustministacks = True
+    # flags.ampdispersion = True
 
-    inps = cmdLineParser()
-    main(inps)
+    flags = cmdLineParser()
+    main(flags)

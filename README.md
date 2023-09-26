@@ -105,3 +105,8 @@ https://github.com/insarlab/MintPy/tree/main
 Good example of processing workflow here:  
 https://github.com/insarlab/MintPy-tutorial/blob/main/workflows/smallbaselineApp.ipynb  
 
+
+
+Potential errors:
+-->    Exception: Could not determine a suitable burst offset
+fix: The orbit file may have not downloaded correctly. try redownloading it.
