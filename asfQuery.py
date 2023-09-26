@@ -129,7 +129,7 @@ def get_orbit_url(granuleName):
         orbitUrl = f"{urlPrecise}/{match}"
     except:
         try:
-            print('using resorb for this date (it is probably too recent)')
+            print('using resorb for ' + granuleName +' (it is probably too recent)')
             r = get_with_retry(urlResorb)
             webpage = html.fromstring(r.content)
             orbits = webpage.xpath('//a/@href')

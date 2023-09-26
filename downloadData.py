@@ -141,7 +141,7 @@ def dlOrbs(gran,outdir):
         else:
             if os.path.getsize(fname) < 1024: 
                 print('Warning: ' + fname + ' is too small. Try again.')
-
+                os.remove(fname)
 
 def dlSlc(slcUrls, gran,outdir):
 
