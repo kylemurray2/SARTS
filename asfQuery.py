@@ -127,7 +127,7 @@ def get_orbit_url(granuleName):
         match = dfSat.loc[(dfSat.startTime == dayBeforeStr, 'orbit')].values[0]
         orbitUrl = f"{urlPrecise}/{match}"
         print(f"Found precise orbit URL for {sat}, {date}")
-    
+        return orbitUrl
     except Exception as e:
         print(f"Error encountered: {e}")
     # except:
@@ -148,4 +148,4 @@ def get_orbit_url(granuleName):
     #         print(f"Error encountered: {e}")
     #         raise RuntimeError("Both precise and resorb URL retrieval failed!") from e
 
-    return orbitUrl
+        return None

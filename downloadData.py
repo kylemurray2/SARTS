@@ -18,8 +18,7 @@ import concurrent.futures
 
 
 nproc = int(os.cpu_count())
-if nproc> 20:
-    nproc=20
+
 print('downloading with '  + str(nproc) + ' cpus')
 
 def cmdLineParser():
