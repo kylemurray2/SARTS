@@ -108,7 +108,7 @@ def get_orbit_url(granuleName):
     orbitUrl :  str
         url pointing to matched orbit file
     """
-
+    
     urlPrecise='https://s1qc.asf.alaska.edu/aux_poeorb'
     urlResorb='https://s1qc.asf.alaska.edu/aux_resorb'
 
