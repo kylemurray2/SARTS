@@ -92,6 +92,8 @@ def dlOrbs(gran,outdir):
     dlorbs = []
     for url in orbUrls:
         fname = os.path.join(outdir,url.split('/')[-1])
+        print(fname)
+
         if not os.path.isfile(fname):
             print('No file ' + fname)
             outNames.append(fname)
@@ -117,6 +119,7 @@ def dlOrbs(gran,outdir):
 
     for url in orbUrls:
         fname = os.path.join(outdir,url.split('/')[-1])
+        print(fname)
         if not os.path.isfile(fname):
             print('No file ' + fname)
             outNames.append(fname)
