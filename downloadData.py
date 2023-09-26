@@ -111,11 +111,14 @@ def dlOrbs(gran,outdir):
     outNames = []
     dlorbs = []
     redflag = False
+
     for url in orbUrls:
         fname = os.path.join(outdir,url.split('/')[-1])
         if not os.path.isfile(fname):
+            print('No file ' + fname)
             outNames.append(fname)
             dlorbs.append(url)
+            redflag=True
         else:
             if os.path.getsize(fname) < 1024: 
                 print('Deleting ' + fname + ' because it was too small...')
