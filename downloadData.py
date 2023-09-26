@@ -70,7 +70,6 @@ def dl(url,outname):
 def dlOrbs(gran,outdir):
     # Create an empty list to store the returned URLs
     orbUrls = []
-    
     sat_dates=[]
     for g in gran:
         string = g.split('_')[0] + g.split('_')[5][0:8]
@@ -78,6 +77,8 @@ def dlOrbs(gran,outdir):
     
     sat_dates = np.unique(sat_dates)
     sat_dates.sort()
+    
+    print('Finding orbit URLs...')
     with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
         futures = [executor.submit(asfQuery.get_orbit_url, g) for g in sat_dates]
         
@@ -114,10 +115,11 @@ def dlOrbs(gran,outdir):
                 dlorbs.append(url)
             print('already exists ' + fname)
 
+
+    print('Dowloading orbit files...')
     # Download urls in parallel and in chunks
     with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
         futures = [executor.submit(dl, url, outName) for url, outName in zip(dlorbs, outNames)]
-        concurrent.futures.wait(futures)
         concurrent.futures.wait(futures)
     # Sometimes files don't download the first time, so do the same thing again to check for bad ones:
     outNames = []
@@ -337,8 +339,6 @@ def main(inps):
 
     if inps.dlOrbs_flag:
         
-        
-        print('Downloading orbits')
         dlOrbs(gran,ps.orbit_dirname)
     
         # Check if aux_cal files exist:
@@ -371,7 +371,7 @@ if __name__ == '__main__':
     # inps = argparse.Namespace()
     # inps.searchData_flag = True
     # inps.dlSlc_flag = True
-    # inps.dlOrbs_flag = True
+    inps.dlOrbs_flag = True
     # inps.get_srtm = False
 
     main(inps)

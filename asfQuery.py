@@ -108,13 +108,12 @@ def get_orbit_url(granuleName):
     orbitUrl :  str
         url pointing to matched orbit file
     """
-    
+    # granuleName='S1A20160811'
     urlPrecise='https://s1qc.asf.alaska.edu/aux_poeorb'
     urlResorb='https://s1qc.asf.alaska.edu/aux_resorb'
 
     sat = granuleName[:3]
     date = granuleName[3:]
-    print(f"retrieving precise orbit URL for {sat}, {date}")
     
     try:
         r = get_with_retry(urlPrecise)
@@ -127,22 +126,26 @@ def get_orbit_url(granuleName):
         dfSat.loc[:, 'startTime'] = dfSat.orbit.str[42:50]
         match = dfSat.loc[(dfSat.startTime == dayBeforeStr, 'orbit')].values[0]
         orbitUrl = f"{urlPrecise}/{match}"
-    except:
-        try:
-            print('using resorb for ' + granuleName +' (it is probably too recent)')
-            r = get_with_retry(urlResorb)
-            webpage = html.fromstring(r.content)
-            orbits = webpage.xpath('//a/@href')
-            df = pd.DataFrame(dict(orbit=orbits))
-            dfSat = df[df.orbit.str.startswith(sat)].copy()
-            dayBefore = pd.to_datetime(date) - pd.to_timedelta(1, unit='d')
-            dayBeforeStr = dayBefore.strftime('%Y%m%d')
-            dfSat.loc[:, 'startTime'] = dfSat.orbit.str[42:50]
-            match = dfSat.loc[(dfSat.startTime == dayBeforeStr, 'orbit')].values[0]
-            orbitUrl = f"{urlResorb}/{match}"
-            # os.system('mv ./orbits/2*/*EOF ./orbits/')
-        except Exception as e:
-            print(f"Error encountered: {e}")
-            raise RuntimeError("Both precise and resorb URL retrieval failed!") from e
+        print(f"Found precise orbit URL for {sat}, {date}")
+    
+    except Exception as e:
+        print(f"Error encountered: {e}")
+    # except:
+    #     try:
+    #         print('using resorb for ' + granuleName +' (it is probably too recent)')
+    #         r = get_with_retry(urlResorb)
+    #         webpage = html.fromstring(r.content)
+    #         orbits = webpage.xpath('//a/@href')
+    #         df = pd.DataFrame(dict(orbit=orbits))
+    #         dfSat = df[df.orbit.str.startswith(sat)].copy()
+    #         dayBefore = pd.to_datetime(date) - pd.to_timedelta(1, unit='d')
+    #         dayBeforeStr = dayBefore.strftime('%Y%m%d')
+    #         dfSat.loc[:, 'startTime'] = dfSat.orbit.str[42:50]
+    #         match = dfSat.loc[(dfSat.startTime == dayBeforeStr, 'orbit')].values[0]
+    #         orbitUrl = f"{urlResorb}/{match}"
+    #         # os.system('mv ./orbits/2*/*EOF ./orbits/')
+    #     except Exception as e:
+    #         print(f"Error encountered: {e}")
+    #         raise RuntimeError("Both precise and resorb URL retrieval failed!") from e
 
     return orbitUrl
