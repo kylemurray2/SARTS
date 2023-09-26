@@ -91,7 +91,6 @@ def dlOrbs(gran,outdir):
     dlorbs = []
     for url in orbUrls:
         fname = os.path.join(outdir,url.split('/')[-1])
-
         if not os.path.isfile(fname):
             print('No file ' + fname)
             outNames.append(fname)
@@ -101,15 +100,14 @@ def dlOrbs(gran,outdir):
                 print('Overwriting ' + fname + ' because it was too small...')
                 outNames.append(fname)
                 dlorbs.append(url)
-            print('already exists ' + fname)
     print('Dowloading orbit files...')
+
+    print("Need" + dlorbs)
 
     # Download urls in parallel and in chunks
     with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
         futures = [executor.submit(dl, url, outName) for url, outName in zip(dlorbs, outNames)]
         concurrent.futures.wait(futures)
-
-    print('112')
 
     outNames = []
     dlorbs = []
@@ -130,8 +128,7 @@ def dlOrbs(gran,outdir):
                 dlorbs.append(url)
                 redflag=True
             else:
-                print('Downloaded OK ' + fname)
-    print('134')
+                # print('Downloaded OK ' + fname)
 
     if redflag:
         print('Some orbit files may have not been properly downloaded. Please try again.')
