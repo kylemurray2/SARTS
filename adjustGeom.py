@@ -47,19 +47,19 @@ def getbl(d):
 # def checkFiles(ps):
 #     for ii in len
 
-if ps.crop:
-    if np.sum([int(ps.cropymin),int(ps.cropymax),int(ps.cropxmin),int(ps.cropxmax)]) ==0:
-        print('Crop is set to True but values are all zero. Set crop bounds and rerun.')
-    else:
-        print('Crop bounds found.')
-else:
-    print('Crop set to False... not cropping')
-    time.sleep(5)
+
 
 
 def main(inps):
     ps = config.getPS()
-
+    if ps.crop:
+        if np.sum([int(ps.cropymin),int(ps.cropymax),int(ps.cropxmin),int(ps.cropxmax)]) ==0:
+            print('Crop is set to True but values are all zero. Set crop bounds and rerun.')
+        else:
+            print('Crop bounds found.')
+    else:
+        print('Crop set to False... not cropping')
+        time.sleep(5)
     if inps.plot:
         import matplotlib.pyplot as plt
         import logging
