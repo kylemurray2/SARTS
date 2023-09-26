@@ -108,27 +108,41 @@ def get_orbit_url(granuleNames):
     orbitUrl :  str
         url pointing to matched orbit file
     """
+    
     urlPrecise='https://s1qc.asf.alaska.edu/aux_poeorb'
     urlResorb='https://s1qc.asf.alaska.edu/aux_resorb'
-
-
     
     r = get_with_retry(urlPrecise)
     webpage = html.fromstring(r.content)
     orbits = webpage.xpath('//a/@href')
     df = pd.DataFrame(dict(orbit=orbits))
 
+    rr = get_with_retry(urlResorb)
+    webpager = html.fromstring(rr.content)
+    orbitsr = webpager.xpath('//a/@href')
+    dfr = pd.DataFrame(dict(orbit=orbitsr))
+
     orbitUrls=[]
     for granuleName in granuleNames:
         sat = granuleName[:3]
         date = granuleName[3:]
-        dfSat = df[df.orbit.str.startswith(sat)].copy()
-        dayBefore = pd.to_datetime(date) - pd.to_timedelta(1, unit='d')
-        dayBeforeStr = dayBefore.strftime('%Y%m%d')
-        dfSat.loc[:, 'startTime'] = dfSat.orbit.str[42:50]
-        match = dfSat.loc[(dfSat.startTime == dayBeforeStr, 'orbit')].values[0]
-        orbitUrl = f"{urlPrecise}/{match}"
-        print(f"Found precise orbit URL for {sat}, {date}")
+        try:
+            dfSat = df[df.orbit.str.startswith(sat)].copy()
+            dayBefore = pd.to_datetime(date) - pd.to_timedelta(1, unit='d')
+            dayBeforeStr = dayBefore.strftime('%Y%m%d')
+            dfSat.loc[:, 'startTime'] = dfSat.orbit.str[42:50]
+            match = dfSat.loc[(dfSat.startTime == dayBeforeStr, 'orbit')].values[0]
+            orbitUrl = f"{urlPrecise}/{match}"
+            # print(f"Found precise orbit URL for {sat}, {date}")
+        except:
+            dfSat = dfr[dfr.orbit.str.startswith(sat)].copy()
+            dayBefore = pd.to_datetime(date) - pd.to_timedelta(1, unit='d')
+            dayBeforeStr = dayBefore.strftime('%Y%m%d')
+            dfSat.loc[:, 'startTime'] = dfSat.orbit.str[42:50]
+            match = dfSat.loc[(dfSat.startTime == dayBeforeStr, 'orbit')].values[0]
+            orbitUrl = f"{urlPrecise}/{match}"
+            print('using resorb for ' + granuleName +' (it is probably too recent)')
+        
         orbitUrls.append(orbitUrl)
     
     return orbitUrls
