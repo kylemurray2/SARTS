@@ -68,7 +68,6 @@ def dl(url,outname):
 
 def dlOrbs(gran,outdir):
     # Create an empty list to store the returned URLs
-    orbUrls = []
     sat_dates=[]
     for g in gran:
         string = g.split('_')[0] + g.split('_')[5][0:8]
@@ -77,7 +76,7 @@ def dlOrbs(gran,outdir):
     sat_dates = np.unique(sat_dates)
     sat_dates.sort()
     
-    asfQuery.get_orbit_url(sat_dates)
+    orbUrls = asfQuery.get_orbit_url(sat_dates)
  
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
@@ -92,7 +91,6 @@ def dlOrbs(gran,outdir):
     dlorbs = []
     for url in orbUrls:
         fname = os.path.join(outdir,url.split('/')[-1])
-        print(fname)
 
         if not os.path.isfile(fname):
             print('No file ' + fname)
@@ -119,7 +117,6 @@ def dlOrbs(gran,outdir):
 
     for url in orbUrls:
         fname = os.path.join(outdir,url.split('/')[-1])
-        print(fname)
         if not os.path.isfile(fname):
             print('No file ' + fname)
             outNames.append(fname)
