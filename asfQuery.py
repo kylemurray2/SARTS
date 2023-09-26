@@ -113,7 +113,7 @@ def get_orbit_url(granuleName):
     urlResorb='https://s1qc.asf.alaska.edu/aux_resorb'
 
     sat = granuleName[:3]
-    date = granuleName[17:25]
+    date = granuleName[3:]
     print(f"retrieving precise orbit URL for {sat}, {date}")
     
     try:

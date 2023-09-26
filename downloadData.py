@@ -70,9 +70,16 @@ def dl(url,outname):
 def dlOrbs(gran,outdir):
     # Create an empty list to store the returned URLs
     orbUrls = []
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:  # Adjust max_workers as needed
-        futures = [executor.submit(asfQuery.get_orbit_url, g) for g in gran]
+    
+    sat_dates=[]
+    for g in gran:
+        string = g.split('_')[0] + g.split('_')[5][0:8]
+        sat_dates.append(string)
+    
+    sat_dates = np.unique(sat_dates)
+    sat_dates.sort()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
+        futures = [executor.submit(asfQuery.get_orbit_url, g) for g in sat_dates]
         
         for future in concurrent.futures.as_completed(futures):
             print(future.result())
