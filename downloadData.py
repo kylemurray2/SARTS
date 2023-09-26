@@ -73,7 +73,7 @@ def dlOrbs(gran,outdir):
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
         futures = [executor.submit(asfQuery.get_orbit_url, g) for g in gran]
-
+        
         for future in concurrent.futures.as_completed(futures):
             print(future.result())
             try:
@@ -81,7 +81,9 @@ def dlOrbs(gran,outdir):
                 orbUrls.append(url)
             except Exception as e:
                 print(f"An exception occurred: {e}")
-    
+        
+        concurrent.futures.wait(futures)
+        
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
 
@@ -109,7 +111,7 @@ def dlOrbs(gran,outdir):
     with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
         futures = [executor.submit(dl, url, outName) for url, outName in zip(dlorbs, outNames)]
         concurrent.futures.wait(futures)
-
+        concurrent.futures.wait(futures)
     # Sometimes files don't download the first time, so do the same thing again to check for bad ones:
     outNames = []
     dlorbs = []
@@ -120,28 +122,29 @@ def dlOrbs(gran,outdir):
             dlorbs.append(url)
         else:
             if os.path.getsize(fname) < 1024: 
-                print('Overwriting ' + fname + ' because it was too small...')
+                print('Deleting ' + fname + ' because it was too small...')
                 outNames.append(fname)
+                os.remove(fname)
                 dlorbs.append(url)
             else:
                 print('Downloaded OK ' + fname)
 
 
-    # do it this time in series with wget
-    for url in dlorbs:
-        orbit_filename = os.path.join(outdir,url.split('/')[-1])
-        print('Downloading orbit ' + orbit_filename)
-        os.system(f'wget -P ./orbits -nc -c {url} >> log')  # Downloads the orbit files
+    # # do it this time in series with wget
+    # for url in dlorbs:
+    #     orbit_filename = os.path.join(outdir,url.split('/')[-1])
+    #     print('Downloading orbit ' + orbit_filename)
+    #     os.system(f'wget -P ./orbits -nc -c {url} >> log')  # Downloads the orbit files
 
-    # Do one last check of the files
-    for url in orbUrls:
-        fname = os.path.join(outdir,url.split('/')[-1])
-        if not os.path.isfile(fname):
-            print('Warning: File does not exist ' + fname)
-        else:
-            if os.path.getsize(fname) < 1024: 
-                print('Warning: ' + fname + ' is too small. Try again.')
-                os.remove(fname)
+    # # Do one last check of the files
+    # for url in orbUrls:
+    #     fname = os.path.join(outdir,url.split('/')[-1])
+    #     if not os.path.isfile(fname):
+    #         print('Warning: File does not exist ' + fname)
+    #     else:
+    #         if os.path.getsize(fname) < 1024: 
+    #             print('Warning: ' + fname + ' is too small. Try again.')
+    #             os.remove(fname)
 
 def dlSlc(slcUrls, gran,outdir):
 
@@ -162,7 +165,7 @@ def dlSlc(slcUrls, gran,outdir):
     print('Downloading the following files:')
     print(dlSLCs)
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:  # Adjust max_workers as needed
+    with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
         futures = [executor.submit(dl, url, outName) for url, outName in zip(dlSLCs, outNames)]
         concurrent.futures.wait(futures)
 
