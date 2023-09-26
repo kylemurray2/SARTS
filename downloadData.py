@@ -162,7 +162,7 @@ def dlSlc(slcUrls, gran,outdir):
     print('Downloading the following files:')
     print(dlSLCs)
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:  # Adjust max_workers as needed
         futures = [executor.submit(dl, url, outName) for url, outName in zip(dlSLCs, outNames)]
         concurrent.futures.wait(futures)
 
