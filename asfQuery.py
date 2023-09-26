@@ -108,7 +108,7 @@ def get_orbit_url(granuleNames):
     orbitUrl :  str
         url pointing to matched orbit file
     """
-    
+
     urlPrecise='https://s1qc.asf.alaska.edu/aux_poeorb'
     urlResorb='https://s1qc.asf.alaska.edu/aux_resorb'
     
@@ -126,6 +126,7 @@ def get_orbit_url(granuleNames):
     for granuleName in granuleNames:
         sat = granuleName[:3]
         date = granuleName[3:]
+        print('.',end="")
         try:
             dfSat = df[df.orbit.str.startswith(sat)].copy()
             dayBefore = pd.to_datetime(date) - pd.to_timedelta(1, unit='d')
