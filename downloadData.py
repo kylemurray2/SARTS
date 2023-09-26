@@ -361,7 +361,7 @@ if __name__ == '__main__':
     # inps = argparse.Namespace()
     # inps.searchData_flag = True
     # inps.dlSlc_flag = True
-    inps.dlOrbs_flag = True
+    # inps.dlOrbs_flag = True
     # inps.get_srtm = False
 
     main(inps)
