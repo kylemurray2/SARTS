@@ -102,7 +102,7 @@ def dlOrbs(gran,outdir):
                 dlorbs.append(url)
     print('Dowloading orbit files...')
 
-    print("Need" + dlorbs)
+    print(dlorbs)
 
     # Download urls in parallel and in chunks
     with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
