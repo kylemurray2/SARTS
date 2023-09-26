@@ -8,7 +8,7 @@ Download SAR SLCs, Orbit files, and DEM
 @author: Kyle Murray
 """
 
-import os, argparse, glob, zipfile, re, requests
+import os, argparse, glob, zipfile, re, requests,sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -79,7 +79,6 @@ def dlOrbs(gran,outdir):
     
     asfQuery.get_orbit_url(sat_dates)
  
-        
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
 
@@ -102,16 +101,16 @@ def dlOrbs(gran,outdir):
                 outNames.append(fname)
                 dlorbs.append(url)
             print('already exists ' + fname)
-
-
     print('Dowloading orbit files...')
+
     # Download urls in parallel and in chunks
     with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
         futures = [executor.submit(dl, url, outName) for url, outName in zip(dlorbs, outNames)]
         concurrent.futures.wait(futures)
-    # Sometimes files don't download the first time, so do the same thing again to check for bad ones:
+
     outNames = []
     dlorbs = []
+    redflag = False
     for url in orbUrls:
         fname = os.path.join(outdir,url.split('/')[-1])
         if not os.path.isfile(fname):
@@ -123,25 +122,13 @@ def dlOrbs(gran,outdir):
                 outNames.append(fname)
                 os.remove(fname)
                 dlorbs.append(url)
+                redflag=True
             else:
                 print('Downloaded OK ' + fname)
 
-
-    # # do it this time in series with wget
-    # for url in dlorbs:
-    #     orbit_filename = os.path.join(outdir,url.split('/')[-1])
-    #     print('Downloading orbit ' + orbit_filename)
-    #     os.system(f'wget -P ./orbits -nc -c {url} >> log')  # Downloads the orbit files
-
-    # # Do one last check of the files
-    # for url in orbUrls:
-    #     fname = os.path.join(outdir,url.split('/')[-1])
-    #     if not os.path.isfile(fname):
-    #         print('Warning: File does not exist ' + fname)
-    #     else:
-    #         if os.path.getsize(fname) < 1024: 
-    #             print('Warning: ' + fname + ' is too small. Try again.')
-    #             os.remove(fname)
+    if redflag:
+        print('Some orbit files may have not been properly downloaded. Please try again.')
+        sys.exit(1)
 
 def dlSlc(slcUrls, gran,outdir):
 
