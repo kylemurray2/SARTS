@@ -93,7 +93,7 @@ def get_with_retry(url, max_retries=3):
     response.raise_for_status()
 
 
-def get_orbit_url(granuleName):
+def get_orbit_url(granuleNames):
     """Retrieve precise orbit file for a specific Sentinel-1 granule.
     Precise orbits available ~3 weeks after aquisition.
     Parameters
@@ -108,18 +108,20 @@ def get_orbit_url(granuleName):
     orbitUrl :  str
         url pointing to matched orbit file
     """
-    # granuleName='S1A20160811'
     urlPrecise='https://s1qc.asf.alaska.edu/aux_poeorb'
     urlResorb='https://s1qc.asf.alaska.edu/aux_resorb'
 
-    sat = granuleName[:3]
-    date = granuleName[3:]
+
     
-    try:
-        r = get_with_retry(urlPrecise)
-        webpage = html.fromstring(r.content)
-        orbits = webpage.xpath('//a/@href')
-        df = pd.DataFrame(dict(orbit=orbits))
+    r = get_with_retry(urlPrecise)
+    webpage = html.fromstring(r.content)
+    orbits = webpage.xpath('//a/@href')
+    df = pd.DataFrame(dict(orbit=orbits))
+
+    orbitUrls=[]
+    for granuleName in granuleNames:
+        sat = granuleName[:3]
+        date = granuleName[3:]
         dfSat = df[df.orbit.str.startswith(sat)].copy()
         dayBefore = pd.to_datetime(date) - pd.to_timedelta(1, unit='d')
         dayBeforeStr = dayBefore.strftime('%Y%m%d')
@@ -127,9 +129,12 @@ def get_orbit_url(granuleName):
         match = dfSat.loc[(dfSat.startTime == dayBeforeStr, 'orbit')].values[0]
         orbitUrl = f"{urlPrecise}/{match}"
         print(f"Found precise orbit URL for {sat}, {date}")
-        return orbitUrl
-    except Exception as e:
-        print(f"Error encountered: {e}")
+        orbitUrls.append(orbitUrl)
+    
+    return orbitUrls
+    
+    # except Exception as e:
+    #     print(f"Error encountered: {e}")
     # except:
     #     try:
     #         print('using resorb for ' + granuleName +' (it is probably too recent)')
@@ -148,4 +153,4 @@ def get_orbit_url(granuleName):
     #         print(f"Error encountered: {e}")
     #         raise RuntimeError("Both precise and resorb URL retrieval failed!") from e
 
-        return None
+        # return None

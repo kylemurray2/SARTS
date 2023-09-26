@@ -77,19 +77,8 @@ def dlOrbs(gran,outdir):
     sat_dates = np.unique(sat_dates)
     sat_dates.sort()
     
-    print('Finding orbit URLs...')
-    with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
-        futures = [executor.submit(asfQuery.get_orbit_url, g) for g in sat_dates]
-        
-        for future in concurrent.futures.as_completed(futures):
-            print(future.result())
-            try:
-                url = future.result()
-                orbUrls.append(url)
-            except Exception as e:
-                print(f"An exception occurred: {e}")
-        
-        concurrent.futures.wait(futures)
+    asfQuery.get_orbit_url(sat_dates)
+ 
         
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
@@ -370,7 +359,7 @@ if __name__ == '__main__':
     # inps = argparse.Namespace()
     # inps.searchData_flag = True
     # inps.dlSlc_flag = True
-    inps.dlOrbs_flag = True
+    # inps.dlOrbs_flag = True
     # inps.get_srtm = False
 
     main(inps)
