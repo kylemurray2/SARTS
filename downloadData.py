@@ -127,9 +127,10 @@ def dlOrbs(gran,outdir):
                 os.remove(fname)
                 dlorbs.append(url)
                 redflag=True
-            else:
+            # else:
                 # print('Downloaded OK ' + fname)
 
+    
     if redflag:
         print('Some orbit files may have not been properly downloaded. Please try again.')
         sys.exit(1)
