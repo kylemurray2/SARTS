@@ -8,20 +8,18 @@ Download SAR SLCs, Orbit files, and DEM
 @author: Kyle Murray
 """
 
-import os
-import argparse
-import glob
+import os, argparse, glob, zipfile, re, requests
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from stackSentinel import sentinelSLC
 from SARTS import asfQuery, getDEM, setupStack, config
 import concurrent.futures
-import requests
-import zipfile,re
 
 
 nproc = int(os.cpu_count())
+if nproc> 20:
+    nproc=20
 print('downloading with '  + str(nproc) + ' cpus')
 
 def cmdLineParser():
@@ -67,12 +65,12 @@ def dl(url,outname):
         # Iterate through the content and write to the file
         for data in response.iter_content(chunk_size=int(2**14)):
             file.write(data)
- 
-    
+
+
 def dlOrbs(gran,outdir):
     # Create an empty list to store the returned URLs
     orbUrls = []
-    
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=nproc) as executor:  # Adjust max_workers as needed
         futures = [executor.submit(asfQuery.get_orbit_url, g) for g in gran]
 
@@ -89,7 +87,10 @@ def dlOrbs(gran,outdir):
 
     if not os.path.isdir('./orbits'):
         os.system('ln -s ' + outdir + ' ./')
-
+        
+    orbUrls = np.unique(orbUrls)
+    orbUrls.sort()
+    
     outNames = []
     dlorbs = []
     for url in orbUrls:
@@ -123,7 +124,7 @@ def dlOrbs(gran,outdir):
                 outNames.append(fname)
                 dlorbs.append(url)
             else:
-                print('already exists ' + fname)
+                print('Downloaded OK ' + fname)
 
 
     # do it this time in series with wget
@@ -320,10 +321,13 @@ def main(inps):
         slcUrls, gran = df['URL'], df['Granule Name']
 
     dates = [l[17:25] for l in gran]
+    dates = np.unique(dates)
     dates.sort()
     print(dates)
 
     if inps.dlOrbs_flag:
+        
+        
         print('Downloading orbits')
         dlOrbs(gran,ps.orbit_dirname)
     
@@ -351,12 +355,13 @@ if __name__ == '__main__':
     '''
     Main driver.
     '''
+    inps = cmdLineParser()
+
     # For debugging
     # inps = argparse.Namespace()
     # inps.searchData_flag = True
     # inps.dlSlc_flag = True
-    # inps.dlOrbs_flag = True
+    inps.dlOrbs_flag = True
     # inps.get_srtm = False
 
-    inps = cmdLineParser()
     main(inps)

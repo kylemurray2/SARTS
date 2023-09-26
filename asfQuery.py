@@ -20,11 +20,11 @@ those bounds.
 
 @author: km
 """
-import os, requests, pandas as pd
+import requests, pandas as pd
 from lxml import html
 import shapely, shapely.geometry, shapely.wkt
 import sys
-from datetime import timedelta
+import time
 
 def getGran(path, start, end, sat, bounds, poly):
 
@@ -37,7 +37,6 @@ def getGran(path, start, end, sat, bounds, poly):
     # poly=ps.poly
 
     fmt = 'CSV'
-    orbit = None
     flightDirection = None
     baseurl = 'https://api.daac.asf.alaska.edu/services/search/param'
     data = dict(platform=sat,

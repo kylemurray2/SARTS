@@ -53,17 +53,17 @@ def run_ampdispersion(ps):
     util.write_xml(ps.meanampDS,ps.nx,ps.ny,1,'FLOAT','BSQ')
     
     #Output the ps pixels by using a threshold on ampdispersion
-    os.system('imageMath.py -e="a<' + int(ps.ampDispersionThreshold) + '" --a=./Fringe/ampDispersion/ampdispersion  -o ./Fringe/ampDispersion/ps_pixels -t byte')
+    os.system('imageMath.py -e="a<' + str(ps.ampDispersionThreshold) + '" --a=./Fringe/ampDispersion/ampdispersion  -o ./Fringe/ampDispersion/ps_pixels -t byte')
 
 
 def makeTcorrMean(ps):
     #make tcorrMean.bin_____________________________________________________________
     miniStacks_tcorr_files = glob.glob('./Fringe/Sequential/miniStacks/*/EVD/tcorr.bin')
-    tcorrsMean = np.zeros((ps.ny, ps.nx),dtype='float32')
+    tcorrsMean = np.zeros((int(ps.ny), int(ps.nx)),dtype='float32')
     # ii=0;start = ii * chunk_size ;end = start+chunk_size + 1
     
-    for ii in range(ps.ny):
-        tc = np.zeros((len(miniStacks_tcorr_files),ps.nx))
+    for ii in range(int(ps.ny)):
+        tc = np.zeros((len(miniStacks_tcorr_files),int(ps.nx)))
         for jj,mtf in enumerate(miniStacks_tcorr_files):
             ds = gdal.Open(mtf)
             tc[jj,:] = ds.GetVirtualMemArray()[ii,:]
@@ -119,12 +119,15 @@ if __name__ == '__main__':
     '''
     Main driver.
     '''
+    
+    flags = cmdLineParser()
+
     # flags = argparse.Namespace()
     # flags.tops2vrt = True
     # flags.nmap = True
     # flags.sequential_PL = True
     # flags.adjustministacks = True
     # flags.ampdispersion = True
+    # flags.makeTcorr = True
 
-    flags = cmdLineParser()
     main(flags)
