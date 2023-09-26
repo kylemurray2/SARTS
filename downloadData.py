@@ -87,6 +87,8 @@ def dlOrbs(gran,outdir):
     orbUrls = np.unique(orbUrls)
     orbUrls.sort()
     
+    print('Searching for orbits...')
+
     outNames = []
     dlorbs = []
     for url in orbUrls:
