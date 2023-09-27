@@ -95,7 +95,7 @@ def main(flags):
     ps.weightDS   = ps.outputDS
     ps.nx = str(ps.nx)
     ps.ny = str(ps.ny)
-    
+    ps.geobbox = None
     if flags.tops2vrt:
         tops2vrt.main(ps)
 
