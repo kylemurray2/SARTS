@@ -257,7 +257,6 @@ def dlDEM(ps):
     zips = glob.glob(os.path.join(ps.slc_dirname, '*zip'))
     # Figure out what bounds to use for the DEM
     minlats, maxlats, minlons, maxlons = [], [], [], []
-
     for z in zips:
         safe = sentinelSLC(z)
         safe.get_lat_lon_v2()
@@ -265,7 +264,6 @@ def dlDEM(ps):
         maxlats.append(safe.SNWE[1])
         minlons.append(safe.SNWE[2])
         maxlons.append(safe.SNWE[3])
-
     if not os.path.isdir('Figs'):
         os.mkdir('Figs')
     if not os.path.isdir('Npy'):
