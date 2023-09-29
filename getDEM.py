@@ -55,5 +55,5 @@ def getDEM(bounds,demtype='COP30',apiKey=None, srtm=False):
 
 
 # Example usage
-# bounds = '35.63,35.81,-117.44,-117.23'#'SNWE
-# getDEM(bounds)
+bounds = '35.63,35.81,-117.44,-117.23'#'SNWE
+getDEM(bounds)
