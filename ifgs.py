@@ -37,7 +37,7 @@ def cmdLineParser():
     parser.add_argument('-u', '--unwrap', action='store_true', dest='unwrap', default=True,help='Unwrap interferograms')
     parser.add_argument('-m', '--make-ifgs', action='store_true', dest='makeIfgs', default=True,help='Make the interferograms')
     parser.add_argument('-n', '--nproc', type=int, dest='num_processes', default=5, help='Number of parallel processes. Use 1 for no parallelization')
-    parser.add_argument('-f', '--noFringe', action='store_false', dest='doFringe', help='Use this flag if you are not using Fringe psds.')
+    parser.add_argument('-f', '--noFringe', action='store_true', dest='noFringe', help='Use this flag if you are not using Fringe psds.')
 
     return parser.parse_args()
 
@@ -111,7 +111,7 @@ def main(inps):
     ps.coregSlcDir    = './merged/SLC'
     ps.unwrapMethod   = None
     
-    if inps.doFringe:
+    if not inps.noFringe:
         fringeDir = './Fringe/'
         ps.intdir  = fringeDir + 'PS_DS/' + ps.networkType
         if ps.sensor=='ALOS':
@@ -131,7 +131,7 @@ def main(inps):
         ps.outDir     = ps.intdir
     
     #__Make IFGS____________________
-    if inps.doFringe:
+    if not inps.noFringe:
         # Make ifgs with fringe
         if inps.makeIfgs:
             integratePS.main(ps)
