@@ -37,7 +37,7 @@ cd $softwareDir/src/isce2
 mkdir build
 cd build
 cmake .. -DCMAKE_INSTALL_PREFIX=$softwareDir/isce2 -DPYTHON_MODULE_DIR=$softwareDir -DCMAKE_PREFIX_PATH=${CONDA_PREFIX} -DCMAKE_BUILD_TYPE=Release
-make -j 16 # to use multiple threads
+make -j 10 # to use multiple threads
 make install
 
 
