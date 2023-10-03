@@ -35,7 +35,16 @@ def getTime(path,frame):
     Lon = pd.read_csv('out.csv')["Near Start Lon"][0]
     Lat = pd.read_csv('out.csv')["Near Start Lat"][0]
     return int(hour),int(minute), Lon, Lat
-   
+
+def read_isce_image(file_name):
+    from isce.components import isceobj
+    imgi = isceobj.createImage()
+    imgi.load(file_name+'.xml')
+    outIM = imgi.memMap()
+    
+    return outIM
+
+
 def writeGeotiff(array, lat_bounds, lon_bounds, output_file,epsg=4326):
     '''
     no data is zero

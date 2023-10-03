@@ -241,26 +241,31 @@ def main(inps):
     ps.nxf =        nxf
     ps.nyf =        nyf
 
+
     if inps.doCrop and ps.crop:
         for infile in geomList:
             if os.path.isfile(infile):
-                if not os.path.isfile(infile+'.crop'):
+                if not os.path.isfile(infile+'.1crop'):
                     imgi = isceobj.createImage()
                     imgi.load(infile+'.xml')
-                    if infile.split('/')[-1] in ['los.rdr.full']:
-                        imgi.scheme = 'BSQ'
-                        imgi.imageType = 'bsq'
-                    # print(imgi.memMap().shape)
-                    # Rearrange axes order from small to big
-                    geomIm = util.orderAxes(imgi.memMap(),ps.nxf,ps.nyf)
-                    geomIm = geomIm[:,ps.cropymin:ps.cropymax,ps.cropxmin:ps.cropxmax]
-                    # geomIm = geomIm[:,ps.cropymin:ps.cropymax,ps.cropxmin:ps.cropxmax]
+                    geomIm = imgi.memMap()
+                    
+                    # Adapt to variable dimension order from isce images
+                    shape = geomIm.shape
+                    y_dim = shape.index(ps.nyf)
+                    x_dim = shape.index(ps.nxf)
+                    # z_dim = 3 - y_dim - x_dim
+                    # Perform cropping dynamically based on identified dimensions
+                    slices = [slice(None)] * 3  # Default slice (full range) for all dimensions
+                    slices[y_dim] = slice(ps.cropymin, ps.cropymax)
+                    slices[x_dim] = slice(ps.cropxmin, ps.cropxmax)
+                    geomIm = geomIm[tuple(slices)]
+
+                    # Write out cropped file
                     imgo = imgi.clone()
                     imgo.filename = infile+'.crop'
                     imgo.width  = ps.nx #ps.cropxmax-ps.cropxmin
                     imgo.length = ps.ny #ps.cropymax-ps.cropymin
-                    if infile.split('/')[-1] in ['incLocal.rdr.full']:
-                        imgo.scheme = 'BSQ'
                     geomIm.tofile(imgo.filename)
                     imgo.dump(imgo.filename+'.xml')
                     imgo.finalizeImage()
@@ -458,5 +463,11 @@ if __name__ == '__main__':
     '''
     Main driver.
     '''
+    # inps = argparse.Namespace()
+    # inps.doDownlook = False
+    # inps.doCrop = False
+    # inps.replace = False
+    # inps.fixImages = False
+    # inps.plot = False
     inps = cmdLineParser()
     main(inps)
