@@ -18,6 +18,8 @@ if [ ! -d "$DIR_PATH" ]; then
     exit 1
 fi
 
+# Create a new directory named "merged" in the current directory
+mkdir -p "./merged"
 
 # Directories to link
 declare -a dirs_to_link=("baselines" "configs" "DEM" "reference" )
@@ -31,8 +33,7 @@ for dir in "${dirs_to_link[@]}"; do
     fi
 done
 
-# Create a new directory named "merged" in the current directory
-mkdir -p "./merged"
+
 
 # Directories inside "merged" to link
 declare -a dirs_to_link=("SLC" "baselines")
