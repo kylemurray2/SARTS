@@ -41,7 +41,8 @@ declare -a dirs_to_link=("SLC" "baselines")
 for dir in "${dirs_to_link[@]}"; do
     source_dir="$DIR_PATH/merged/$dir"
     if [ -d "$source_dir" ]; then
-        ln -s "$source_dir" "./merged/"
+        ln -s $source_dir ./merged/
+        echo "linked $source_dir"
     else
         echo "Warning: $dir does not exist in $DIR_PATH/merged/"
     fi
