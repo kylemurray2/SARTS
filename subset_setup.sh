@@ -63,7 +63,7 @@ mkdir -p "$geom_ref_dest"
 # Link files from geom_reference that don't contain 'crop' or 'lk' in their titles
 for file in "$geom_ref_source"/*; do
     file_basename=$(basename "$file")
-    if [[ ! "$file_basename" =~ (crop|lk) ]]; then
+    if [[ ! "$file_basename" =~ (crop|lk|water|land) ]]; then
         ln -s "$file" "$geom_ref_dest/$file_basename"
     fi
 done
@@ -77,3 +77,8 @@ else
     echo "Error: params.yaml does not exist in $DIR_PATH!"
     exit 1
 fi
+
+
+echo ' '
+echo 'Edit crop bounds of params.yaml'
+echo 'Change Land cover file, if using water mask'
