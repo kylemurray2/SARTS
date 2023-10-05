@@ -1,4 +1,7 @@
 #!/bin/bash
+# Author: KM
+# Date: 10/04/2023
+# This script is designed for when you want to make a new time series by cropping an area of another existing stack.
 
 # Check if an argument was provided
 if [ "$#" -ne 1 ]; then
