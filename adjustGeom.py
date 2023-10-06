@@ -32,7 +32,6 @@ def cmdLineParser():
     parser.add_argument('-f', '--fix-images', action='store_true', dest='fixImages',help='Fix file path in xml files (use if files were moved to different directory')
     parser.add_argument('-p', '--plot-off', action='store_false', dest='plot',help='Turn plotting off')
 
-
     return parser.parse_args()
 
 
@@ -42,12 +41,6 @@ def getbl(d):
     bl = ds.GetVirtualMemArray()
     bl = np.nanmean(bl)
     return bl
-
-
-# def checkFiles(ps):
-#     for ii in len
-
-
 
 
 def main(inps):
@@ -304,6 +297,7 @@ def main(inps):
                 if not os.path.isfile(outfile):
                     print('downlooking ' + f)
                     downLook(infile, outfile, ps.alks, ps.rlks)
+                    
                 else:
                     print(outfile + ' already exists')
     
@@ -312,67 +306,36 @@ def main(inps):
     else:
         print('skipping donwlooking')
     
-    # Get bounding coordinates (Frame)
-    f_lon_lk = ps.mergeddir + '/geom_reference/lon_lk.rdr'
-    f_lat_lk = ps.mergeddir + '/geom_reference/lat_lk.rdr'
-    f_hgt_lk = ps.mergeddir + '/geom_reference/hgt_lk.rdr'
-    f_los_lk = ps.mergeddir + '/geom_reference/los_lk.rdr'
-    f_shm_lk = ps.mergeddir + '/geom_reference/shadowMask_lk.rdr'
-    f_inc_lk = ps.mergeddir + '/geom_reference/incLocal_lk.rdr'
     
-    # LON --------------
-    Image = isceobj.createImage()
-    Image.load(f_lon_lk + '.xml')
-    lon_ifg = util.orderAxes(Image.memMap(),nxl,nyl)[0,:,:]
-    lon_ifg = lon_ifg.copy().astype(np.float32)
-    lon_ifg[lon_ifg==0]=np.nan
-    Image.finalizeImage()
-    
-    # LAT --------------
-    Image = isceobj.createImage()
-    Image.load(f_lat_lk + '.xml')
-    lat_ifg =util.orderAxes(Image.memMap(),nxl,nyl)[0,:,:]
-    lat_ifg = lat_ifg.copy().astype(np.float32)
-    lat_ifg[lat_ifg==0]=np.nan
-    Image.finalizeImage()
-    
-    # HGT --------------
-    Image = isceobj.createImage()
-    Image.load(f_hgt_lk + '.xml')
-    hgt_ifg = util.orderAxes(Image.memMap(),nxl,nyl)[0,:,:]
-    hgt_ifg = hgt_ifg.copy().astype(np.float32)
-    hgt_ifg[hgt_ifg==-500]=np.nan
-    Image.finalizeImage()
-    
-    # LOS --------------
-    Image = isceobj.createImage()
-    Image.load(f_los_lk + '.xml')
-    # Image.bands=2
-    # Image.scheme='BIP'
-    los_ifg = util.orderAxes(Image.memMap(),nxl,nyl)[0,:,:]
-    los_ifg = los_ifg.copy()
-    util.show(los_ifg)
-    az_ifg = util.orderAxes(Image.memMap(),nxl,nyl)[1,:,:]
-    az_ifg = az_ifg.copy()
-    Image.finalizeImage()
-    
-    # Write out a new los file
-    losOutname = ps.mergeddir + '/geom_reference/los2_lk.rdr'
-    fidc=open(losOutname,"wb")
-    fidc.write(los_ifg)
-    #write out an xml file for it
-    out = isceobj.createIntImage() # Copy the interferogram image from before
-    out.dataType = 'FLOAT'
-    out.bands = 1
-    out.filename = losOutname
-    out.width = nxl
-    out.length = nyl
-    out.dump(losOutname + '.xml') # Write out xml
-    out.renderHdr()
-    out.renderVRT()
+    fList = glob.glob(ps.mergeddir + '/geom_reference/*lk.rdr')
+    geom_data = {}
     
     
+    for infile in fList:
+        
+        imgi = isceobj.createImage()
+        imgi.load(infile+'.xml')
+        geomIm = imgi.memMap().copy()
+        geomIm = geomIm.astype(float)  # Convert to float
+
+        geomIm = np.squeeze(geomIm)
+        geomIm[geomIm==0] = np.nan
+        var_name = infile.split('/')[-1].split('.')[0]
+        geom_data[var_name] = geomIm
+
+
+    # Separate az and los from los_lk
+    axis = geom_data['los_lk'].shape.index(2)
+    los_ifg, az_ifg = np.split(geom_data['los_lk'], 2, axis=axis)
+    los_ifg = np.ascontiguousarray(np.squeeze(los_ifg)).astype(np.float32)
+    az_ifg =  np.ascontiguousarray(np.squeeze(az_ifg)).astype(np.float32)
+    
+    _, inc_ifg = np.split(geom_data['incLocal_lk'], 2, axis=axis)
+    inc_ifg = np.ascontiguousarray(np.squeeze(inc_ifg)).astype(np.float32)
+
     # Write out a new az file
+    # azOutname = ps.mergeddir + '/geom_reference/az_lk.rdr'
+    # util.writeISCEimg(az_ifg.astype(np.float32), azOutname, 1, nxl, nyl, 'FLOAT')
     azOutname = ps.mergeddir + '/geom_reference/az_lk.rdr'
     fidc=open(azOutname,"wb")
     fidc.write(az_ifg)
@@ -386,31 +349,7 @@ def main(inps):
     out.dump(azOutname + '.xml') # Write out xml
     out.renderHdr()
     out.renderVRT()
-    
-    # if you want to save these to geom
-    los_ifg = los_ifg.copy().astype(np.float32)
-    los_ifg[los_ifg==0]=np.nan
-    az_ifg = az_ifg.copy().astype(np.float32)
-    az_ifg[az_ifg==0]=np.nan
-    
-    Image = isceobj.createImage()
-    Image.load(f_shm_lk + '.xml')
-    Image.bands=1
-    shm_ifg = util.orderAxes(Image.memMap(),nxl,nyl)[0,:,:]
-    shm_ifg = shm_ifg.copy().astype(np.float32)
-    shm_ifg[np.isnan(hgt_ifg)]=np.nan
-    Image.finalizeImage()
-    
-    Image = isceobj.createImage()
-    Image.load(f_inc_lk + '.xml')
-    Image.bands=2
-    Image.scheme='BSQ'
-    inc = Image.memMap()
-    #plt.figure();plt.imshow(Image.memMap()[0,:,:]);plt.show()
-    # inc_ifg1 = Image.memMap()[0,:,:] # relative to the local plane of the ground
-    inc_ifg = util.orderAxes(Image.memMap(),nxl,nyl)[1,:,:]# relative to surface normal vector (this is the one we want I think)
-    inc_ifg = inc_ifg.copy()
-    
+   
     # Write out a new inc file
     incOutname = ps.mergeddir + '/geom_reference/inc_lk.rdr'
     fidc=open(incOutname,"wb")
@@ -425,47 +364,44 @@ def main(inps):
     out.dump(incOutname + '.xml') # Write out xml
     out.renderHdr()
     out.renderVRT()
-    
-    inc_ifg = inc_ifg.copy().astype(np.float32)
-    inc_ifg[inc_ifg==0]=np.nan
-    Image.finalizeImage()
+
     
     if inps.plot:
         cmap = 'Spectral_r'
         fig,ax = plt.subplots(3,2,figsize=(9,9))
-        ax[0,0].imshow(lon_ifg,cmap=cmap);ax[0,0].set_title('lon_ifg')
-        ax[0,1].imshow(lat_ifg,cmap=cmap);ax[0,1].set_title('lat_ifg')
-        ax[1,0].imshow(hgt_ifg,cmap=cmap);ax[1,0].set_title('hgt_ifg')
+        ax[0,0].imshow(geom_data['lon_lk'],cmap=cmap);ax[0,0].set_title('lon_ifg')
+        ax[0,1].imshow(geom_data['lat_lk'],cmap=cmap);ax[0,1].set_title('lat_ifg')
+        ax[1,0].imshow(geom_data['hgt_lk'],cmap=cmap);ax[1,0].set_title('hgt_ifg')
         ax[1,1].imshow(los_ifg,cmap=cmap);ax[1,1].set_title('los_ifg')
-        ax[2,0].imshow(shm_ifg,cmap=cmap);ax[2,0].set_title('shm_ifg')
+        ax[2,0].imshow(geom_data['shadowMask_lk'],cmap=cmap);ax[2,0].set_title('shm_ifg')
         ax[2,1].imshow(inc_ifg,cmap=cmap);ax[2,1].set_title('inc_ifg')
         plt.savefig(ps.workdir + '/Figs/geom.svg',transparent=True,dpi=100 )
         plt.show()
     
     ps.dates =      dates
     ps.pairs =      pairs
-    ps.pairs_seq =     pairs_seq
+    ps.pairs_seq =  pairs_seq
     ps.dec_year =   dec_year
     ps.dn =         dn
     ps.dn0 =        dn0
     ps.nd =         nd
-    
-    ps.minlon =     np.nanmin(lon_ifg)
-    ps.maxlon =     np.nanmax(lon_ifg)
-    ps.minlat =     np.nanmin(lat_ifg)
-    ps.maxlat =     np.nanmax(lat_ifg)
+    ps.geom =       geom_data
+    ps.minlon =     np.nanmin(geom_data['lon_lk'])
+    ps.maxlon =     np.nanmax(geom_data['lon_lk'])
+    ps.minlat =     np.nanmin(geom_data['lat_lk'])
+    ps.maxlat =     np.nanmax(geom_data['lat_lk'])
     
     # Save the namespace
     np.save('./ps.npy',ps)
-
+    np.save('./geom.npy',geom_data)
 
 if __name__ == '__main__':
     '''
     Main driver.
     '''
     # inps = argparse.Namespace()
-    # inps.doDownlook = False
-    # inps.doCrop = False
+    # inps.doDownlook = True
+    # inps.doCrop = True
     # inps.replace = False
     # inps.fixImages = False
     # inps.plot = False

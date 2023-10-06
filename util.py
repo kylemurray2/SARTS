@@ -830,6 +830,7 @@ def writeISCEimg(img,outName,nBands,width,length,dtype):
         img = np.asarray(img,dtype=np.complex64)
         out.dataType = 'CFLOAT'
     
+    out.scheme = 'BIP'
     out.bands = 1
     out.filename = outName
     out.width = width

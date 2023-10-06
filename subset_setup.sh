@@ -1,7 +1,12 @@
 #!/bin/bash
+
 # Author: KM
 # Date: 10/04/2023
+
 # This script is designed for when you want to make a new time series by cropping an area of another existing stack.
+#  You make a new working directory.  Then run this script in that directory.
+#  It will link to the key directories from the main stack, and copy the parmas.yaml file.
+#  Only the full geom files are linked so that new cropped and downlooked geom files can be added without overwriting the main stack files.
 
 # Check if an argument was provided
 if [ "$#" -ne 1 ]; then
@@ -32,8 +37,6 @@ for dir in "${dirs_to_link[@]}"; do
         echo "Warning: $dir does not exist in $DIR_PATH!"
     fi
 done
-
-
 
 # Directories inside "merged" to link
 declare -a dirs_to_link=("SLC" "baselines")
@@ -77,7 +80,6 @@ else
     echo "Error: params.yaml does not exist in $DIR_PATH!"
     exit 1
 fi
-
 
 echo ' '
 echo 'Edit crop bounds of params.yaml'
