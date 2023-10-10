@@ -27,7 +27,7 @@ fi
 mkdir -p "./merged"
 
 # Directories to link
-declare -a dirs_to_link=("baselines" "configs" "DEM" "reference" )
+declare -a dirs_to_link=("baselines" "DEM" "reference" )
 
 for dir in "${dirs_to_link[@]}"; do
     source_dir="$DIR_PATH/$dir"
