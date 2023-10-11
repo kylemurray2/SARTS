@@ -33,10 +33,10 @@ def cmdLineParser():
     parser = argparse.ArgumentParser(
         description='Crop and downlook geom files. Save parameters',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-d', '--downlook', action='store_true', dest='downlook', default=True,help='Downlook interferograms')
-    parser.add_argument('-u', '--unwrap', action='store_true', dest='unwrap', default=True,help='Unwrap interferograms')
-    parser.add_argument('-m', '--make-ifgs', action='store_true', dest='makeIfgs', default=True,help='Make the interferograms')
-    parser.add_argument('-n', '--nproc', type=int, dest='num_processes', default=5, help='Number of parallel processes. Use 1 for no parallelization')
+    parser.add_argument('-d', '--downlook', action='store_true', dest='downlook',help='Downlook interferograms')
+    parser.add_argument('-u', '--unwrap', action='store_true', dest='unwrap',help='Unwrap interferograms')
+    parser.add_argument('-m', '--make-ifgs', action='store_true', dest='makeIfgs',help='Make the interferograms')
+    parser.add_argument('-n', '--nproc', type=int, dest='num_processes', default=3, help='Number of parallel processes. Use 1 for no parallelization')
     parser.add_argument('-f', '--noFringe', action='store_true', dest='noFringe', help='Use this flag if you are not using Fringe psds.')
 
     return parser.parse_args()
@@ -112,7 +112,7 @@ def main(inps):
     ps.unwrapMethod   = None
     
     if not inps.noFringe:
-        fringeDir = './Fringe/'
+        fringeDir = './Fringe2/'
         ps.intdir  = fringeDir + 'PS_DS/' + ps.networkType
         if ps.sensor=='ALOS':
             ps.slcdir  = fringeDir + 'PhaseLink'
