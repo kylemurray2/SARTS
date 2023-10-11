@@ -132,6 +132,24 @@ def main(inps):
     networkObj.dateList = dates
     networkObj.baselineDict[ps.reference_date] = 0.0
     
+    
+    def getbl(secDir):
+        print(secDir)
+        bl_file =secDir  + '/' + secDir.split('/')[-1] + '.vrt'
+        ds = gdal.Open(bl_file)
+        bl = ds.GetVirtualMemArray()
+        bl = np.nanmean(bl)
+        return bl
+
+    bls = []
+    for d in networkObj.dateList:
+        if d == ps.reference_date:
+            bls.append(0)
+        else:
+            secDir = './merged/baselines/' + d
+            baseline = getbl(secDir)
+            networkObj.baselineDict[d] = baseline
+            bls.append(float(baseline))
 
     if ps.networkType=='singleMaster':
         networkObj.single_master()
@@ -170,15 +188,15 @@ def main(inps):
     dn = np.asarray(dn)
     dn0 = dn-dn[0] # make relative to first date
     
-    if inps.plot or ps.networkType=='delaunay':
-        bls = []
-        for d in networkObj.dateList:
-            if d == ps.reference_date:
-                bls.append(0)
-            else:
-                baseline = getbl(d)
-                networkObj.baselineDict[d] = baseline
-                bls.append(float(baseline))
+    # if inps.plot or ps.networkType=='delaunay':
+    #     bls = []
+    #     for d in networkObj.dateList:
+    #         if d == ps.reference_date:
+    #             bls.append(0)
+    #         else:
+    #             baseline = getbl(d)
+    #             networkObj.baselineDict[d] = baseline
+    #             bls.append(float(baseline))
 
     if inps.plot:
         plt.figure()
@@ -385,7 +403,6 @@ def main(inps):
     ps.dn =         dn
     ps.dn0 =        dn0
     ps.nd =         nd
-    ps.geom =       geom_data
     ps.minlon =     np.nanmin(geom_data['lon_lk'])
     ps.maxlon =     np.nanmax(geom_data['lon_lk'])
     ps.minlat =     np.nanmin(geom_data['lat_lk'])

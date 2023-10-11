@@ -112,20 +112,20 @@ def main(inps):
     ps.unwrapMethod   = None
     
     if not inps.noFringe:
-        fringeDir = './Fringe/'
-        ps.intdir  = fringeDir + 'PS_DS/' + ps.networkType
+        fringeDir = ps.stackdir.split('/')[1]
+        ps.intdir  = os.path.join( fringeDir, 'PS_DS', ps.networkType)
         if ps.sensor=='ALOS':
-            ps.slcdir  = fringeDir + 'PhaseLink'
-            ps.dsStackDir = fringeDir + 'PhaseLink'
+            ps.slcdir  =  os.path.join(fringeDir,'PhaseLink')
+            ps.dsStackDir =  os.path.join(fringeDir, 'PhaseLink')
         
         else:
-            ps.slcdir  = fringeDir + 'adjusted_wrapped_DS'
-            ps.dsStackDir = fringeDir + 'adjusted_wrapped_DS'
+            ps.slcdir  =  os.path.join(fringeDir, 'adjusted_wrapped_DS')
+            ps.dsStackDir =  os.path.join(fringeDir, 'adjusted_wrapped_DS')
         
-        ps.slcStack       = fringeDir + 'coreg_stack/slcs_base.vrt'
-        ps.tcorrFile      = fringeDir + 'tcorrMean.bin'
-        ps.psPixelsFile   = fringeDir + 'ampDispersion/ps_pixels'
-        ps.outDir         = fringeDir + 'PS_DS/' + ps.networkType
+        ps.slcStack       =  os.path.join(fringeDir, 'coreg_stack/slcs_base.vrt')
+        ps.tcorrFile      =  os.path.join(fringeDir,'tcorrMean.bin')
+        ps.psPixelsFile   =  os.path.join(fringeDir, 'ampDispersion/ps_pixels')
+        ps.outDir         =  os.path.join(fringeDir, 'PS_DS', ps.networkType)
     else:
         print("Not using Fringe for IFG formation")
         ps.outDir     = ps.intdir
@@ -189,4 +189,5 @@ if __name__ == '__main__':
     Main driver.
     '''
     inps = cmdLineParser()
+    # inps.makeIfgs = True
     main(inps)

@@ -82,7 +82,11 @@ def getPS(directory='.'):
     else:
         print('No params file was found.')
         sys.exit(1)
-            
+    
+    # Can remove this later..
+    if not ps.geom==None:
+        ps.geom=None
+        
     # Save the updated ps namespace 
     np.save(os.path.join(directory, 'ps.npy'),ps)
     
