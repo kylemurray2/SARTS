@@ -112,7 +112,7 @@ def main(inps):
     ps.unwrapMethod   = None
     
     if not inps.noFringe:
-        fringeDir = './Fringe2/'
+        fringeDir = './Fringe/'
         ps.intdir  = fringeDir + 'PS_DS/' + ps.networkType
         if ps.sensor=='ALOS':
             ps.slcdir  = fringeDir + 'PhaseLink'
