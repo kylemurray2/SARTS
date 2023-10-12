@@ -197,11 +197,12 @@ def main(inps):
                 if os.path.isdir(pairdir):
                     dest =os.path.join(seq1Dir,p)
                     # dest_abs = os.path.abspath(os.path.join(seq1Dir,p))
-                    source =os.path.join(ps.outDir,p)
+                    # source =os.path.join(ps.outDir,p)
                     source_rel = os.path.join('..',ps.networkType,p)
-                    if os.path.islink(dest):
-                        os.remove(dest)  # Remove any existing link
-                    os.symlink(source_rel,dest)
+                    if not os.path.isfile(dest) and not os.path.islink(dest):
+                        os.symlink(source_rel,dest)
+                    else:
+                        print(pairdir + ' Already exists in sequential1')
                 else:
                     print(pairdir + ' Does not exist. sequential network is disconnected')
 
