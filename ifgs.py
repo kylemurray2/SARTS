@@ -48,7 +48,7 @@ def makeIfg(slc1_fn,slc2_fn,ifg_fn,ps):
     ds2 = gdal.Open(slc2_fn)
     slc1 = ds1.GetVirtualMemArray()[ps.cropymin:ps.cropymax,ps.cropxmin:ps.cropxmax]
     slc2 = ds2.GetVirtualMemArray()[ps.cropymin:ps.cropymax,ps.cropxmin:ps.cropxmax]
-    ifg = np.multiply(slc1,np.conj(slc2))
+    ifg = np.multiply(slc2,np.conj(slc1))
     
     out = isceobj.createIntImage() # Copy the interferogram image from before
     out.dataType = 'CFLOAT'
@@ -128,7 +128,8 @@ def main(inps):
         ps.outDir         =  os.path.join(fringeDir, 'PS_DS', ps.networkType)
     else:
         print("Not using Fringe for IFG formation")
-        ps.outDir     = ps.intdir
+        ps.outDir     = ps.intdir  
+    
     
     #__Make IFGS____________________
     if not inps.noFringe:
@@ -154,7 +155,7 @@ def main(inps):
                 if not os.path.isfile(ifg_fn):
                     if not os.path.isdir(os.path.join(ps.intdir,pair)):
                         os.mkdir(os.path.join(ps.intdir,pair))
-                    makeIfg(slc1_fn,slc2_fn,ifg_fn)
+                    makeIfg(slc1_fn,slc2_fn,ifg_fn,ps)
                 else:
                     print(ifg_fn + ' already exists')
     #______________________
@@ -184,6 +185,27 @@ def main(inps):
             for pair in ps.pairs:
                 unwrapsnaphu(pair,ps)
             
+            
+    # link files to sequential1 if that is not the chosen network type
+    if not inps.noFringe:
+        if ps.networkType != 'sequential1':
+            seq1Dir = os.path.join(fringeDir,'PS_DS','sequential1')
+            if not os.path.isdir(seq1Dir):
+                os.mkdir(seq1Dir)
+            for p in ps.pairs_seq:
+                pairdir = os.path.join(ps.outDir,p)
+                if os.path.isdir(pairdir):
+                    dest =os.path.join(seq1Dir,p)
+                    # dest_abs = os.path.abspath(os.path.join(seq1Dir,p))
+                    source =os.path.join(ps.outDir,p)
+                    source_rel = os.path.join('..',ps.networkType,p)
+                    if os.path.islink(dest):
+                        os.remove(dest)  # Remove any existing link
+                    os.symlink(source_rel,dest)
+                else:
+                    print(pairdir + ' Does not exist. sequential network is disconnected')
+
+
 if __name__ == '__main__':
     '''
     Main driver.
