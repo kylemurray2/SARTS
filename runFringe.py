@@ -120,14 +120,14 @@ if __name__ == '__main__':
     Main driver.
     '''
     
-    flags = cmdLineParser()
+    # flags = cmdLineParser()
 
-    # flags = argparse.Namespace()
-    # flags.tops2vrt = True
-    # flags.nmap = True
-    # flags.sequential_PL = True
-    # flags.adjustministacks = True
-    # flags.ampdispersion = True
-    # flags.makeTcorr = True
+    # # flags = argparse.Namespace()
+    # # flags.tops2vrt = True
+    # # flags.nmap = True
+    # # flags.sequential_PL = True
+    # # flags.adjustministacks = True
+    # # flags.ampdispersion = True
+    # # flags.makeTcorr = True
 
-    main(flags)
+    # main(flags)

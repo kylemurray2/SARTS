@@ -84,8 +84,7 @@ def getPS(directory='.'):
         sys.exit(1)
     
     # Can remove this later..
-    if not ps.geom==None:
-        ps.geom=None
+    ps.geom=None
         
     # Save the updated ps namespace 
     np.save(os.path.join(directory, 'ps.npy'),ps)
