@@ -46,10 +46,10 @@ if False:
 
 print('WARNING: About to delete: ')
 print(delList)
-kk = 5
-for ii in range(kk):
-    print('\r' + str(kk), end=' ')
-    kk-=1
+countdown = 5
+for ii in range(countdown):
+    print('\r' + str(countdown), end=' ')
+    countdown-=1
     time.sleep(1)
 
 

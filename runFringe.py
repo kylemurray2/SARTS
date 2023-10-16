@@ -12,6 +12,13 @@ from osgeo import gdal
 import tops2vrt,nmap,sequential_PL,adjustMiniStacks,ampdispersion
 from SARTS import config,util
 
+
+ds = gdal.Open('Fringe/coreg_stack/slcs_base.vrt')
+stack = ds.GetVirtualMemArray()
+
+plt.figure();plt.plot( np.angle(stack[:,10,10]))
+np.where(np.angle(stack[:,10,10])==0)
+
 def cmdLineParser():
     '''
     Command line parser.
@@ -96,6 +103,7 @@ def main(flags):
     ps.nx = str(ps.nx)
     ps.ny = str(ps.ny)
     ps.geobbox = None
+    
     if flags.tops2vrt:
         tops2vrt.main(ps)
 
@@ -120,14 +128,14 @@ if __name__ == '__main__':
     Main driver.
     '''
     
-    # flags = cmdLineParser()
+    flags = cmdLineParser()
 
-    # # flags = argparse.Namespace()
-    # # flags.tops2vrt = True
-    # # flags.nmap = True
-    # # flags.sequential_PL = True
-    # # flags.adjustministacks = True
-    # # flags.ampdispersion = True
-    # # flags.makeTcorr = True
+    # flags = argparse.Namespace()
+    # flags.tops2vrt = True
+    # flags.nmap = True
+    # flags.sequential_PL = True
+    # flags.adjustministacks = True
+    # flags.ampdispersion = True
+    # flags.makeTcorr = True
 
-    # main(flags)
+    main(flags)
