@@ -58,7 +58,9 @@ def getPS(directory='.'):
 
         ps.swath_num = str(ps.swath_num)
         ps.reference_date = str(ps.reference_date)
-
+        if ps.reference_date=='None':
+            ps.reference_date=None
+        
         ps.mergeddir= ps.workdir + '/merged'
         ps.intdir   = ps.mergeddir + '/interferograms'
         ps.tsdir    = ps.workdir + '/TS'
