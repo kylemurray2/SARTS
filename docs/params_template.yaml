@@ -28,17 +28,17 @@ virtualMerge            : False #default:None
 useGPU                  : False # default:False
 numProcess              : auto # either set an integer, or auto to use all available cpus
 numProcess4topo         : auto # either set an integer, or auto to use 1/3 of available cpus
-#azimuthLooks            : '1'
-#rangeLooks              : '1'
-##filtStrength            : '0.1'
+azimuthLooks            : '1'
+rangeLooks              : '1'
+filtStrength            : '0.1'
 esdCoherenceThreshold   : '0.85'
 num_connections         : '1'
 num_overlap_connections : '3'
 workflow                : slc #default:'interferogram'
 text_cmd                : ''
 snrThreshold            : '10'
-#unwMethod               : snaphu
-#rmFilter                : False
+unwMethod               : snaphu
+rmFilter                : False
 param_ion               : None
 num_connections_ion     : '3'
 
@@ -54,7 +54,7 @@ cropxmax : 0
 # ifgs.py_________________________________________________________________
 alks : 1 # number of looks in azimuth
 rlks : 4 # number of looks in range
-networkType : sequential3 # sequential1, sequential2, delaunay
+networkType : sequential1 # sequential1, sequential2, delaunay
 # snaphu
 init_method : MCF
 cost_mode   : SMOOTH
