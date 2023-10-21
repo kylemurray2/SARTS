@@ -95,8 +95,13 @@ def main(inps):
             os.system('fixImageXml.py -i ' + fname + ' -f')
     
     # Get the watermask using the nlcd land cover map        
+    if ps.sat == 'ALOS':
+        waterMaskFn = ps.mergeddir + '/geom_reference/waterMask.rdr'
+    else:
+        waterMaskFn = ps.mergeddir + '/geom_reference/waterMask.rdr.full'
+
     if ps.waterMask:
-        if not os.path.isfile(ps.mergeddir + '/geom_reference/waterMask.rdr.full'):
+        if not os.path.isfile(waterMaskFn):
             from SARTS.landCover2rdr import convert_land_cover
             convert_land_cover(ps.nlcd_in)
     
@@ -116,7 +121,10 @@ def main(inps):
 
     for ii in range(len(dates)):
         da = dates[ii]
-        fn = os.path.join(ps.slcdir,da,da + '.slc.full')
+        if ps.sat == 'ALOS':
+            fn = os.path.join(ps.slcdir,da,da + '.slc')
+        else:
+            fn = os.path.join(ps.slcdir,da,da + '.slc.full')
         if not os.path.isfile(fn):
             ghosts.append(da)
             print('Warning: ' + fn + ' was not found.')
@@ -224,7 +232,11 @@ def main(inps):
     nd = len(pairs)
 
     # Get width and length
-    f_lon = ps.mergeddir + '/geom_reference/lon.rdr.full'
+    if ps.sat == 'ALOS':
+        f_lon = ps.mergeddir + '/geom_reference/lon.rdr'
+    else:
+        f_lon = ps.mergeddir + '/geom_reference/lon.rdr.full'
+        
     gImage = isceobj.createIntImage()
     gImage.load(f_lon + '.xml')
     nyf = gImage.length

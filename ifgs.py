@@ -199,7 +199,8 @@ def main(inps):
                     # dest_abs = os.path.abspath(os.path.join(seq1Dir,p))
                     # source =os.path.join(ps.outDir,p)
                     source_rel = os.path.join('..',ps.networkType,p)
-                    if not os.path.isfile(dest) and not os.path.islink(dest):
+
+                    if not os.path.isdir(dest):
                         os.symlink(source_rel,dest)
                     else:
                         print(pairdir + ' Already exists in sequential1')

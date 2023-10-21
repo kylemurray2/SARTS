@@ -20,7 +20,7 @@ from osgeo import gdal
 from astropy.convolution import Gaussian2DKernel,convolve
 import os
 
-island='Hawaii'
+island='Oahu'
 doBridge=True
 
 ascDir = os.path.join('/d/HI/S1/Asc', island)
@@ -31,8 +31,8 @@ os.chdir('/d/HI/S1/verthorz/'+island)
 ps_a = config.getPS(ascDir)
 ps_d = config.getPS(desDir)
 
-mpdir_a = os.path.join(ascDir, 'MintPy')
-mpdir_d = os.path.join(desDir, 'MintPy')
+mpdir_a = os.path.join(ascDir, 'MintPy_delaunay_cohthresh')
+mpdir_d = os.path.join(desDir, 'MintPy_delaunay_cohthresh')
 
 filename = os.path.join(mpdir_a, 'inputs/geometryRadar.h5')
 ds = h5py.File(filename,'r+')
@@ -75,8 +75,12 @@ ds.close()
 
 filename = os.path.join(mpdir_a, 'velocity.h5')
 ds = h5py.File(filename,'r+')   
-velocity_a = np.asarray(ds['velocity']) *1000 #convert to cm
+velocity_a = np.asarray(ds['velocity']) *1000 #convert to mm
 ds.close()
+
+
+
+
 
 filename    = os.path.join(mpdir_d, 'inputs/geometryRadar.h5')
 ds          = h5py.File(filename,'r+')   
@@ -95,9 +99,9 @@ ds.close()
 # velocity_d[np.isnan(velocity_d)] = 0
 # velocity_a[np.isnan(velocity_a)] = 0
 
-plt.figure();plt.imshow(maskConnComp_d)
-plt.figure();plt.imshow(mask_a_trim)
-plt.show()
+vmin,vmax = -8,8
+plt.figure();plt.imshow(velocity_a,vmin=vmin,vmax=vmax)
+plt.figure();plt.imshow(velocity_d,vmin=vmin,vmax=vmax)
 
 # velocity_d[maskConnComp_d==0] = np.nan
 # velocity_a[maskConnComp_a==0] = np.nan
@@ -122,6 +126,11 @@ velocity_d_resamp_trim_msk[~mask_a_trim] = np.nan
 velocity_a_trim_msk = velocity_a_trim.copy()
 velocity_a_trim_msk[~mask_a_trim] = np.nan
 
+
+plt.figure();plt.imshow(maskConnComp_d)
+plt.figure();plt.imshow(mask_a_trim)
+plt.show()
+
 # Light spatial filter
 kernel = Gaussian2DKernel(x_stddev=.2)
 velocity_a_trim_msk_filt = convolve(velocity_a_trim_msk, kernel)
@@ -131,28 +140,31 @@ plt.figure();plt.imshow(velocity_a_trim_msk_filt,vmin=-6,vmax=6)
 plt.figure();plt.imshow(velocity_d_resamp_trim_msk_filt,vmin=-6,vmax=6)
 plt.figure();plt.imshow(velocity_d_resamp,vmin=-26,vmax=26)
 
-npix = len(velocity_a_trim_msk_filt)
+npix = len(velocity_a_trim_msk_filt.ravel())
 
-smooth  = .4
-vertHorVec = np.zeros((npix,2))
-for ii in range(npix):
-    if ii%200000 == 0:
-        print(str(100*np.round((ii/npix),2)) + '%')
-    asc = velocity_a_trim_msk_filt.ravel()[ii]
-    des = velocity_d_resamp_trim_msk_filt.ravel()[ii]
-    psi_a = az_a.ravel()[ii]
-    psi_d = az_d_resamp.ravel()[ii]
-    theta_a = inc_a.ravel()[ii]
-    theta_d = inc_d_resamp.ravel()[ii]
-    vertHorVec[ii,:] = util.invertVertHor(asc,des,psi_a,theta_a,psi_d,theta_d,smooth)
+# smooth  = .4
+# vertHorVec = np.zeros((npix,2))
+# for ii in range(npix):
+#     if ii%200000 == 0:
+#         print("\r" + str(100*np.round((ii/npix),2)) + '%', end='', flush=True)
+#     asc = velocity_a_trim_msk_filt.ravel()[ii]
+#     des = velocity_d_resamp_trim_msk_filt.ravel()[ii]
+#     psi_a = az_a.ravel()[ii]
+#     psi_d = az_d_resamp.ravel()[ii]
+#     theta_a = inc_a.ravel()[ii]
+#     theta_d = inc_d_resamp.ravel()[ii]
+#     vertHorVec[ii,:] = util.invertVertHor(asc,des,psi_a,theta_a,psi_d,theta_d,smooth)
     
-east = vertHorVec[:,0].reshape(velocity_a.shape)
-vert = vertHorVec[:,1].reshape(velocity_a.shape)
+# east = vertHorVec[:,0].reshape(velocity_a.shape)
+# vert = vertHorVec[:,1].reshape(velocity_a.shape)
 
-np.save(ps_d.workdir + '/Npy/vert.npy',vert)
-np.save(ps_d.workdir + '/Npy/east.npy',east)
-# vert = np.load(ps_d.workdir + '/Npy/vert.npy')
-# east = np.load(ps_d.workdir + '/Npy/east.npy')
+# if not os.path.isdir('Npy'):
+#     os.mkdir('Npy')
+# np.save(ps_d.workdir + '/Npy/vert2.npy',vert)
+# np.save(ps_d.workdir + '/Npy/east2.npy',east)
+
+vert = np.load(ps_d.workdir + '/Npy/vert2.npy')
+east = np.load(ps_d.workdir + '/Npy/east2.npy')
 
 eastm = east.copy()
 vertm = vert.copy()
@@ -170,6 +182,7 @@ msk_veg[lc==2] = 1
 msk_veg[lc==3] = 1 
 msk_veg[lc==4] = 1 
 msk_veg[lc==5] = 1 
+msk_veg[lc==6] = 1 
 msk_veg[lc==12] = 1 
 msk_veg[lc==19] = 1 
 msk_veg[lc==20] = 1 
@@ -189,19 +202,24 @@ msk[msk_sum<3] = 0
 
 vmin,vmax = -20,20
 
-plt.figure();plt.imshow(msk)
-
+from skimage.morphology import remove_small_objects
+minimumPixelsInRegion=6000
+mask = msk==1
+msk_trim = remove_small_objects(mask, minimumPixelsInRegion, connectivity=1)
+plt.figure();plt.imshow(msk_concom);plt.title('Conn comp')
+plt.figure();plt.imshow(msk_trim);plt.title('Final mask')
+plt.show()
 # eastm[msk_sum<3] = np.nan
 # vertm[msk_sum<3] = np.nan
 # velocity_a[msk_sum<3] = np.nan
 # vertm[msk_veg==0] = np.nan
 
-vertm[msk_concom==0] = np.nan
+vertm[msk_trim==0] = np.nan
 
 
 
 # velocity_d_resamp[msk_sum<3] = np.nan
-
+vmin,vmax = -10,10
 kernel = Gaussian2DKernel(x_stddev=.2)
 vertm_filt = convolve(vertm, kernel)
 vertm_filt[waterMask_a==0] = np.nan
@@ -209,28 +227,32 @@ vertm_filt[waterMask_a==0] = np.nan
 plt.figure();plt.imshow(vertm,vmin=vmin,vmax=vmax)
 plt.figure();plt.imshow(vertm_filt,vmin=vmin,vmax=vmax)
 
-#remove mean from each disconnected region
-minPix = 1000
-labels = util.getConCom(msk,minPix)
-fig,ax = plt.subplots(2,1,figsize=(5,6))
-ax[0].imshow(msk);ax[0].set_title('mask')
-ax[1].imshow(labels);ax[1].set_title('connected regions')
+# #remove mean from each disconnected region
+# minPix = 1000
+# labels = util.getConCom(msk,minPix)
+# fig,ax = plt.subplots(2,1,figsize=(5,6))
+# ax[0].imshow(msk);ax[0].set_title('mask')
+# ax[1].imshow(labels);ax[1].set_title('connected regions')
 
-vertm_filt_bridged = vertm_filt.copy()
+# vertm_filt_bridged = vertm_filt.copy()
 
-for ii in range(int(labels.max())):
-    if len(vertm_filt_bridged[labels==ii+1]) < minPix:
-        vertm_filt_bridged[labels==ii+1] = np.nan # mask out small islands of data
-        msk[labels==ii+1] = 0
-    else:
-        vertm_filt_bridged[labels==ii+1]-=np.nanmean(vertm_filt_bridged[labels==ii+1])
-
-
+# for ii in range(int(labels.max())):
+#     if len(vertm_filt_bridged[labels==ii+1]) < minPix:
+#         vertm_filt_bridged[labels==ii+1] = np.nan # mask out small islands of data
+#         msk[labels==ii+1] = 0
+#     else:
+#         vertm_filt_bridged[labels==ii+1]-=np.nanmean(vertm_filt_bridged[labels==ii+1])
 
 
-vertGeo = util.geocodeKM(vert,10,lons_a,lats_a,ps_a)
+ps_a.minlat = lats_a.min()
+ps_a.minlon = lons_a.min()
+ps_a.maxlat = lats_a.max()
+ps_a.maxlon = lons_a.max()
+
+vertGeo = util.geocodeKM(vertm_filt,10,lons_a,lats_a,ps_a)
 plt.figure();plt.imshow(vertGeo,vmin=-20,vmax=0)
-util.writeGeotiff(vertGeo, (ps_a.minlat,ps_a.maxlat), (ps_a.minlon,ps_a.maxlon), 'OahuVertical_new.tif')
+util.writeGeotiff(vertGeo, (ps_a.minlat,ps_a.maxlat), (ps_a.minlon,ps_a.maxlon), 'geotifs/OahuVertical_1017.tif')
+util.geotiff_to_kmz('geotifs/OahuVertical_1017.tif', 'geotifs/OahuVertical_1017.kmz',vmin=-10,vmax=10,average_elevation=3,colormap='RdBu')
 
 
 fig,ax = plt.subplots(2,2)
@@ -255,7 +277,7 @@ plt.figure();plt.imshow(vertm_filt_bridged,vmin=vmin,vmax=vmax)
 # plt.colorbar(img_handle,fraction=0.03, pad=0.05,orientation='horizontal')
 # plt.scatter( -117.31, 35.752, s=6,color='black',transform=ccrs.PlateCarree())
 # plt.scatter( -117.31, 35.752, s=1,color='white',transform=ccrs.PlateCarree())
-
+from PyPS2 import makeMap
 title='East'
 makeMap.mapImg(eastm[ymin:ymax,xmin:xmax], lons_a[ymin:ymax,xmin:xmax], lats_a[ymin:ymax,xmin:xmax], vmin, vmax, pad,zoom, title, bg=bg, cm='RdBu_r', plotFaults= False,alpha=1,contour=False)
 title='Vertical'
@@ -263,8 +285,9 @@ makeMap.mapImg(vertm_filt[ymin:ymax,xmin:xmax], lons_a[ymin:ymax,xmin:xmax], lat
 makeMap.mapImg(vertm_filt_bridged[ymin:ymax,xmin:xmax], lons_a[ymin:ymax,xmin:xmax], lats_a[ymin:ymax,xmin:xmax], vmin, vmax, pad,zoom, title, bg=bg, cm='RdBu_r', plotFaults= False,alpha=1,contour=False)
 
 
-
-
+ds = gdal.Open('geotifs/OahuVertical_new.tif')
+vel = ds.GetVirtualMemArray()
+makeMap.mapImg(vel, lons_a, lats_a, vmin, vmax, pad,zoom, title, bg=bg, cm='RdBu_r', plotFaults= False,alpha=1,contour=False)
 
 
 # plt.figure()

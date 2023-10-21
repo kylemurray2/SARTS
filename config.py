@@ -33,8 +33,8 @@ def getPS(directory='.'):
         print('Parsing yaml file and updating ps namespace...')
         params = load_yaml_to_namespace(yaml_file)
         # Load the ps namespace
-        if os.path.isfile('./ps.npy'):
-            ps = np.load('./ps.npy',allow_pickle=True).all()
+        if os.path.isfile(os.path.join(directory,'ps.npy')):
+            ps = np.load(os.path.join(directory,'ps.npy'),allow_pickle=True).all()
         else:
             ps = params
         
@@ -52,28 +52,39 @@ def getPS(directory='.'):
         miny,maxy,minx,maxx        = ps.bounds.split(sep=',')
         ps.bbox                    = miny +' '+ maxy  +' '+ minx +' '+  maxx #demBounds[0] + ' ' + demBounds[1] + ' ' + demBounds[2] + ' ' + demBounds[3] #SNWE
         
-        if ps.numProcess=='auto':
-            ps.numProcess = os.cpu_count()
-            ps.numProcess4topo = int(ps.numProcess/3) 
 
-        ps.swath_num = str(ps.swath_num)
-        ps.reference_date = str(ps.reference_date)
-        if ps.reference_date=='None':
-            ps.reference_date=None
-        
+
+        if ps.sat=='ALOS':
+            ps.slcDir = ps.slc_dirname
+            ps.inputDir = ps.slc_dirname
+
+
+
+        if ps.sat=='SENTINEL-1':
+            ps.swath_num = str(ps.swath_num)
+
+            if ps.numProcess=='auto':
+                ps.numProcess = os.cpu_count()
+                ps.numProcess4topo = int(ps.numProcess/3) 
+
+
         ps.mergeddir= ps.workdir + '/merged'
         ps.intdir   = ps.mergeddir + '/interferograms'
-        ps.tsdir    = ps.workdir + '/TS'
+        ps.reference_date = str(ps.reference_date)
         ps.slcdir   = ps.mergeddir + '/SLC'
+
+        if not hasattr(ps,'reference_date'):
+            ps.reference_date=None
+        elif ps.reference_date=='None':
+            ps.reference_date=None
+
+        ps.tsdir    = ps.workdir + '/TS'
         if 'nx' in ps.__dict__.keys():
             ps.nxl = ps.nx//ps.rlks
             ps.nyl = ps.ny//ps.alks
 
-
     elif os.path.isfile(lp_file):
-        print('Using localParams.py...  This will be depricated in future versions. Use a yaml file instead.')
-        # import localParams
-        
+        print('Using localParams.py...  This will be depricated in future versions. Use a yaml file instead.')       
         # Load the module
         spec = importlib.util.spec_from_file_location('localParams', lp_file)
         localParams = importlib.util.module_from_spec(spec)

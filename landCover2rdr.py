@@ -33,10 +33,15 @@ def convert_land_cover(fileName, plot_flag=False):
     if not os.path.isdir('./Fringe'):
         os.mkdir('./Fringe')
     
-    latFile = './merged/geom_reference/lat.rdr.full'
-    lonFile = './merged/geom_reference/lon.rdr.full' 
-    rdr_outfile = './merged/geom_reference/landCover.rdr.full'
-    
+    if ps.sat == 'ALOS':
+        latFile = './merged/geom_reference/lat.rdr'
+        lonFile = './merged/geom_reference/lon.rdr' 
+        rdr_outfile = './merged/geom_reference/landCover.rdr'
+    else:
+        latFile = './merged/geom_reference/lat.rdr.full'
+        lonFile = './merged/geom_reference/lon.rdr.full' 
+        rdr_outfile = './merged/geom_reference/landCover.rdr.full'
+        
     nlcd_tif = fileName + '.tif'
     os.system('gdalwarp ' +  fileName + ' ' + nlcd_tif + ' -t_srs "+proj=longlat +ellps=WGS84"')
     
@@ -95,8 +100,11 @@ def convert_land_cover(fileName, plot_flag=False):
     else:
         print('Plotting turned off.')
         
-        
-    outName = './merged/geom_reference/waterMask.rdr.full'
+    if ps.sat == 'ALOS':    
+        outName = './merged/geom_reference/waterMask.rdr'
+    else:
+        outName = './merged/geom_reference/waterMask.rdr.full'
+
     im2 = croppedim.clone()
     im2.filename = outName
     im2.dump(outName + '.xml')
@@ -104,8 +112,6 @@ def convert_land_cover(fileName, plot_flag=False):
     im2.renderVRT()
     waterMask.tofile(outName)
     im2.finalizeImage()
-
-
 
 
 if __name__ == '__main__':

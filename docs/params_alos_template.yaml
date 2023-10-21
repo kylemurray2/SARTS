@@ -1,54 +1,61 @@
 #__________________________________________________________________________
 # search for data________________________________________________________
 # Required 
-path      :    # 124
-fl        :    # Ascending or Descending
-bounds    :    # 'minlat,maxlat,minlon,maxlon'  # ISCE won't process bursts outside of this area
-poly      :    # POLYGON((lon1 lat1,lon2 lat2,...)) # This is the search area
-swath_num :    # default:'1 2 3'
+path      : 295   # 124
+fl        : Ascending   # Ascending or Descending
+bounds    : '21.24, 21.7, -158.29, -157.64'   # 'minlat,maxlat,minlon,maxlon'  # ISCE won't process bursts outside of this area
+poly      : 'POLYGON((-158.2012 21.4133,-158.1683 21.247,-157.9006 21.2718,-157.8474 21.2149,-157.6126 21.2573,-157.708 21.4759,-158.2012 21.4133))'    # POLYGON((lon1 lat1,lon2 lat2,...)) # This is the search area
 # Optional
-start       : '2014-01-01T00:00:00Z'    #'2010-05-01T00:00:00Z'
+start       : '2000-01-01T00:00:00Z'    #'2010-05-01T00:00:00Z'
 end         : '2080-01-01T23:59:00Z'   #'2020-02-01T23:59:00Z'
-sat         : SENTINEL-1
+sat         : ALOS
 point       :  # lon,lat (Usually leave this blank unless you dont want to use poly)
 slc_dirname : ./SLCS/
 workdir     : os.getcwd() # Use current directory as working directory
 
 #__________________________________________________________________________
 # For setupStack.py __________________________________________________________
-reference_date          :    # YYYYMMDD (first date of stack if left blank)
-orbit_dirname           : './orbits'
-aux_dirname             : '/d/S1/aux_cal/'
-work_dir                : './'
-exclude_dates           :  #default:None
-include_dates           :  #default:None
-polarization            : vv #default:vv
-coregistration          : NESD #default:NESD
-virtualMerge            : False #default:None
-useGPU                  : False # default:False
-numProcess              : auto # either set an integer, or auto to use all available cpus
-numProcess4topo         : auto # either set an integer, or auto to use 1/3 of available cpus
-azimuthLooks            : '1'
-rangeLooks              : '1'
-filtStrength            : '0.1'
-esdCoherenceThreshold   : '0.85'
-num_connections         : '1'
-num_overlap_connections : '3'
-workflow                : slc #default:'interferogram'
-text_cmd                : ''
-snrThreshold            : '10'
-unwMethod               : snaphu
-rmFilter                : False
-param_ion               : None
-num_connections_ion     : '3'
+slcDir           : './SLCS/'
+bbox             : None # miny +' '+ maxy  +' '+ minx +' '+  maxx #demBounds[0] + ' ' + demBounds[1] + ' ' + demBounds[2] + ' ' + demBounds[3] #SNWE
+workDir          : './'
+dem              : './DEM/cop_dem_glo30_wgs84.dem'
+sensor           : 'ALOS'
+workflow         : 'slc' # default='interferogram'
+zerodop          : 'No' # default=False
+referenceDate    : None
+dtThr            : 10000.0
+dbThr            : 5000.0
+alks             : '2'
+rlks             : '1'
+unwMethod        : 'snaphu'
+filtStrength     : '.3'
+fL               : None
+fH               : None
+bandWidth        : None
+filterSigmaX     : 100
+filterSigmaY     : 100
+filterSizeX      : 800
+filterSizeY      : 800
+filterKernelRotation : 0.0
+text_cmd         : ''
+useGPU           : False
+summary          : False
+
+# For prepRawALOS.py
+inputDir         : './SLCS/'
+rmfile : False
+outputDir : './SLCS/'
+fbd2fbs : True
+nofocus : False
+
 
 #__________________________________________________________________________
 # adjustGeom.py___________________________________________________________
 crop     : True
-cropymin : 0
-cropymax : 0
+cropymin : 11500
+cropymax : 29400
 cropxmin : 0
-cropxmax : 0
+cropxmax : 8300
 
 #__________________________________________________________________________
 # ifgs.py_________________________________________________________________
@@ -64,7 +71,7 @@ defo_max    : 0
 #__________________________________________________________________________
 # Fringe__________________________________________________________________
 waterMask : True
-nlcd_in   : /d/HI/Landcover/data/hi_maui_2010_ccap_hr_land_cover_20150213.img  # Optional: NLCD raster for landcover and watermask
+nlcd_in   : '/d/HI/Landcover/data/hi_oahu_2011_ccap_hr_land_cover20140619.img' # Optional: NLCD raster for landcover and watermask
 maxMem    : 80000
 # tops2vrt:
 stackdir: './Fringe/coreg_stack'
