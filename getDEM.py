@@ -2,13 +2,18 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Jul 15 11:02:56 2022
+@author: km
 
 Get the copernicus DEM 30m
 
 Either include your api key in the function, or make a file in your home 
 directory called '~/.otkey' containing just the key on the first line.
 
-@author: km
+
+Example usage:
+bounds = '35.63,35.81,-117.44,-117.23'#'SNWE
+getDEM(bounds)
+
 """
 import os, requests, sys
 
@@ -22,7 +27,7 @@ def getDEM(bounds,demtype='COP30',apiKey=None, srtm=False):
     if not os.path.isdir('./DEM'):
         os.mkdir('DEM')
 
-    miny,maxy,minx,maxx = miny,maxy,minx,maxx = bounds.split(sep=',')
+    miny,maxy,minx,maxx =  bounds.split(sep=',')
 
     if srtm:
         os.system('dem.py -a stitch -b ' + str(miny) + ' ' + str(maxy) + ' ' + str(minx) + ' ' + str(maxx) +' -r -s 1 -c -f')
@@ -54,6 +59,4 @@ def getDEM(bounds,demtype='COP30',apiKey=None, srtm=False):
         os.system('gdal_translate DEM/dem.tif -Of ISCE DEM/cop_dem_glo30_wgs84.dem')
 
 
-# Example usage
-bounds = '35.63,35.81,-117.44,-117.23'#'SNWE
-getDEM(bounds)
+

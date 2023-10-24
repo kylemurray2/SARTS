@@ -44,9 +44,12 @@ def geotiff_to_kmz(geotiff_path, kmz_path, colormap='viridis'):
     ground.latlonbox.south = bounds.bottom
     ground.latlonbox.east = bounds.right
     ground.latlonbox.west = bounds.left
-    ground.latlonbox.rotation = 0
-    ground.altitudemode = 'clampToSeaFloor'
-    ground.gxaltitudemode ='clampToSeaFloor'
+    # ground.latlonbox.rotation = 0
+    ground.gxaltitudemode = 'clampToGround'
+    
+    # ground.gxaltitudemode ='clampToSeaFloor'
+    # ground.altitude = 0
+    # kml.save(kmlfile.kml)
     kml.savekmz(kmz_path)
 
 
