@@ -178,7 +178,10 @@ def getPS(directory='.'):
                 print("finding bbox based on geo coordinates of {} ...".format(ps.geobbox))
                 ps.cropymin,ps.cropymax,ps.cropxmin,ps.cropxmax = getLinePixelBbox(ps.geobbox, latFile, lonFile)    
     
-                update_yaml_key("params.yaml", "cropymin", "hello")
+                update_yaml_key("params.yaml", "cropymin", ps.cropymin)
+                update_yaml_key("params.yaml", "cropymax", ps.cropymax)
+                update_yaml_key("params.yaml", "cropxmin", ps.cropxmin)
+                update_yaml_key("params.yaml", "cropxmax", ps.cropxmax)
 
     # Save the updated ps namespace 
     np.save(os.path.join(directory, 'ps.npy'),ps)
