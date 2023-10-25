@@ -29,7 +29,7 @@ def cmdLineParser():
     return parser.parse_args()
 
 
-def convert_land_cover(fileName, plot_flag=False):
+def convert_land_cover(fileName,ps, plot_flag=False):
     if not os.path.isdir('./Fringe'):
         os.mkdir('./Fringe')
     

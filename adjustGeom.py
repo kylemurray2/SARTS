@@ -103,7 +103,7 @@ def main(inps):
     if ps.waterMask:
         if not os.path.isfile(waterMaskFn):
             from SARTS.landCover2rdr import convert_land_cover
-            convert_land_cover(ps.nlcd_in)
+            convert_land_cover(ps.nlcd_in,ps)
     
     # Get the list of geometry files to work on
     geomList = glob.glob(ps.mergeddir + '/geom_reference/*full')
