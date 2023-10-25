@@ -165,10 +165,11 @@ def dlSlc(slcUrls, gran,outdir):
         fname = os.path.join(outdir, gran[ii] + '.zip')
         if not os.path.isfile(fname):
             print('Warning: File does not exist ' + fname)
+            sys.exit(1)
         else:
             if os.path.getsize(fname) < 2**30: # If it's smaller than 1 Gb
                 print('Warning: ' + fname + ' is too small. Try again.')
-
+                sys.exit(1)
 
 def check_aux_cal(dir_path):
     # Check if directory exists

@@ -7,11 +7,10 @@ Created on Thu Sep  7 15:46:44 2023
 """
 
 import numpy as np
-import os
-import yaml
-import argparse
-import sys
+import os,re,yaml,argparse,sys
 import importlib.util
+from osgeo import gdal
+
 
 def load_yaml_to_namespace(yaml_file):
     # Load the YAML file into a dictionary
@@ -22,6 +21,76 @@ def load_yaml_to_namespace(yaml_file):
     namespace = argparse.Namespace(**yaml_dict)
     
     return namespace
+
+
+def radarGeometryTransformer(latfile, lonfile, epsg=4326):
+    '''
+    Create a coordinate transformer to convert map coordinates to radar image line/pixels.
+    '''
+
+    driver = gdal.GetDriverByName('VRT')
+    inds = gdal.OpenShared(latfile, gdal.GA_ReadOnly)
+    tempds = driver.Create('', inds.RasterXSize, inds.RasterYSize, 0)
+    inds = None
+
+    tempds.SetMetadata({'SRS' : 'EPSG:{0}'.format(epsg),
+                        'X_DATASET': lonfile,
+                        'X_BAND' : '1',
+                        'Y_DATASET': latfile,
+                        'Y_BAND' : '1',
+                        'PIXEL_OFFSET' : '0',
+                        'LINE_OFFSET' : '0',
+                        'PIXEL_STEP' : '1',
+                        'LINE_STEP' : '1'}, 'GEOLOCATION')
+
+    trans = gdal.Transformer( tempds, None, ['METHOD=GEOLOC_ARRAY'])
+
+    return trans
+
+def lonlat2pixeline(lonFile, latFile, lon, lat):
+
+    trans = radarGeometryTransformer(latFile, lonFile)
+
+    ###Checkour our location of interest
+    success, location = trans.TransformPoint(1, lon, lat, 0.)
+    if not success:
+        print('Location outside the geolocation array range')
+
+    return location
+
+
+def getLinePixelBbox(geobbox, latFile, lonFile):
+
+    south,north, west, east = geobbox
+
+    se = lonlat2pixeline(lonFile, latFile, east, south)
+    nw = lonlat2pixeline(lonFile, latFile, west, north)
+
+    ymin = np.int16(np.round(np.min([se[1], nw[1]])))
+    ymax = np.int16(np.round(np.max([se[1], nw[1]])))
+
+    xmin = np.int16(np.round(np.min([se[0], nw[0]])))
+    xmax = np.int16(np.round(np.max([se[0], nw[0]])))
+
+    print("x min-max: ", xmin, xmax)
+    print("y min-max: ", ymin, ymax)
+
+    return ymin, ymax, xmin, xmax
+
+
+def update_yaml_key(file_path, key, new_value):
+    with open(file_path, "r") as f:
+        lines = f.readlines()
+
+    with open(file_path, "w") as f:
+        for line in lines:
+            # Try to match a YAML key-value pair line
+            match = re.match(rf"(\s*)({key}:\s*)(.+)", line)
+            if match:
+                # Replace the value while preserving leading whitespaces and the key
+                line = f"{match.group(1)}{match.group(2)}{new_value}\n"
+            f.write(line)
+            
 
 def getPS(directory='.'):
     
@@ -52,7 +121,6 @@ def getPS(directory='.'):
         miny,maxy,minx,maxx        = ps.bounds.split(sep=',')
         ps.bbox                    = miny +' '+ maxy  +' '+ minx +' '+  maxx #demBounds[0] + ' ' + demBounds[1] + ' ' + demBounds[2] + ' ' + demBounds[3] #SNWE
         
-
 
         if ps.sat=='ALOS':
             ps.slcDir = ps.slc_dirname
@@ -99,6 +167,19 @@ def getPS(directory='.'):
     # Can remove this later..
     ps.geom=None
         
+    if 'geobbox' in ps.__dict__.keys():
+        if ps.geobbox is not None:
+            #keep the radar coordinate crop values if they are non zero
+            if np.sum([ps.cropymin,ps.cropymax,ps.cropxmin,ps.cropxmax]) == 0:
+                # get crop bounds from geobbox
+                latFile = os.path.join(ps.mergeddir,'geom_reference','lat.rdr.full')
+                lonFile = os.path.join(ps.mergeddir,'geom_reference','lon.rdr.full')
+                # if the bounding box in geo-coordinate is given, this has priority
+                print("finding bbox based on geo coordinates of {} ...".format(ps.geobbox))
+                ps.cropymin,ps.cropymax,ps.cropxmin,ps.cropxmax = getLinePixelBbox(ps.geobbox, latFile, lonFile)    
+    
+                update_yaml_key("params.yaml", "cropymin", "hello")
+
     # Save the updated ps namespace 
     np.save(os.path.join(directory, 'ps.npy'),ps)
     

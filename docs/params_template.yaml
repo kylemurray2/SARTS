@@ -49,7 +49,7 @@ cropymin : 0
 cropymax : 0
 cropxmin : 0
 cropxmax : 0
-
+geobbox  : # Optional crop based on lat/lon coordinates ('S,N,W,E')
 #__________________________________________________________________________
 # ifgs.py_________________________________________________________________
 alks : 1 # number of looks in azimuth
