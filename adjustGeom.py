@@ -61,6 +61,7 @@ def update_yaml_key(file_path, key, new_value):
            
  
 def geo2rdr(ps):
+    print('Getting approximate crop bounds from geobbox')
     print('Loading lon.rdr.full and lat.rdr.full')
     infile = os.path.join(ps.mergeddir,'geom_reference','lon.rdr.full')
     imgi = isceobj.createImage()
@@ -78,7 +79,6 @@ def geo2rdr(ps):
     lat_full = np.squeeze(lat_full)
     lat_full[lat_full==0] = np.nan
     
-    print('Getting approximate crop bounds from geobbox')
     latmin,latmax,lonmin,lonmax = ps.geobbox
     y_ll,x_ll = util.ll2pixel(lon_full,lat_full,lonmin,latmin)
     y_lr,x_lr = util.ll2pixel(lon_full,lat_full,lonmax,latmin)
@@ -99,9 +99,13 @@ def main(inps):
     ps = config.getPS()
     
     # Update crop bounds if geobbox exists
-    if 'geobbox' in ps.__dict__.keys():
-        if ps.geobbox is not None:
+    if 'geobbox' in ps.__dict__.keys() and  ps.geobbox is not None:
+        if np.sum([ps.cropymin,ps.cropymax,ps.cropxmin,ps.cropxmax]) == 0:
             geo2rdr(ps)
+        else:
+            print('crop coordinates found')
+    else:
+        print('geobbox not found')
     
     
     if ps.crop:
