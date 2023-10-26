@@ -87,7 +87,11 @@ def convert_land_cover(fileName,ps, plot_flag=False):
     # writefile.write(LCimage, out_file=lc_fn, metadata=atr)
     
     waterMask = np.zeros(cropped.shape, dtype=np.uint8)
-    waterMask[cropped != 22] = 1
+    
+    if startLon>0:    
+        waterMask[cropped != 11] = 1
+    else:
+        waterMask[cropped != 22] = 1
     
     if plot_flag:
         plt.figure()
