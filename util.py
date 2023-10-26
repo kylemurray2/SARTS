@@ -220,49 +220,31 @@ def improfile(z, x0, y0, x1, y1):
     return zi
 
 
-def ll2pixel(lon_ifg,lat_ifg,lon,lat):
+
+def ll2pixel(lon_ifg, lat_ifg, lon, lat):
     """
-    Output the pixels (radar coords) given the lat/lon matrices and arrays of 
-    lat/lon points.
-    output: y,x
+    Output the pixels (radar coords) given the lat/lon matrices and lat/lon points.
+    input: lon, lat
+    output: y, x
+    
     """
-    x_pts = list()
-    y_pts = list()
-
-
-    
-    if np.isscalar(lon):
-        if np.nanmean(lon_ifg) * lon <0:
+    if np.isscalar(lon) and np.isscalar(lat):
+        if np.nanmean(lon_ifg) * lon < 0:
             print('WARNING: you may need to subtract 360')
-            
-        a = abs(lat_ifg-lat)
-        b = abs(lon_ifg-lon)
-        c = a+b
-        y,x = np.where(c==c.min()) # y is rows, x is columns
         
-        if not np.isscalar(x):
-            x=x[0];y=y[0]
-        
-        x_pts.append(x)
-        y_pts.append(y)
+        a = abs(lat_ifg - lat)
+        b = abs(lon_ifg - lon)
+        c = a + b
+        # Replace NaN values with a large number so they don't interfere with finding the minimum
+        c_no_nan = np.where(np.isnan(c), np.inf, c)
+        # Find the absolute difference from zero
+        abs_diff = np.abs(c_no_nan)
+        # Find the index of the minimum value in the flattened array
+        min_index_flat = np.nanargmin(abs_diff)
+        # Convert the flat index to 2D index
+        y, x = np.unravel_index(min_index_flat, c.shape)
+        return y,x
     
-    else:
-        if np.nanmean(lon_ifg) * lon[0] <0:
-            print('WARNING: you may need to subtract 360')
-        for ii in np.arange(0,len(lat)):
-            a = abs(lat_ifg-lat[ii])
-            b = abs(lon_ifg-lon[ii])
-            
-            c = a+b
-            y,x = np.where(c==c.min()) # y is rows, x is columns
-            
-            if not np.isscalar(x):
-                x=x[0];y=y[0]
-            
-            x_pts.append(x)
-            y_pts.append(y)
-    return y_pts,x_pts 
-
 
 # phase elevation model
 def phaseElev(img, hgt,msk, ymin, ymax, xmin, xmax,makePlot=False):

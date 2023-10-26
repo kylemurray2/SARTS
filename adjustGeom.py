@@ -10,7 +10,7 @@ Crop and downlook geom files (used in mintpy)
 
 """
 import numpy as np
-import os,sys,glob,argparse,time
+import os,sys,glob,argparse,time,re
 from datetime import date
 import isce.components.isceobj as isceobj
 from mroipac.looks.Looks import Looks
@@ -43,8 +43,67 @@ def getbl(d):
     return bl
 
 
+
+def update_yaml_key(file_path, key, new_value):
+    with open(file_path, "r") as f:
+        lines = f.readlines()
+
+    with open(file_path, "w") as f:
+        for line in lines:
+            # Try to match a YAML key-value pair line
+            match = re.match(rf"({key}\s*:\s*)(\S+)", line)
+            if match:
+                # Replace the value while preserving the key and any surrounding whitespace
+                line = f"{match.group(1)}{new_value}\n"
+            f.write(line)
+ 
+
+           
+ 
+def geo2rdr(ps):
+    print('Loading lon.rdr.full and lat.rdr.full')
+    infile = os.path.join(ps.mergeddir,'geom_reference','lon.rdr.full')
+    imgi = isceobj.createImage()
+    imgi.load(infile+'.xml')
+    lon_full = imgi.memMap().copy()
+    lon_full = lon_full.astype(float)  # Convert to float
+    lon_full = np.squeeze(lon_full)
+    lon_full[lon_full==0] = np.nan
+    
+    infile = os.path.join(ps.mergeddir,'geom_reference','lat.rdr.full')
+    imgi = isceobj.createImage()
+    imgi.load(infile+'.xml')
+    lat_full = imgi.memMap().copy()
+    lat_full = lat_full.astype(float)  # Convert to float
+    lat_full = np.squeeze(lat_full)
+    lat_full[lat_full==0] = np.nan
+    
+    print('Getting approximate crop bounds from geobbox')
+    latmin,latmax,lonmin,lonmax = ps.geobbox
+    y_ll,x_ll = util.ll2pixel(lon_full,lat_full,lonmin,latmin)
+    y_lr,x_lr = util.ll2pixel(lon_full,lat_full,lonmax,latmin)
+    y_ul,x_ul = util.ll2pixel(lon_full,lat_full,lonmin,latmax)
+    y_ur,x_ur = util.ll2pixel(lon_full,lat_full,lonmax,latmax)
+    
+    ps.cropymin = np.nanmin([y_ll,y_lr,y_ul,y_ur])
+    ps.cropymax = np.nanmax([y_ll,y_lr,y_ul,y_ur])
+    ps.cropxmin = np.nanmin([x_ll,x_lr,x_ul,x_ur])
+    ps.cropxmax = np.nanmax([x_ll,x_lr,x_ul,x_ur])
+    
+    update_yaml_key("params.yaml", "cropymin", ps.cropymin)
+    update_yaml_key("params.yaml", "cropymax", ps.cropymax)
+    update_yaml_key("params.yaml", "cropxmin", ps.cropxmin)
+    update_yaml_key("params.yaml", "cropxmax", ps.cropxmax)
+
 def main(inps):
     ps = config.getPS()
+    
+    # Update crop bounds if geobbox exists
+    if 'geobbox' in ps.__dict__.keys():
+        if ps.geobbox is not None:
+            geo2rdr(ps)
+    
+    
     if ps.crop:
         if np.sum([int(ps.cropymin),int(ps.cropymax),int(ps.cropxmin),int(ps.cropxmax)]) ==0:
             print('Crop is set to True but values are all zero. Set crop bounds and rerun.')
