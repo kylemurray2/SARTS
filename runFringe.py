@@ -13,12 +13,6 @@ import tops2vrt,nmap,sequential_PL,adjustMiniStacks,ampdispersion
 from SARTS import config,util
 
 
-ds = gdal.Open('Fringe/coreg_stack/slcs_base.vrt')
-stack = ds.GetVirtualMemArray()
-
-plt.figure();plt.plot( np.angle(stack[:,10,10]))
-np.where(np.angle(stack[:,10,10])==0)
-
 def cmdLineParser():
     '''
     Command line parser.
