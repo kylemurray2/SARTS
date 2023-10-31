@@ -76,21 +76,31 @@ Workflow:
 
     At this point you could simply make downlooked IFGs with the coregistered stack and then unwrap those. Do this by running ifgs.py -dumf.  This will turn the Fringe mode off and make the unwrapped ifgs. By default, we are doing PS-DS analysis with Fringe, so we can run that using:
 
-    runFringe.py   
+    runFringe.py -tnsadc 
 
-    This does the PS_DS analysis and should output Fringe/adjusted_wrapped_DS/*slc
+    This runs all of the Fringe steps to do the PS_DS analysis and should output Fringe/adjusted_wrapped_DS/*slc
 
-10. Make interferograms, downlook, coherence, filter, and unwrap:
+    To rerun or run any specific step, these are the options:  
 
-    ifgs.py -dum
-
-    optional arguments:  
+        options:  
     -h, --help            show this help message and exit  
-    -d, --downlook        Downlook interferograms (default: True)  
+    -t, --tops2vrt        Run tops2vrt function. (default: False)  
+    -n, --nmap            Run nmap function. (default: False)  
+    -s, --sequential_PL   Run sequential_PL function. (default: False)  
+    -a, --adjustMiniStacks Run adjustMiniStacks function. (default: False)      
+    -d, --ampdispersion   Run ampdispersion function. (default: False)  
+    -c, --makeTcorr       Make Tcorr average (default: False)  
+
+10. Make interferograms, downlook, coherence, filter, and unwrap:  
+
+    ifgs.py -dum  
+
+    optional arguments:    
+    -h, --help            show this help message and exit    
+    -d, --downlook        Downlook interferograms (default: True)   
     -u, --unwrap          Unwrap interferograms (default: True)  
     -m, --make-ifgs       Make the interferograms (default: True)  
-    -n NUM_PROCESSES, --nproc NUM_PROCESSES  
-                            Number of parallel processes. Use 1 for no parallelization (default: 5)  
+    -n, --nproc           Number of parallel processes. Use 1 for no parallelization (default: 5) 
     -f, --noFringe        Use this flag if you are not using Fringe psds. (default: True)  
 
 

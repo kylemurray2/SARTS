@@ -55,12 +55,13 @@ geobbox  : # Optional crop based on lat/lon coordinates ('S,N,W,E')
 alks : 1 # number of looks in azimuth
 rlks : 4 # number of looks in range
 networkType : delaunay # sequential1, sequential2, delaunay
+filterStrength: .2
 # snaphu
 init_method : MCF
 cost_mode   : SMOOTH
 max_comp    : 32
 defo_max    : 0
-
+lam : .055 # sentinel
 #__________________________________________________________________________
 # Fringe__________________________________________________________________
 waterMask : True
