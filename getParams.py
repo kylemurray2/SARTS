@@ -6,7 +6,7 @@ sartPath = setupStack.__file__
 sartPath = os.path.dirname(sartPath)
 paramPath = os.path.join(sartPath, 'docs', 'params_template.yaml')
 
-if not os.path.isfile('./params.yaml')
+if not os.path.isfile('./params.yaml'):
     print('Copying from ' + paramPath)
     shutil.copy(paramPath, './params.yaml')
 else:
