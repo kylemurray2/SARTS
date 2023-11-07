@@ -8,9 +8,12 @@ sartPath = os.path.dirname(sartPath)
 # If you want to ensure the output always ends with a '/'
 paramPath = os.path.join(sartPath, 'docs', 'params_template.yaml')
 
-print('Copying from ' + paramPath)
 
-shutil.copy(paramPath, './params.yaml')
+if not os.path.isfile('./params.yaml')
+    print('Copying from ' + paramPath)
+    shutil.copy(paramPath, './params.yaml')
+else:
+    print('params.yaml already exists.')
 
 # Define the path to your file
 file_path = os.path.join(sartPath, 'docs', 'sarts.txt')
