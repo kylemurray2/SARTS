@@ -141,7 +141,7 @@ def get_orbit_url(granuleNames):
             dayBeforeStr = dayBefore.strftime('%Y%m%d')
             dfSat.loc[:, 'startTime'] = dfSat.orbit.str[42:50]
             match = dfSat.loc[(dfSat.startTime == dayBeforeStr, 'orbit')].values[0]
-            orbitUrl = f"{urlPrecise}/{match}"
+            orbitUrl = f"{urlResorb}/{match}"
             print('using resorb for ' + granuleName +' (it is probably too recent)')
         
         orbitUrls.append(orbitUrl)
