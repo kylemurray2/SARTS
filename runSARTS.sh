@@ -13,3 +13,6 @@ adjustGeom.py -dcrp
 runFringe.py
 # Make ifgs, downlook, filter, unwrap
 ifgs.py -dum -n 8
+
+
+
