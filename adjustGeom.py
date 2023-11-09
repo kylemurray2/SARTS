@@ -331,7 +331,7 @@ def main(inps):
     if inps.doCrop and ps.crop:
         for infile in geomList:
             if os.path.isfile(infile):
-                if not os.path.isfile(infile+'.1crop'):
+                if not os.path.isfile(infile+'.crop'):
                     imgi = isceobj.createImage()
                     imgi.load(infile+'.xml')
                     geomIm = imgi.memMap()
@@ -381,9 +381,7 @@ def main(inps):
             lkObj.looks()
             
         for infile in fList:
-    
             f = infile.split('/')[-1].split('.')[0]
-    
             if os.path.isfile(infile):
                 outfile = ps.mergeddir + '/geom_reference/' + f + '_lk.rdr'
     

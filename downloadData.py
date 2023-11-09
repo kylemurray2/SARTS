@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 from stackSentinel import sentinelSLC
 from SARTS import asfQuery, getDEM, setupStack, config
 import concurrent.futures
+from datetime import datetime,timedelta
 
 
 nproc = int(os.cpu_count())
@@ -36,9 +37,7 @@ def cmdLineParser():
     return parser.parse_args()
 
 
-def searchData(ps):
-    slcUrls, gran, _,_ = asfQuery.getGran(ps.path, ps.start, ps.end, ps.sat, ps.bounds, ps.poly)
-    return slcUrls, gran
+
 
 # Example url
 # url = 'https://datapool.asf.alaska.edu/SLC/SA/S1A_IW_SLC__1SDV_20221226T163241_20221226T163300_046505_059280_1BDE.zip'
@@ -307,7 +306,7 @@ def main(inps):
     ps = config.getPS()
 
     if inps.searchData_flag==True:
-        slcUrls, gran  = searchData(ps)
+        slcUrls, gran, _,_ = asfQuery.getGran(ps.path, ps.start, ps.end, ps.sat, ps.bounds, ps.poly)
     else:
         print('Using an existing out.csv file.')
         df = pd.read_csv('out.csv')
@@ -334,6 +333,23 @@ def main(inps):
             flag = setupStack.checkSLC(ps)
 
         dlSlc(slcUrls, gran, ps.slc_dirname)
+        
+        # make sure we have the reference date
+        matching_files = [filename for filename in zips if ps.reference_date in filename]
+        if len(matching_files) ==0:
+            print('attempting to download slc for reference date')
+            date_obj1 = datetime.strptime(ps.reference_date, '%Y%m%d')
+            date_obj2 =  date_obj1 + timedelta(days=1)
+            date_obj1 -= timedelta(days=1)
+            formatted_date_str1 = date_obj1.strftime('%Y-%m-%dT%H:%M:%SZ')
+            formatted_date_str2 = date_obj2.strftime('%Y-%m-%dT%H:%M:%SZ')
+            try:
+                slcUrls, gran, _,_ = asfQuery.getGran(ps.path, formatted_date_str1, formatted_date_str2, ps.sat, ps.bounds, ps.poly)
+                dlSlc(slcUrls, gran, ps.slc_dirname)
+            except:
+                print('failed to find SLC for reference date')
+                sys.exit(1)
+
 
     demBounds, DEM = dlDEM(ps)
     ps.dem_bounds = demBounds  # Get the DEM and define dem location
