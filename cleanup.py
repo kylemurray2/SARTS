@@ -60,7 +60,7 @@ for d in datesFN:
 dates.sort()
 
 
-numDatesToKeep = len(ps.dates) - ps.dates.index(ps.reference_date) + 6
+numDatesToKeep = 6 #len(ps.dates) - ps.dates.index(ps.reference_date) + 6
 numDatesToKeep+=1
 print('keeping dates: ')
 print(dates[-numDatesToKeep:])
@@ -79,6 +79,8 @@ if 'secondarys' in delList:
         if d != ps.reference_date: #Don't delete the reference date
             # print('removing ./coreg_secondarys/' + d)
             os.system('rm -r ./secondarys/' + d + '/*')
+
+d_keep = dates[-numDatesToKeep:]
 
 if 'SLCS' in delList:
     print('removing safe files')
