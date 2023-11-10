@@ -144,12 +144,10 @@ def main(inps):
             geomList = glob.glob(ps.mergeddir + '/geom_reference/*rdr')
             slcList = glob.glob(ps.slcdir + '/*/.slc')
             blList = glob.glob(ps.mergeddir + '/baselines/????????/????????')
-        
         else:
             geomList = glob.glob(ps.mergeddir + '/geom_reference/*full')
             slcList = glob.glob(ps.slcdir + '/*/*full')
             blList = glob.glob(ps.mergeddir + '/baselines/????????/????????')
-        
         for fname in slcList:
             os.system('fixImageXml.py -i ' + fname + ' -f')
         for fname in geomList:
@@ -162,7 +160,6 @@ def main(inps):
         waterMaskFn = ps.mergeddir + '/geom_reference/waterMask.rdr'
     else:
         waterMaskFn = ps.mergeddir + '/geom_reference/waterMask.rdr.full'
-
     if ps.waterMask:
         if not os.path.isfile(waterMaskFn):
             from SARTS.landCover2rdr import convert_land_cover
