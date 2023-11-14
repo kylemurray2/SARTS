@@ -101,3 +101,6 @@ if 'orbits' in delList:
                 if d != ps.reference_date: #Don't delete the reference date
                     # print('removing ' + orb)
                     os.remove(orb)
+
+
+os.remove('Fringe/PS_DS/*/*/2???????_2???????.*')
