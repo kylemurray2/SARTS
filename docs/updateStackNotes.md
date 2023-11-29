@@ -23,7 +23,7 @@ runFringe.py -tsa # This will make new .vrt files, process the additional slcs, 
 
 
 reference
-Fringe/adj
+Fringe/PS_DS
 merged/baseline
 merged/geom_reference
 
