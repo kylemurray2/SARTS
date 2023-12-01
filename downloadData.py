@@ -134,7 +134,7 @@ def dlOrbs(gran,outdir):
     
     if redflag:
         print('Some orbit files may have not been properly downloaded. Please try again.')
-        sys.exit(1)
+        #sys.exit(1)
 
 def dlSlc(slcUrls, gran,outdir):
 
