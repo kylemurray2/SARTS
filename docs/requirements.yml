@@ -1,8 +1,8 @@
 # This is the env setup for installing and running ISCE and FRINGE.
 
-# create environment : conda env create -f requirements.yml
-# update dependencies: conda env update -f requirements.yml
-# remove environment : conda env remove -n isce
+# create environment : mamba env create -f requirements.yml
+# update dependencies: mamba env update -f requirements.yml
+# remove environment : mamba env remove -n isce
 # enter  environment : conda activate isce
 # exit   environment : conda deactivate
 name: isce

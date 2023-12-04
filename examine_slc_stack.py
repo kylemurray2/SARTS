@@ -10,12 +10,14 @@ import numpy as np
 from matplotlib import pyplot as plt
 import os
 from osgeo import gdal
+from SARTS import config
 
+ps = config.getPS('./')
 #
 ds = gdal.Open('./Fringe/coreg_stack/slcs_base.vrt')
 stack = ds.GetVirtualMemArray()
 
-ts = np.angle(stack[:,500,9000])
+ts = np.angle(stack[:,100,9000])
 np.where(ts==0)
 plt.figure()
 plt.plot(ts,'.')

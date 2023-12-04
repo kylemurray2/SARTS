@@ -28,13 +28,13 @@ import time
 
 def getGran(path, start, end, sat, bounds, poly):
 
-    # path=ps.path
-    # start=ps.start
-    # end=ps.end
-    # sat=ps.sat
-    # bounds=ps.bounds
-    # point=ps.point
-    # poly=ps.poly
+    path=ps.path
+    start=ps.start
+    end=ps.end
+    sat=ps.sat
+    bounds=ps.bounds
+    point=ps.point
+    poly=ps.poly
 
     fmt = 'CSV'
     flightDirection = None
@@ -77,7 +77,7 @@ def getGran(path, start, end, sat, bounds, poly):
     print('Found ' + str(round((sum(sizesMB)/1000),2)) + ' Gb of data')
     gran = pd.read_csv('out.csv')['Granule Name']
     
-    return (slcUrls, gran,dates,r)
+    return (slcUrls, gran, dates, r)
 
 
 def get_with_retry(url, max_retries=3):

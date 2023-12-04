@@ -37,8 +37,6 @@ def cmdLineParser():
     return parser.parse_args()
 
 
-
-
 # Example url
 # url = 'https://datapool.asf.alaska.edu/SLC/SA/S1A_IW_SLC__1SDV_20221226T163241_20221226T163300_046505_059280_1BDE.zip'
 
