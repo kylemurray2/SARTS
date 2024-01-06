@@ -28,6 +28,7 @@ def cmdLineParser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-d', '--downlook', action='store_true', dest='doDownlook',help='Downlook geometry files.')
     parser.add_argument('-c', '--crop', action='store_true', dest='doCrop',help='Crop geometry files.')
+    parser.add_argument('-cs', '--cropSlcs', action='store_true', dest='doCropSlc',help='Crop SLC files.')
     parser.add_argument('-r', '--replace', action='store_true', dest='replace',help='Overwrite cropped/downlooked geometry files')
     parser.add_argument('-f', '--fix-images', action='store_true', dest='fixImages',help='Fix file path in xml files (use if files were moved to different directory')
     parser.add_argument('-p', '--plot-off', action='store_false', dest='plot',help='Turn plotting off')
@@ -43,7 +44,6 @@ def getbl(d):
     return bl
 
 
-
 def update_yaml_key(file_path, key, new_value):
     with open(file_path, "r") as f:
         lines = f.readlines()
@@ -56,10 +56,8 @@ def update_yaml_key(file_path, key, new_value):
                 # Replace the value while preserving the key and any surrounding whitespace
                 line = f"{match.group(1)}{new_value}\n"
             f.write(line)
- 
 
-           
- 
+          
 def geo2rdr(ps):
     print('Getting approximate crop bounds from geobbox')
     print('Loading lon.rdr.full and lat.rdr.full')
@@ -95,9 +93,10 @@ def geo2rdr(ps):
     update_yaml_key("params.yaml", "cropxmin", ps.cropxmin)
     update_yaml_key("params.yaml", "cropxmax", ps.cropxmax)
 
+
 def main(inps):
     ps = config.getPS()
-    
+
     # Update crop bounds if geobbox exists
     if 'geobbox' in ps.__dict__.keys() and  ps.geobbox is not None:
         if np.sum([ps.cropymin,ps.cropymax,ps.cropxmin,ps.cropxmax]) == 0:
@@ -129,7 +128,6 @@ def main(inps):
         os.system('rm ./merged/geom_reference/*lk*')
         os.system('rm ./merged/SLC/*/*crop*')
     
-    
     # Make directories
     if not os.path.isdir(ps.tsdir):
         os.mkdir(ps.tsdir)
@@ -138,7 +136,6 @@ def main(inps):
     if not os.path.isdir(ps.workdir + '/Figs'):
         os.mkdir(ps.workdir + '/Figs')
     
-
     if inps.fixImages:
         if ps.sensor == 'ALOS':
             geomList = glob.glob(ps.mergeddir + '/geom_reference/*rdr')
@@ -168,7 +165,8 @@ def main(inps):
     # Get the list of geometry files to work on
     geomList = glob.glob(ps.mergeddir + '/geom_reference/*full')
     geomList = [item for item in geomList if '_lk' not in item]
-    
+    slcList = glob.glob(ps.slcdir + '/*/*full')
+    slcList.sort()
     # Get the acquisition dates
     flist = glob.glob( os.path.join(ps.slcdir, '2*'))
     dates = []
@@ -358,7 +356,39 @@ def main(inps):
     else:
         print('Skipping cropping')
     
-    
+
+    if inps.doCrop and ps.crop and ps.doCropSlc:
+        for infile in slcList:
+            if os.path.isfile(infile):
+                if not os.path.isfile(infile+'.crop'):
+                    imgi = isceobj.createImage()
+                    imgi.load(infile+'.xml')
+                    slcIm = imgi.memMap()
+                    
+                    # Adapt to variable dimension order from isce images
+                    shape = slcIm.shape
+                    y_dim = shape.index(ps.nyf)
+                    x_dim = shape.index(ps.nxf)
+                    # Perform cropping dynamically based on identified dimensions
+                    slices = [slice(None)] * 3  # Default slice (full range) for all dimensions
+                    slices[y_dim] = slice(ps.cropymin, ps.cropymax)
+                    slices[x_dim] = slice(ps.cropxmin, ps.cropxmax)
+                    slcIm = slcIm[tuple(slices)]
+
+                    # Write out cropped file
+                    imgo = isceobj.createImage()
+                    imgo.filename = infile+'.crop.slc'
+                    imgo.width  = ps.nx #ps.cropxmax-ps.cropxmin
+                    imgo.length = ps.ny #ps.cropymax-ps.cropymin
+                    imgo.dataType='CFLOAT'
+                    slcIm.tofile(imgo.filename)
+                    imgo.dump(imgo.filename+'.xml')
+                    imgo.finalizeImage()
+                    del(slcIm)
+            else:
+                print('no file ' + infile)
+    else:
+        print('Skipping cropping')
     
     if inps.doDownlook:
         if ps.crop:
@@ -486,11 +516,11 @@ if __name__ == '__main__':
     '''
     Main driver.
     '''
-    # inps = argparse.Namespace()
-    # inps.doDownlook = True
-    # inps.doCrop = True
-    # inps.replace = False
-    # inps.fixImages = False
-    # inps.plot = False
+    inps = argparse.Namespace()
+    inps.doDownlook = True
+    inps.doCrop = True
+    inps.replace = False
+    inps.fixImages = False
+    inps.plot = False
     inps = cmdLineParser()
     main(inps)
