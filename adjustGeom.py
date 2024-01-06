@@ -28,7 +28,6 @@ def cmdLineParser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-d', '--downlook', action='store_true', dest='doDownlook',help='Downlook geometry files.')
     parser.add_argument('-c', '--crop', action='store_true', dest='doCrop',help='Crop geometry files.')
-    parser.add_argument('-s', '--cropSlcs', action='store_true', dest='doCropSlc',help='Crop SLC files.')
     parser.add_argument('-r', '--replace', action='store_true', dest='replace',help='Overwrite cropped/downlooked geometry files')
     parser.add_argument('-f', '--fix-images', action='store_true', dest='fixImages',help='Fix file path in xml files (use if files were moved to different directory')
     parser.add_argument('-p', '--plot-off', action='store_false', dest='plot',help='Turn plotting off')
@@ -354,7 +353,7 @@ def main(inps):
             else:
                 print('no file ' + infile)
     else:
-        print('Skipping cropping')
+        print('Skipping cropping geom')
     
 
     if inps.doCrop and ps.crop and ps.doCropSlc:
@@ -388,7 +387,7 @@ def main(inps):
             else:
                 print('no file ' + infile)
     else:
-        print('Skipping cropping')
+        print('Skipping cropping slc')
     
     if inps.doDownlook:
         if ps.crop:
@@ -516,11 +515,11 @@ if __name__ == '__main__':
     '''
     Main driver.
     '''
-    inps = argparse.Namespace()
-    inps.doDownlook = True
-    inps.doCrop = True
-    inps.replace = False
-    inps.fixImages = False
-    inps.plot = False
+    # inps = argparse.Namespace()
+    # inps.doDownlook = True
+    # inps.doCrop = True
+    # inps.replace = False
+    # inps.fixImages = False
+    # inps.plot = False
     inps = cmdLineParser()
     main(inps)
