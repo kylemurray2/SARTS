@@ -12,16 +12,29 @@ import os
 from osgeo import gdal
 from SARTS import config
 
-ps = config.getPS('./')
-#
+ps = config.getPS() 
+
+
 ds = gdal.Open('./Fringe/coreg_stack/slcs_base.vrt')
 stack = ds.GetVirtualMemArray()
 
-ts = np.angle(stack[:,100,9000])
+px = int(ps.nx/2)
+py = int(ps.ny/2)
+
+ts = np.angle(stack[:,py,px])
 np.where(ts==0)
 plt.figure()
 plt.plot(ts,'.')
 
+
+awds_stack = []
+for d in ps.dates:
+    print(d)
+    ds = gdal.Open('./Fringe/adjusted_wrapped_DS/'+ d + '.slc.vrt')
+    awds_stack.append(ds.GetVirtualMemArray()[500,12323])
+ts = np.asarray(awds_stack)
+plt.figure()
+plt.plot(ts,'.')
 
 slc = np.angle(stack[200,:,:])
 np.where(slc==0)
