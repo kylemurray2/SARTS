@@ -15,6 +15,7 @@ from matplotlib import pyplot as plt
 from isce.components import isceobj
 # from mintpy.utils import writefile
 import argparse
+import rasterio
 
 
 def cmdLineParser():
@@ -76,38 +77,10 @@ def convert_land_cover(fileName,ps, plot_flag=False):
     croppedim.initImage(rdr_outfile, 'read', cropped.shape[1], 'BYTE')
     croppedim.renderHdr()
     
-    # Get georeferencing information
-    top_left_x = croppedim.coord1.coordStart  # Longitude of the top-left corner
-    top_left_y = croppedim.coord2.coordStart  # Latitude of the top-left corner
-    x_pixel_size = croppedim.coord1.coordDelta  # Pixel size in longitude
-    y_pixel_size = croppedim.coord2.coordDelta  # Pixel size in latitude
 
     
-    # Define the metadata
-    transform = from_origin(startLon, north, x_pixel_size, y_pixel_size)  # Replace with your values
-    metadata = {
-        'driver': 'GTiff',
-        'height': cropped.shape[0],
-        'width': cropped.shape[1],
-        'count': 1,  # Number of bands; modify if you have more bands
-        'dtype': str(cropped.dtype),
-        'crs': '+proj=4326',  # Replace with your CRS
-        'transform': transform
-    }
-    
-    # Write to a GeoTIFF file
-    with rasterio.open('output_file.tif', 'w', **metadata) as dst:
-        dst.write(cropped, 1)  # Writing data to the first band
-    
 
-    lc_fn = './Fringe/LCimage.vrt'
-    os.system('rm ' + lc_fn)
-    atr = {
-        'WIDTH': LCimage.shape[1],
-        'LENGTH': LCimage.shape[0],
-        'FILE_TYPE': 'landCover'
-    }
-    # writefile.write(LCimage, out_file=lc_fn, metadata=atr)
+
     
     waterMask = np.zeros(cropped.shape, dtype=np.uint8)
     
@@ -141,6 +114,17 @@ def convert_land_cover(fileName,ps, plot_flag=False):
     im2.finalizeImage()
 
 
+
+    # lc_fn = './Fringe/LCimage.vrt'
+    # os.system('rm ' + lc_fn)
+    # atr = {
+    #     'WIDTH': LCimage.shape[1],
+    #     'LENGTH': LCimage.shape[0],
+    #     'FILE_TYPE': 'landCover'
+    # }
+    # writefile.write(LCimage, out_file=lc_fn, metadata=atr)
+    
+    
 if __name__ == '__main__':
     inps = cmdLineParser()
     convert_land_cover(inps.fileName)

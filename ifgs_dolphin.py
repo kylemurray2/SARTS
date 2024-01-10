@@ -84,19 +84,19 @@ def downlook(args):
         print(f"Filtering {pair}")
         FilterAndCoherence.runFilter(ps.outfile,filt_file_out,ps.filterStrength)
         
-    # Downlook the cor file
-    ps.infile       = os.path.join(pairDir, f"{pair}.cor")
-    ps.outfile      = os.path.join(pairDir, 'filt_lk.cor')
-    if not os.path.isfile(ps.outfile):
-        print(f"Downlooking {pair}")
-        looks.main(ps)
+    # # Downlook the cor file
+    # ps.infile       = os.path.join(pairDir, f"{pair}.cor")
+    # ps.outfile      = os.path.join(pairDir, 'filt_lk.cor')
+    # if not os.path.isfile(ps.outfile):
+    #     print(f"Downlooking {pair}")
+    #     looks.main(ps)
         
     # coherence
-    # if not os.path.isfile(cor_file_out):
-    #     print(f"Computing coherence for {pair}")
-    #     FilterAndCoherence.estCoherence(filt_file_out, cor_file_out)
-    # else:
-    #     print(pair + '/' + filt_file_out + ' is already file.')
+    if not os.path.isfile(cor_file_out):
+        print(f"Computing coherence for {pair}")
+        FilterAndCoherence.estCoherence(filt_file_out, cor_file_out)
+    else:
+        print(pair + '/' + filt_file_out + ' is already file.')
               
 
 def unwrapsnaphu(args):  
@@ -105,7 +105,7 @@ def unwrapsnaphu(args):
     if not os.path.isfile( os.path.join( pairDir, pair + '.unw')):
         print(f"Unwrapping {pair}")
         cor_file =  os.path.join( pairDir, 'filt_lk.cor')
-        int_file =  os.path.join( pairDir, 'fine_lk.int')
+        int_file =  os.path.join( pairDir, 'filt_lk.int')
         unw_file =  os.path.join( pairDir, 'filt_lk.unw')        
         unwrap.unwrap_snaphu(int_file, cor_file, unw_file, ps)
     else:
@@ -114,7 +114,6 @@ def unwrapsnaphu(args):
 
 def main(inps):
     ps = config.getPS()
-    
     ps.azlooks      = int(ps.alks)
     ps.rglooks      = int(ps.rlks)
     ps.coregSlcDir    = './merged/SLC'
@@ -130,17 +129,19 @@ def main(inps):
     ps.psPixelsFile   =  os.path.join(dolphinDir, 'PS/ps_pixels.tif')
     ps.outDir         =  os.path.join(dolphinDir, 'interferograms', ps.networkType)
 
-    
-    
     #organize the ifgs into pairs directories inside the ps.networkType dir
     if not os.path.isdir( os.path.join(ps.intdir,ps.networkType)):
         os.mkdir(os.path.join(ps.intdir,ps.networkType))
     for pair in ps.pairs:
         if not os.path.isdir( os.path.join(ps.intdir,ps.networkType,pair) ):
             os.mkdir(os.path.join(ps.intdir,ps.networkType,pair))
-            
-            # if not os.path.isfile( os.path.join(ps.intdir,ps.networkType,pair,pair + '.cor')):
-            os.system('mv ' + ps.intdir + '/' + pair + '.* ' + ps.intdir + '/' + ps.networkType + '/' + pair + '/'  )
+        
+        suffixList = ['.int','.int.aux.xml','.int.hdr','.int.vrt','.cor','.cor.aux.xml','.cor.hdr']
+        if not os.path.isfile( os.path.join(ps.intdir,ps.networkType,pair,pair + '.cor')):
+            for suff in suffixList:
+                print('ln -s ../../' + pair + suff +' ' + ps.intdir + '/' + ps.networkType + '/' + pair + '/'  )
+                os.system('ln -s ../../' + pair + suff +' ' + ps.intdir + '/' + ps.networkType + '/' + pair + '/' + pair + suff   )
+
             
         ifg_fn = ps.intdir + '/' + ps.networkType + '/' + pair + '/' + pair + '.int'
         cor_fn = ps.intdir + '/' + ps.networkType + '/' + pair + '/' + pair + '.cor'
@@ -152,13 +153,13 @@ def main(inps):
        
     if inps.num_processes>1:
         if inps.downlook:
-            pool = multiprocessing.Pool(processes=4)#inps.num_processes)
+            pool = multiprocessing.Pool(processes=18)#inps.num_processes)
             pool.map(downlook, args_list)
             pool.close()
             pool.join()
         
         if inps.unwrap:
-            pool = multiprocessing.Pool(processes=5)#inps.num_processes)
+            pool = multiprocessing.Pool(processes=18)#inps.num_processes)
             pool.map(unwrapsnaphu,args_list)
             pool.close()
             pool.join()
