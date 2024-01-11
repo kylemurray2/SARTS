@@ -220,16 +220,8 @@ def main(inps):
         networkObj.single_master()
     elif ps.networkType=='delaunay':
         networkObj.delaunay()
-    elif ps.networkType=='sequential1':
-        networkObj.sequential1()
-    elif ps.networkType=='sequential2':
-        networkObj.sequential2()
-    elif ps.networkType=='sequential3':
-        networkObj.sequential3()
-    elif ps.networkType=='sequential4':
-        networkObj.sequential4()
-    elif ps.networkType=='sequential5':
-        networkObj.sequential5()
+    elif ps.networkType=='bandwidth':
+        networkObj.bandwidth(ps.minBandwidth)
     else:
         print('choose valid networkType in ps.networkType')
     
