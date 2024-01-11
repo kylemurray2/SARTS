@@ -50,11 +50,14 @@ cropymax : 0
 cropxmin : 0
 cropxmax : 0
 geobbox  : # Optional crop based on lat/lon coordinates ('S,N,W,E')
+networkType : delaunay # bandwidth, delaunay, 
+minBandwidth : # only if networkType is 'bandwidth'
+
+
 #__________________________________________________________________________
 # ifgs.py_________________________________________________________________
 alks : 1 # number of looks in azimuth
 rlks : 4 # number of looks in range
-networkType : delaunay # sequential1, sequential2, delaunay
 filterStrength: .2
 # snaphu
 init_method : MCF
@@ -63,7 +66,7 @@ max_comp    : 32
 defo_max    : 0
 lam : .055 # sentinel
 #__________________________________________________________________________
-# Fringe__________________________________________________________________
+# __________________________________________________________________
 waterMask : True
 nlcd_in   : /d/HI/Landcover/data/hi_maui_2010_ccap_hr_land_cover_20150213.img  # Optional: NLCD raster for landcover and watermask
 maxMem    : 80000

@@ -474,10 +474,13 @@ def main(inps):
     out.renderHdr()
     out.renderVRT()
 
+    if not os.path.isfile('dolphin'):
+        os.mkdir('dolphin')
+
     # Make a waterMask tif for dolhpin
     if not os.path.isfile('nodata_mask.tif') or inps.replace:
         
-        ds = gdal.Open(ps.mergeddir + '/geom_reference/waterMask_lk.rdr')
+        ds = gdal.Open(ps.mergeddir + '/geom_reference/waterMask.rdr.full.crop')
         wm = ds.GetVirtualMemArray()
         with rasterio.open('nodata_mask.tif', 'w', driver='GTiff',
                 height=wm.shape[1], width=wm.shape[1],
