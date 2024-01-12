@@ -41,20 +41,14 @@ make -j 10 # to use multiple threads
 make install
 
 
-# Install Fringe
+# Install Dolphin
 cd $softwareDir
-if [ -f $softwareDir/Fringe ]; then
-    rm -rf $softwareDir/Fringe
+if [ -f $softwareDir/dolphin ]; then
+    rm -rf $softwareDir/dolphin
 fi
-mkdir -p $softwareDir/Fringe
-cd $softwareDir/Fringe
-mkdir install build src
-cd src
-git clone https://github.com/kylemurray2/fringe.git
-cd ../build
-CXX=${CXX} cmake -DCMAKE_INSTALL_PREFIX=../install ../src/fringe
-make all
-make install
+git clone https://github.com/isce-framework/dolphin.git && cd dolphin
+python -m pip install -e .
+
 
 # Add the following to a setup file and source that file to export the environments
 #__________________________________________________________________________________
@@ -63,16 +57,9 @@ softwareDir=$HOME/Software
 # mambaforge
 export PATH=$PATH:$softwareDir/mambaforge/bin
 
-# Fringe
-export PATH=$PATH:$softwareDir/Fringe/install/bin
-#export LD_PRELOAD=$softwareDir/mambaforge/envs/isce/lib/libmkl_core.so:$softwareDir/mambaforge/envs/isce/lib/libmkl_sequential.so:$softwareDir/mambaforge/envs/isce/lib/libmkl_avx512.so:$softwareDir/mambaforge/envs/isce/lib/libmkl_def.so
-export PYTHONPATH=$PYTHONPATH:$softwareDir/Fringe/install/bin
-export PYTHONPATH=$PYTHONPATH:$softwareDir/Fringe/install/python
-
 # ISCE
 export ISCE_ROOT=$softwareDir/isce
 export ISCE_SRC_ROOT=$softwareDir/src/isce2
-
 export PATH=$PATH:$ISCE_ROOT:$ISCE_ROOT/bin:$ISCE_ROOT/applications
 export PATH=$PATH:$ISCE_SRC_ROOT/contrib/stack/topsStack
 

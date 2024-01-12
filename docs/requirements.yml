@@ -40,8 +40,7 @@ dependencies:
   - gcc_linux-64 
   - gxx_linux-64 
   - gfortran_linux-64
-# For Fringe
-  - armadillo
+
 # Other
   - mintpy
   - lxml
@@ -55,3 +54,22 @@ dependencies:
   - spyder
   - "libblas=*=*mkl"
   - mkl
+
+# For Dolphin
+  - isce3
+  - hdf5!=1.12.2 # https://github.com/SciTools/iris/issues/5187 and https://github.com/pydata/xarray/issues/7549
+  - numba>=0.54
+  - opera-utils>=0.1.5
+  - pydantic>=2.1
+  - pymp-pypi>=0.4.5
+  - pyproj>=3.3
+  - rasterio>=1.3
+  - rich>=12.0
+  - ruamel.yaml>=0.15
+  - tbb>=2021.6.0 # Module for numba threading which prevents `fork()` crashes
+  - threadpoolctl>=3.0
+  - typing_extensions>=3.10
+# For Dolphin GPU version
+  - cupy>=11.0
+  - cudatoolkit
+  - pynvml>=11.0

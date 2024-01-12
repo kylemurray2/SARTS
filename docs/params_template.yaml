@@ -52,6 +52,8 @@ cropxmax : 0
 geobbox  : # Optional crop based on lat/lon coordinates ('S,N,W,E')
 networkType : delaunay # bandwidth, delaunay, 
 minBandwidth : # only if networkType is 'bandwidth'
+waterMask : True
+nlcd_in   : /d/HI/Landcover/data/hi_maui_2010_ccap_hr_land_cover_20150213.img  # Optional: NLCD raster for landcover and watermask
 
 
 #__________________________________________________________________________
@@ -67,39 +69,32 @@ defo_max    : 0
 lam : .055 # sentinel
 #__________________________________________________________________________
 # __________________________________________________________________
-waterMask : True
-nlcd_in   : /d/HI/Landcover/data/hi_maui_2010_ccap_hr_land_cover_20150213.img  # Optional: NLCD raster for landcover and watermask
 maxMem    : 80000
-# tops2vrt:
-stackdir: './Fringe/coreg_stack'
-geomdir: './Fringe/geometry'
-outdir: './Fringe/slcs'
-# nmap:
-inputDS: './Fringe/coreg_stack/slcs_base.vrt'
-outputDS: './Fringe/KS2/nmap'
-countDS: './Fringe/KS2/count'
-maskDS: './merged/geom_reference/waterMask.rdr.full.crop.vrt'
-linesPerBlock: 256
-halfWindowX: 11
-halfWindowY: 5
-pValue: 0.05
-method: 'KS2'
-noGPU: 'True'
-# sequential_PL:
-outputDir: './Fringe/Sequential'
-minNeighbors: 5
-miniStackSize: 20
-forceprocessing: false
-# adjustMiniStacks:
-slcDir: './Fringe/slcs/'
-miniStackDir: './Fringe/Sequential/miniStacks/'
-datumDir: './Fringe/Sequential/Datum_connection/'
-outDir: './Fringe/adjusted_wrapped_DS'
-unwrapped: false
-# ampdispersion:
-meanampDS: './Fringe/ampDispersion/mean'
-refBand: 1
-outputAD: './Fringe/ampDispersion/ampdispersion'
-ampDispersionThreshold: '0.35'
 
-
+#__________________________________________________________________________
+# Dolphin___________________________________________________________________
+cslc_date_fmt : '%Y%m%d'
+# Mask file used to ignore low correlation/bad data (e.g water mask). Convention is 0 for no
+#   data/invalid, and 1 for good data. Dtype must be uint8.
+nodata_mask_file : dolphin/nodata_mask.tif
+dolphin_work_dir: /d/HI/Asc/Oahu/dolphin
+slc_files : '/d/HI/Asc/Oahu/merged/SLC/*/*.slc.full.crop.vrt' # Give the vrt file
+keep_paths_relative: false
+gpu_enabled: true
+n_workers: 48  # (For non-GPU) Number of cpu cores to use for Python multiprocessing. Uses `multiprocessing.cpu_count()` if not set.
+block_shape_x: 350
+block_shape_y: 350
+output_resolution:
+strides: 
+    x: 1
+    y: 1
+amp_dispersion_threshold: 0.01
+ministack_size: 15
+max_num_compressed: 5
+half_window:
+    x: 11 
+    y: 5
+use_evd: false # Use EVD on the coherence instead of using the EMI algorithm.
+beta: 0.01   # Beta regularization parameter for correlation matrix inversion. 0 is no regularization.
+shp_method: glrt #   Options: ['glrt', 'ks', 'kld', 'rect', 'rect'].
+shp_alpha: 0.05
