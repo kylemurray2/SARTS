@@ -130,14 +130,16 @@ class Network(object):
 
         return None
 
-    def bandwidth(self,minBandwidth):
+    def maxbandwidth(self,bandwidth):
+
         dates = self.dateList
         self.pairsDates = []
 
         for ii,d in enumerate(dates[0:-1]):
-            for jj in np.arange(1,minBandwidth+1):
+            for jj in np.arange(1,bandwidth+1):
                 if ii+jj < len(dates):
                     self.pairsDates.append(dates[ii] + '_' + dates[ii+jj])
+        return None
                     
         return None
     def sequential1(self):

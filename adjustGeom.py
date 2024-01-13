@@ -14,8 +14,7 @@ import os,sys,glob,argparse,time,re
 from datetime import date
 import isce.components.isceobj as isceobj
 from mroipac.looks.Looks import Looks
-from SARTS import util,config
-from Network import Network
+from SARTS import util,config,network
 from osgeo import gdal
 import rasterio
 
@@ -193,7 +192,7 @@ def main(inps):
         print('No missing files found')
 
 
-    networkObj = Network()
+    networkObj = network.Network()
     networkObj.dateList = dates
     networkObj.baselineDict[ps.reference_date] = 0.0
     
@@ -220,8 +219,8 @@ def main(inps):
         networkObj.single_master()
     elif ps.networkType=='delaunay':
         networkObj.delaunay()
-    elif ps.networkType=='bandwidth':
-        networkObj.bandwidth(ps.minBandwidth)
+    elif ps.networkType=='maxbandwidth':
+        networkObj.maxbandwidth(ps.bandwidth)
     else:
         print('choose valid networkType in ps.networkType')
     
@@ -413,7 +412,7 @@ def main(inps):
             else:
                 print('no file ' + infile)
     else:
-        print('skipping donwlooking')
+        print('skipping downlooking')
     
     
     fList = glob.glob(ps.mergeddir + '/geom_reference/*lk.rdr')
