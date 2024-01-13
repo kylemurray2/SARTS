@@ -4,7 +4,7 @@
 Created on Mon Jan  9 17:05:26 2023
 @author: km
 
-Takes output from Fringe
+Takes output from dolphin
 creates:
 
     <date1>_<date2>.int
@@ -15,7 +15,7 @@ creates:
 
 """
 
-import os
+import os,glob
 from isce.applications import looks
 from isce.components import isceobj
 import FilterAndCoherence
@@ -37,7 +37,7 @@ def cmdLineParser():
     parser.add_argument('-u', '--unwrap', action='store_true', dest='unwrap',help='Unwrap interferograms')
     parser.add_argument('-m', '--make-ifgs', action='store_true', dest='makeIfgs',help='Make the interferograms')
     parser.add_argument('-n', '--nproc', type=int, dest='num_processes', default=3, help='Number of parallel processes. Use 1 for no parallelization')
-    parser.add_argument('-f', '--noFringe', action='store_true', dest='noFringe', help='Use this flag if you are not using Fringe psds.')
+    parser.add_argument('-f', '--nodolphin', action='store_true', dest='nodolphin', help='Use this flag if you are not using dolphin psds.')
 
     return parser.parse_args()
 
@@ -46,8 +46,8 @@ def cmdLineParser():
 def makeIfg(slc1_fn,slc2_fn,ifg_fn,ps):
     ds1 = gdal.Open(slc1_fn)
     ds2 = gdal.Open(slc2_fn)
-    slc1 = ds1.GetVirtualMemArray()[ps.cropymin:ps.cropymax,ps.cropxmin:ps.cropxmax]
-    slc2 = ds2.GetVirtualMemArray()[ps.cropymin:ps.cropymax,ps.cropxmin:ps.cropxmax]
+    slc1 = ds1.GetVirtualMemArray()
+    slc2 = ds2.GetVirtualMemArray()
     ifg = np.multiply(slc2,np.conj(slc1))
     
     out = isceobj.createIntImage() # Copy the interferogram image from before
@@ -78,66 +78,111 @@ def downlook(args):
     if not os.path.isfile(ps.outfile):
         print(f"Downlooking {pair}")
         looks.main(ps)
+        
     # Filter
     if not os.path.isfile(filt_file_out):
         print(f"Filtering {pair}")
         FilterAndCoherence.runFilter(ps.outfile,filt_file_out,ps.filterStrength)
+        
+    # # Downlook the cor file
+    # ps.infile       = os.path.join(pairDir, f"{pair}.cor")
+    # ps.outfile      = os.path.join(pairDir, 'filt_lk.cor')
+    # if not os.path.isfile(ps.outfile):
+    #     print(f"Downlooking {pair}")
+    #     looks.main(ps)
+        
     # coherence
     if not os.path.isfile(cor_file_out):
         print(f"Computing coherence for {pair}")
         FilterAndCoherence.estCoherence(filt_file_out, cor_file_out)
-    # else:
-    #     print(pair + '/' + filt_file_out + ' is already file.')
+    else:
+        print(pair + '/' + filt_file_out + ' is already file.')
               
 
 def unwrapsnaphu(args):  
     pair, ps = args
     pairDir =  ps.outDir + '/' + pair 
-    if not os.path.isfile(pairDir + '/filt_lk.unw'):
+    if not os.path.isfile( os.path.join( pairDir, pair + '.unw')):
         print(f"Unwrapping {pair}")
-        cor_file = os.path.join(pairDir, 'filt_lk.cor')
-        int_file = os.path.join(pairDir, 'filt_lk.int')
-        unw_file = os.path.join(pairDir, 'filt_lk.unw')        
+        cor_file =  os.path.join( pairDir, 'filt_lk.cor')
+        int_file =  os.path.join( pairDir, 'filt_lk.int')
+        unw_file =  os.path.join( pairDir, 'filt_lk.unw')        
         unwrap.unwrap_snaphu(int_file, cor_file, unw_file, ps)
     else:
         print(f"{pair} is already unwrapped.")
 
 
+def makePSDS(ds_slc1_fn, ds_slc2_fn, slc1_fn, slc2_fn, ps_mask_fn, out_fn):
+    ds1 = gdal.Open(slc1_fn)
+    ds2 = gdal.Open(slc2_fn)
+    slc1 = ds1.GetVirtualMemArray()
+    slc2 = ds2.GetVirtualMemArray()
+    ifg_raw = np.multiply(slc1,np.conj(slc2))
+    # del(slc1,slc2)
+    
+    ds1 = gdal.Open(ds_slc1_fn)
+    ds2 = gdal.Open(ds_slc2_fn)
+    ds_slc1 = ds1.GetVirtualMemArray()
+    ds_slc2 = ds2.GetVirtualMemArray()
+    ifg_ds_ps = np.multiply(ds_slc1,np.conj(ds_slc2))
+    # del(ds_slc1,ds_slc2)
+    
+    ds = gdal.Open(ps_mask_fn)
+    psPixels = ds.GetVirtualMemArray()
+
+    # get the data for PS pixels
+    ifg_ds_ps[psPixels == 1] = ifg_raw[psPixels == 1]
+
+    out = isceobj.createIntImage() # Copy the interferogram image from before
+    out.dataType = 'CFLOAT'
+    out.filename = out_fn
+    out.width = ifg_ds_ps.shape[1]
+    out.length = ifg_ds_ps.shape[0]
+    out.dump(out.filename + '.xml') # Write out xml
+    fid=open(out.filename,"wb+")
+    fid.write(ifg_ds_ps)
+    out.renderHdr()
+    out.renderVRT()  
+    fid.close()
+
+    return None
+
+
 def main(inps):
     ps = config.getPS()
-    
     ps.azlooks      = int(ps.alks)
     ps.rglooks      = int(ps.rlks)
     ps.coregSlcDir    = './merged/SLC'
     ps.unwrapMethod   = None
     
-    if not inps.noFringe:
-        fringeDir = ps.stackdir.split('/')[1]
-        ps.intdir  = os.path.join( fringeDir, 'PS_DS', ps.networkType)
-        if ps.sensor=='ALOS':
-            ps.slcdir  =  os.path.join(fringeDir,'PhaseLink')
-            ps.dsStackDir =  os.path.join(fringeDir, 'PhaseLink')
-        
-        else:
-            ps.slcdir  =  os.path.join(fringeDir, 'adjusted_wrapped_DS')
-            ps.dsStackDir =  os.path.join(fringeDir, 'adjusted_wrapped_DS')
-        
-        ps.slcStack       =  os.path.join(fringeDir, 'coreg_stack/slcs_base.vrt')
-        ps.tcorrFile      =  os.path.join(fringeDir,'tcorrMean.bin')
-        ps.psPixelsFile   =  os.path.join(fringeDir, 'ampDispersion/ps_pixels')
-        ps.outDir         =  os.path.join(fringeDir, 'PS_DS', ps.networkType)
-    else:
-        print("Not using Fringe for IFG formation")
-        ps.outDir     = ps.intdir  
-    
+
+    dolphinDir = ps.dolphin_work_dir
+    ps.intdir  = os.path.join( dolphinDir, 'interferograms')
+
     
     #__Make IFGS____________________
-    if not inps.noFringe:
+    if not inps.nodolphin:
         # Make ifgs with fringe
         if inps.makeIfgs:
-            integratePS.main(ps)
+            # integrate PS and DS
+            for pair in ps.pairs:
+                out_fn = os.path.join(ps.dolphin_work_dir,'interferograms',pair,pair + '.int')
+
+                if not os.path.isfile(out_fn):
+                    print('making ' + pair + ' PSDS ifg...')
+                    d1,d2 = pair.split('_')
+                    slc1_fn = os.path.join('merged','SLC',d1,d1+'.slc.full.crop.slc.vrt')
+                    slc2_fn = os.path.join('merged','SLC',d2,d2+'.slc.full.crop.slc.vrt')
+                    ds_slc1_fn = os.path.join(ps.dolphin_work_dir,'linked_phase',d1+'.slc.tif')
+                    ds_slc2_fn = os.path.join(ps.dolphin_work_dir,'linked_phase',d2+'.slc.tif')
+                    ps_mask_fn = os.path.join(ps.dolphin_work_dir,'PS','ps_pixels.tif')
+                    if not os.path.isdir(os.path.join(ps.dolphin_work_dir,'interferograms',pair)):
+                        os.mkdir(os.path.join(ps.dolphin_work_dir,'interferograms',pair))
+                    makePSDS(ds_slc1_fn, ds_slc2_fn, slc1_fn, slc2_fn, ps_mask_fn, out_fn)
+                else:
+                    print(pair + ' PSDS already exists.. skipping')
     else:
-        # Make ifgs without fringe
+        # Make ifgs without dolphin PSDS
         if inps.makeIfgs:
 
             if not os.path.isdir(ps.intdir):
@@ -159,20 +204,38 @@ def main(inps):
                 else:
                     print(ifg_fn + ' already exists')
     #______________________
-    
+    # #organize the ifgs into pairs directories inside the ps.networkType dir
+    # if not os.path.isdir( os.path.join(ps.intdir,ps.networkType)):
+    #     os.mkdir(os.path.join(ps.intdir,ps.networkType))
+    # for pair in ps.pairs:
+    #     if not os.path.isdir( os.path.join(ps.intdir,ps.networkType,pair) ):
+    #         os.mkdir(os.path.join(ps.intdir,ps.networkType,pair))
+        
+    #     suffixList = ['.int','.int.aux.xml','.int.hdr','.int.vrt','.cor','.cor.aux.xml','.cor.hdr']
+    #     if not os.path.isfile( os.path.join(ps.intdir,ps.networkType,pair,pair + '.cor')):
+    #         for suff in suffixList:
+    #             print('ln -s ../../' + pair + suff +' ' + ps.intdir + '/' + ps.networkType + '/' + pair + '/'  )
+    #             os.system('ln -s ../../' + pair + suff +' ' + ps.intdir + '/' + ps.networkType + '/' + pair + '/' + pair + suff   )
 
+            
+    #     ifg_fn = ps.intdir + '/' + ps.networkType + '/' + pair + '/' + pair + '.int'
+    #     cor_fn = ps.intdir + '/' + ps.networkType + '/' + pair + '/' + pair + '.cor'
+
+    #     os.system('gdal2isce_xml.py -i ' + ifg_fn )
+    #     os.system('gdal2isce_xml.py -i ' + cor_fn )
+    
     args_list = [(pair, ps) for pair in ps.pairs]
 
-
+    
     if inps.num_processes>1:
         if inps.downlook:
-            pool = multiprocessing.Pool(processes=inps.num_processes)
+            pool = multiprocessing.Pool(processes=18)#inps.num_processes)
             pool.map(downlook, args_list)
             pool.close()
             pool.join()
         
         if inps.unwrap:
-            pool = multiprocessing.Pool(processes=inps.num_processes)
+            pool = multiprocessing.Pool(processes=18)#inps.num_processes)
             pool.map(unwrapsnaphu,args_list)
             pool.close()
             pool.join()
@@ -186,32 +249,37 @@ def main(inps):
                 unwrapsnaphu(pair,ps)
             
             
-    # link files to sequential1 if that is not the chosen network type
-    if not inps.noFringe:
-        if ps.networkType != 'sequential1':
-            seq1Dir = os.path.join(fringeDir,'PS_DS','sequential1')
-            if not os.path.isdir(seq1Dir):
-                os.mkdir(seq1Dir)
-            for p in ps.pairs_seq:
-                pairdir = os.path.join(ps.outDir,p)
-                if os.path.isdir(pairdir):
-                    dest =os.path.join(seq1Dir,p)
-                    # dest_abs = os.path.abspath(os.path.join(seq1Dir,p))
-                    # source =os.path.join(ps.outDir,p)
-                    source_rel = os.path.join('..',ps.networkType,p)
+    # # link files to sequential1 if that is not the chosen network type
+    # if not inps.nodolphin:
+    #     if ps.networkType != 'sequential1':
+    #         seq1Dir = os.path.join(dolphinDir,'PS_DS','sequential1')
+    #         if not os.path.isdir(seq1Dir):
+    #             os.mkdir(seq1Dir)
+    #         for p in ps.pairs_seq:
+    #             pairdir = os.path.join(ps.outDir,p)
+    #             if os.path.isdir(pairdir):
+    #                 dest =os.path.join(seq1Dir,p)
+    #                 # dest_abs = os.path.abspath(os.path.join(seq1Dir,p))
+    #                 # source =os.path.join(ps.outDir,p)
+    #                 source_rel = os.path.join('..',ps.networkType,p)
 
-                    if not os.path.isdir(dest):
-                        os.symlink(source_rel,dest)
-                    else:
-                        print(pairdir + ' Already exists in sequential1')
-                else:
-                    print(pairdir + ' Does not exist. sequential network is disconnected')
+    #                 if not os.path.isdir(dest):
+    #                     os.symlink(source_rel,dest)
+    #                 else:
+    #                     print(pairdir + ' Already exists in sequential1')
+    #             else:
+    #                 print(pairdir + ' Does not exist. sequential network is disconnected')
+
 
 
 if __name__ == '__main__':
     '''
     Main driver.
     '''
+    # inps = argparse.Namespace()
+    
     inps = cmdLineParser()
     # inps.makeIfgs = True
     main(inps)
+    
+    
