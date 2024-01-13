@@ -229,13 +229,13 @@ def main(inps):
     
     if inps.num_processes>1:
         if inps.downlook:
-            pool = multiprocessing.Pool(processes=18)#inps.num_processes)
+            pool = multiprocessing.Pool(processes=inps.num_processes)
             pool.map(downlook, args_list)
             pool.close()
             pool.join()
         
         if inps.unwrap:
-            pool = multiprocessing.Pool(processes=18)#inps.num_processes)
+            pool = multiprocessing.Pool(processes=inps.num_processes)
             pool.map(unwrapsnaphu,args_list)
             pool.close()
             pool.join()
