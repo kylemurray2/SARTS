@@ -66,9 +66,15 @@ def makeIfg(slc1_fn,slc2_fn,ifg_fn,ps):
 
 
 def downlook(args):
+    '''
+    downlook ifgs
+    '''
     pair, ps = args
-    # Downlook ifgs
-    pairDir         = os.path.join(ps.dolphin_work_dir,'interferograms', pair )
+    if inps.nodolphin:
+        pairDir         = os.path.join(ps.intdir, pair )
+    else:
+        pairDir         = os.path.join(ps.dolphin_work_dir,'interferograms', pair )
+
     ps.infile       = os.path.join(pairDir, f"{pair}.int")
     ps.outfile      = os.path.join(pairDir, 'fine_lk.int')
     cor_file_out    = os.path.join(pairDir, 'filt_lk.cor')
@@ -100,8 +106,15 @@ def downlook(args):
               
 
 def unwrapsnaphu(args):  
+    '''
+    unwrap ifgs
+    '''
     pair, ps = args
-    pairDir = os.path.join(ps.dolphin_work_dir,'interferograms', pair )
+
+    if inps.nodolphin:
+        pairDir         = os.path.join(ps.intdir, pair )
+    else:
+        pairDir         = os.path.join(ps.dolphin_work_dir,'interferograms', pair )
 
     if not os.path.isfile( os.path.join( pairDir, pair + '.unw')):
         print(f"Unwrapping {pair}")
