@@ -68,7 +68,7 @@ def makeIfg(slc1_fn,slc2_fn,ifg_fn,ps):
 def downlook(args):
     pair, ps = args
     # Downlook ifgs
-    pairDir         = os.path.join(ps.outDir, pair )
+    pairDir         = os.path.join(ps.dolphin_work_dir,'interferograms', pair )
     ps.infile       = os.path.join(pairDir, f"{pair}.int")
     ps.outfile      = os.path.join(pairDir, 'fine_lk.int')
     cor_file_out    = os.path.join(pairDir, 'filt_lk.cor')
@@ -101,7 +101,8 @@ def downlook(args):
 
 def unwrapsnaphu(args):  
     pair, ps = args
-    pairDir =  ps.outDir + '/' + pair 
+    pairDir = os.path.join(ps.dolphin_work_dir,'interferograms', pair )
+
     if not os.path.isfile( os.path.join( pairDir, pair + '.unw')):
         print(f"Unwrapping {pair}")
         cor_file =  os.path.join( pairDir, 'filt_lk.cor')
@@ -235,7 +236,7 @@ def main(inps):
             pool.join()
         
         if inps.unwrap:
-            pool = multiprocessing.Pool(processes=inps.num_processes)
+            pool = multiprocessing.Pool(processes=2)#inps.num_processes)
             pool.map(unwrapsnaphu,args_list)
             pool.close()
             pool.join()
