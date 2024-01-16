@@ -176,7 +176,8 @@ def main(inps):
     
     #__Make IFGS____________________
     if not inps.nodolphin:
-        # Make ifgs with fringe
+        # Make ifgs with dolphin
+        print('Using PS_DS slcs')
         if inps.makeIfgs:
             # integrate PS and DS
             for pair in ps.pairs:
@@ -197,6 +198,8 @@ def main(inps):
                     print(pair + ' PSDS already exists.. skipping')
     else:
         # Make ifgs without dolphin PSDS
+        print('Using original slcs because nodolphin flag is set')
+
         if inps.makeIfgs:
 
             if not os.path.isdir(ps.intdir):
