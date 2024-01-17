@@ -70,11 +70,7 @@ def downlook(args):
     downlook ifgs
     '''
     pair, ps = args
-    if inps.nodolphin:
-        pairDir         = os.path.join(ps.intdir, pair )
-    else:
-        pairDir         = os.path.join(ps.dolphin_work_dir,'interferograms', pair )
-
+    pairDir         = os.path.join(ps.intdir, pair )
     ps.infile       = os.path.join(pairDir, f"{pair}.int")
     ps.outfile      = os.path.join(pairDir, 'fine_lk.int')
     cor_file_out    = os.path.join(pairDir, 'filt_lk.cor')
@@ -110,11 +106,7 @@ def unwrapsnaphu(args):
     unwrap ifgs
     '''
     pair, ps = args
-
-    if inps.nodolphin:
-        pairDir         = os.path.join(ps.intdir, pair )
-    else:
-        pairDir         = os.path.join(ps.dolphin_work_dir,'interferograms', pair )
+    pairDir = os.path.join(ps.intdir, pair )
 
     if not os.path.isfile( os.path.join( pairDir, pair + '.unw')):
         print(f"Unwrapping {pair}")
@@ -169,10 +161,12 @@ def main(inps):
     ps.coregSlcDir    = './merged/SLC'
     ps.unwrapMethod   = None
     
-
     dolphinDir = ps.dolphin_work_dir
-    ps.intdir  = os.path.join( dolphinDir, 'interferograms')
-
+    if inps.nodolphin:
+        ps.intdir  = os.path.join( ps.mergeddir, 'interferograms')
+    else:
+        ps.intdir  = os.path.join( dolphinDir, 'interferograms')
+        
     
     #__Make IFGS____________________
     if not inps.nodolphin:
@@ -199,18 +193,18 @@ def main(inps):
     else:
         # Make ifgs without dolphin PSDS
         print('Using original slcs because nodolphin flag is set')
-
+        print(ps.intdir)
         if inps.makeIfgs:
 
             if not os.path.isdir(ps.intdir):
                 print('Making merged/interferograms directory')
                 os.mkdir(ps.intdir)
     
-            for ii in range(len(ps.dates)-1):
-                d1 = ps.dates[ii]
-                d2 = ps.dates[ii+1]
-                slc1_fn = os.path.join(ps.slcdir,d1,d1+'.slc.full')
-                slc2_fn = os.path.join(ps.slcdir,d2,d2+'.slc.full')
+            for pair in ps.pairs:
+                d1 = pair.split('_')[0]
+                d2 = pair.split('_')[1]
+                slc1_fn = os.path.join(ps.slcdir,d1,d1+'.slc.full.crop.slc.vrt')
+                slc2_fn = os.path.join(ps.slcdir,d2,d2+'.slc.full.crop.slc.vrt')
                 pair = d1 + '_' + d2
                 print('creating ' + pair + '.int')
                 ifg_fn = os.path.join(ps.intdir,pair,pair+'.int')
@@ -252,7 +246,7 @@ def main(inps):
             pool.join()
         
         if inps.unwrap:
-            pool = multiprocessing.Pool(processes=2)#inps.num_processes)
+            pool = multiprocessing.Pool(processes=inps.num_processes)
             pool.map(unwrapsnaphu,args_list)
             pool.close()
             pool.join()

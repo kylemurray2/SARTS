@@ -2,7 +2,7 @@ Wrapper for making PS/DS InSAR time series. For Linux Ubuntu
 
 Must first install:
 -isce2
--FRINGE (forked version from kylemurray2/)
+-Dolphin
 see docs/installNotes.sh for all commands needed to do these installs. 
 
 Workflow:
@@ -72,13 +72,13 @@ Workflow:
     -p, --plot-off    Turn plotting off (default: True)  
 
 
-9. Run Fringe:
+9. Run Dolphin:
 
-    At this point you could simply make downlooked IFGs with the coregistered stack and then unwrap those. Do this by running ifgs.py -dumf.  This will turn the Fringe mode off and make the unwrapped ifgs. By default, we are doing PS-DS analysis with Fringe, so we can run that using:
+    At this point you could simply make downlooked IFGs with the coregistered stack and then unwrap those. Do this by running ifgs.py -dumf.  This will turn the Dolphin mode off and make the unwrapped ifgs. By default, we are doing PS-DS analysis with Dolphin, so we can run that using:
 
-    runFringe.py -tnsadc 
+    runDolphin.py -tnsadc 
 
-    This runs all of the Fringe steps to do the PS_DS analysis and should output Fringe/adjusted_wrapped_DS/*slc
+    This runs all of the Dolphin steps to do the PS_DS analysis and should output Dolphin/adjusted_wrapped_DS/*slc
 
     To rerun or run any specific step, these are the options:  
 
@@ -101,7 +101,7 @@ Workflow:
     -u, --unwrap          Unwrap interferograms (default: True)  
     -m, --make-ifgs       Make the interferograms (default: True)  
     -n, --nproc           Number of parallel processes. Use 1 for no parallelization (default: 5) 
-    -f, --noFringe        Use this flag if you are not using Fringe psds. (default: True)  
+    -f, --nodolphin        Use this flag if you are not using dolphin psds. (default: True)  
 
 
 11. Recommended to use MintPy to estimate the time series and velocities. MintPy can use the unwrapped ifgs and geom_files we created. 

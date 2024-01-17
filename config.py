@@ -10,7 +10,7 @@ import numpy as np
 import os,re,yaml,argparse,sys
 import importlib.util
 from osgeo import gdal
-
+from pathlib import Path
 
 def load_yaml_to_namespace(yaml_file):
     # Load the YAML file into a dictionary
@@ -72,6 +72,11 @@ def getPS(directory='.'):
         ps.reference_date = str(ps.reference_date)
         ps.slcdir   = ps.mergeddir + '/SLC'
 
+        ps.ps_output = Path(os.path.join(ps.dolphin_work_dir, 'PS', 'ps_pixels.tif'))
+        ps.amp_mean_file = Path(os.path.join(ps.dolphin_work_dir, 'PS', 'amp_mean.tif'))
+        ps.amp_dispersion_file = Path(os.path.join(ps.dolphin_work_dir, 'PS', 'amp_dispersion.tif'))
+        ps.block_shape=(ps.block_shape_x,ps.block_shape_y)
+        
         if not hasattr(ps,'reference_date'):
             ps.reference_date=None
         elif ps.reference_date=='None':
