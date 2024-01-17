@@ -1,21 +1,21 @@
-Wrapper for making PS/DS InSAR time series. For Linux Ubuntu
+Wrapper for making PS/DS InSAR time series. For Linux Ubuntu  
 
-Must first install:
--isce2
--Dolphin
-see docs/installNotes.sh for all commands needed to do these installs. 
+Must first install:  
+-isce2  
+-Dolphin  
+see docs/installNotes.sh for all commands needed to do these installs.  
 
-Workflow:
-1. Create working directory and cd into it. Copy the params.yaml file by running:
+Workflow:  
+1. Create working directory and cd into it. Copy the params.yaml file by running:  
 
-    getParams.py
+    getParams.py  
 
-2. Edit the params.yaml file with all of the settings you need. Spend some extra time double-checking all of these parameters are exactly how you want them before moving on, because most issues will be related to mistakes in this step. 
+2. Edit the params.yaml file with all of the settings you need. Spend some extra time double-checking all of these parameters are exactly how you want them before moving on, because most issues will be related to mistakes in this step.  
 
-    -Bounding lat/lon, and a polygon of your area of interst for ASF search  
-    -Path number  
-    -Swath number(s)  
-    -reference date 
+    -Bounding lat/lon, and a polygon of your area of interst for ASF search   
+    -Path number   
+    -Swath number(s)   
+    -reference date  
     -Downlooking factors (azimuth and range)  
     -Date ranges  
     -Make sure to set the aux_cal and orbit path to a directory where you want to save those.  If they don't exists, they will be created, but it's best to always point to a central source which can be used in future stacks.   
@@ -76,20 +76,20 @@ Workflow:
 
     At this point you could simply make downlooked IFGs with the coregistered stack and then unwrap those. Do this by running ifgs.py -dumf.  This will turn the Dolphin mode off and make the unwrapped ifgs. By default, we are doing PS-DS analysis with Dolphin, so we can run that using:
 
-    runDolphin.py -tnsadc 
+    runDolphin.py -ps  
 
-    This runs all of the Dolphin steps to do the PS_DS analysis and should output Dolphin/adjusted_wrapped_DS/*slc
+    This runs all of the Dolphin steps to do the PS_DS analysis and should output Dolphin/adjusted_wrapped_DS/*slc  
 
-    To rerun or run any specific step, these are the options:  
+    To rerun or run any specific step, these are the options:   
 
-        options:  
-    -h, --help            show this help message and exit  
-    -t, --tops2vrt        Run tops2vrt function. (default: False)  
-    -n, --nmap            Run nmap function. (default: False)  
-    -s, --sequential_PL   Run sequential_PL function. (default: False)  
-    -a, --adjustMiniStacks Run adjustMiniStacks function. (default: False)      
-    -d, --ampdispersion   Run ampdispersion function. (default: False)  
-    -c, --makeTcorr       Make Tcorr average (default: False)  
+Run Fringe sequential estimator with phase linking  
+
+    options:  
+    -h, --help           show this help message and exit  
+    -p, --do_ps          Run PS estimation. (default: False)  
+    -s, --sequential_PL  Run sequential_PL function. (default: False)  
+
+
 
 10. Make interferograms, downlook, coherence, filter, and unwrap:  
 
