@@ -100,8 +100,8 @@ Run Fringe sequential estimator with phase linking
     -d, --downlook        Downlook interferograms (default: True)   
     -u, --unwrap          Unwrap interferograms (default: True)  
     -m, --make-ifgs       Make the interferograms (default: True)  
-    -n, --nproc           Number of parallel processes. Use 1 for no parallelization (default: 5) 
-    -f, --nodolphin        Use this flag if you are not using dolphin psds. (default: True)  
+    -n, --nproc           Number of parallel processes. Use 1 for no parallelization (default: 5)   
+    -f, --nodolphin        Use this flag if you are not using dolphin psds. (default: True)    
 
 
 11. Recommended to use MintPy to estimate the time series and velocities. MintPy can use the unwrapped ifgs and geom_files we created. 
@@ -117,9 +117,9 @@ https://github.com/insarlab/MintPy-tutorial/blob/main/workflows/smallbaselineApp
 
 
 
-Potential errors:
--->    Exception: Could not determine a suitable burst offset
-fix: The orbit file may have not downloaded correctly. try redownloading it.
+Potential errors:  
+-->    Exception: Could not determine a suitable burst offset  
+fix: The orbit file may have not downloaded correctly. try redownloading it.  
 
 
 notes:  

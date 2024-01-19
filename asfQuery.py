@@ -28,13 +28,13 @@ import time
 
 def getGran(path, start, end, sat, bounds, poly):
 
-    path=ps.path
-    start=ps.start
-    end=ps.end
-    sat=ps.sat
-    bounds=ps.bounds
-    point=ps.point
-    poly=ps.poly
+    # path=ps.path
+    # start=ps.start
+    # end=ps.end
+    # sat=ps.sat
+    # bounds=ps.bounds
+    # point=ps.point
+    # poly=ps.poly
 
     fmt = 'CSV'
     flightDirection = None

@@ -33,10 +33,10 @@ class ShadedReliefESRI(GoogleTiles):
 
 def mapImg(img, lons, lats, vmin, vmax, pad,zoom, title, bg='World_Imagery', cm='jet', plotFaults= False,alpha=1,contour=False):
     
-    minlat=lats.min()
-    maxlat=lats.max()
-    minlon=lons.min()
-    maxlon=lons.max()
+    minlat=np.nanmin(lats)
+    maxlat=np.nanmax(lats)
+    minlon=np.nanmin(lons)
+    maxlon=np.nanmax(lons)
     url = 'https://server.arcgisonline.com/ArcGIS/rest/services/' + bg + '/MapServer/tile/{z}/{y}/{x}.jpg'
     image = cimgt.GoogleTiles(url=url)
     data_crs = image.crs #ShadedReliefESRI().crs#ccrs.PlateCarree()

@@ -45,6 +45,7 @@ num_connections_ion     : '3'
 #__________________________________________________________________________
 # adjustGeom.py___________________________________________________________
 crop     : True
+doCropSlc : True
 cropymin : 0
 cropymax : 0
 cropxmin : 0
