@@ -75,10 +75,8 @@ maxMem    : 80000
 #__________________________________________________________________________
 # Dolphin___________________________________________________________________
 cslc_date_fmt : '%Y%m%d'
-# Mask file used to ignore low correlation/bad data (e.g water mask). Convention is 0 for no
-#   data/invalid, and 1 for good data. Dtype must be uint8.
-nodata_mask_file : dolphin/nodata_mask.tif
 dolphin_work_dir: dolphin # name of the dolphin directory without full path
+nodata_mask_file : dolphin/nodata_mask.tif # Mask file used to ignore low correlation/bad data (e.g water mask). Convention is 0 for no data/invalid, and 1 for good data. Dtype must be uint8.
 slc_files : merged/SLC/*/*.slc.full.crop.vrt # Give relative path with wild cards to the vrt files
 keep_paths_relative: false
 gpu_enabled: true
