@@ -61,7 +61,7 @@ def doPS(ps,vrt_stack,logger):
     # Save a looked version of the PS mask too
     ps_looked_file = dolphin_ps.multilook_ps_mask(strides=ps.strides, ps_mask_file=ps.ps_output)
 
-def seqPL(ps,input_file_list,logger,vrt_stack):
+def seqPL(ps,input_file_list,logger):
     '''
     phase linking/EVD step
     '''
@@ -100,7 +100,7 @@ def seqPL(ps,input_file_list,logger,vrt_stack):
         return input_dates
 
 
-    pl_path = Path(os.path.join(ps.dolphin_work_dir, 'linked_phase'))
+    pl_path = Path(os.path.join(ps.workdir,ps.dolphin_work_dir, 'linked_phase'))
     pl_path.mkdir(parents=True, exist_ok=True)
 
     # Mark any files beginning with "compressed" as compressed
@@ -121,6 +121,8 @@ def seqPL(ps,input_file_list,logger,vrt_stack):
     non_compressed_slcs = [f for f, is_comp in zip(input_file_list, is_compressed) if not is_comp]
     phase_linked_slcs = list(pl_path.glob("2*.tif"))
 
+    slc_vrt_file = Path(os.path.join(ps.workdir,ps.dolphin_work_dir, "slc_stack.vrt"))
+
     if len(phase_linked_slcs) > 0:
         logger.info(f"Skipping EVD step, {len(phase_linked_slcs)} files already exist")
         comp_slc_file = sorted(pl_path.glob("compressed*tif"))[-1]
@@ -137,7 +139,7 @@ def seqPL(ps,input_file_list,logger,vrt_stack):
             comp_slcs,
             temp_coh_file,
         ) = sequential.run_wrapped_phase_sequential(
-            slc_vrt_file=vrt_stack.outfile,
+            slc_vrt_file=slc_vrt_file,
             ministack_planner=ministack_planner,
             ministack_size=ps.ministack_size,
             half_window=ps.half_window,
@@ -176,7 +178,7 @@ def main(flags):
     vrt_stack = _readers.VRTStack(
         input_file_list,
         subdataset=None,
-        outfile=Path(os.path.join(ps.dolphin_work_dir, "slc_stack.vrt")),
+        outfile=Path(os.path.join(ps.workdir,ps.dolphin_work_dir, "slc_stack.vrt")),
     )
 
     if flags.do_ps:
@@ -184,7 +186,6 @@ def main(flags):
     
     if flags.sequential_PL:
         seqPL(ps,input_file_list,logger)
-
 
 
 if __name__ == '__main__':
