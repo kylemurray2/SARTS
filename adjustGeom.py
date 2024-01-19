@@ -367,7 +367,7 @@ def main(inps):
 
                     # Write out cropped file
                     imgo = isceobj.createImage()
-                    imgo.filename = infile+'.crop.slc'
+                    imgo.filename = infile+'.crop'
                     imgo.width  = ps.nx #ps.cropxmax-ps.cropxmin
                     imgo.length = ps.ny #ps.cropymax-ps.cropymin
                     imgo.dataType='CFLOAT'
@@ -384,7 +384,7 @@ def main(inps):
         if ps.crop:
             fList = glob.glob(ps.mergeddir + '/geom_reference/*crop')
         else:
-            fList = glob.glob(ps.mergeddir + '/geom_reference/*rdr')
+            fList = glob.glob(ps.mergeddir + '/geom_reference/*rdr.full')
 
         def downLook(infile, outfile,alks,rlks):
             inImage = isceobj.createImage()
@@ -476,17 +476,21 @@ def main(inps):
     if not os.path.isdir('dolphin'):
         os.mkdir('dolphin')
 
-    # Make a waterMask tif for dolhpin
-    if not os.path.isfile('dolphin/nodata_mask.tif') or inps.replace:
-        
-        ds = gdal.Open(ps.mergeddir + '/geom_reference/waterMask.rdr.full.crop')
-        wm = ds.GetVirtualMemArray()
-        with rasterio.open('dolphin/nodata_mask.tif', 'w', driver='GTiff',
-                height=wm.shape[0], width=wm.shape[1],
-                count=1, dtype=np.uint8) as dst:
-            dst.write(wm, 1)  # Writing data to the first band
-    else:
-        print('dolphin/nodata_mask.tif watermask already exists.. skipping')
+    if ps.waterMask:
+        # Make a waterMask tif for dolhpin
+        if not os.path.isfile('dolphin/nodata_mask.tif') or inps.replace:
+            if ps.crop:
+                ds = gdal.Open(ps.mergeddir + '/geom_reference/waterMask.rdr.full.crop.vrt')
+            else:
+                ds = gdal.Open(ps.mergeddir + '/geom_reference/waterMask.rdr.full.vrt')
+
+            wm = ds.GetVirtualMemArray()
+            with rasterio.open('dolphin/nodata_mask.tif', 'w', driver='GTiff',
+                    height=wm.shape[0], width=wm.shape[1],
+                    count=1, dtype=np.uint8) as dst:
+                dst.write(wm, 1)  # Writing data to the first band
+        else:
+            print('dolphin/nodata_mask.tif watermask already exists.. skipping')
     
     if inps.plot:
         cmap = 'Spectral_r'

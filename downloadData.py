@@ -277,7 +277,8 @@ def dlDEM(ps):
     demBounds = f"{int(np.floor(minlat))},{int(np.ceil(maxlat))},{int(np.floor(minlon))},{int(np.ceil(maxlon))}"
 
     # Download dem if it doesn't exist
-    if not os.path.isdir('./DEM'):
+    file_list = glob.glob('./DEM/*wgs84*')
+    if not file_list:
         if inps.get_srtm:
             getDEM.getDEM(demBounds,srtm=True)
             DEM = glob.glob(os.path.join(ps.workdir, 'DEM', '*wgs84'))[0]
@@ -297,6 +298,22 @@ def dlDEM(ps):
         print('Error: DEM does not exists.')
 
     return demBounds, DEM
+
+
+def update_yaml_key(file_path, key, new_value):
+    new_value = new_value + ' '
+    with open(file_path, "r") as f:
+        lines = f.readlines()
+    
+    with open(file_path, "w") as f:
+        for line in lines:
+            # The regular expression is updated to accommodate varying whitespaces and possible comments
+            match = re.match(rf"^(\s*{key}\s*:\s*)([^#]*)(.*)$", line)
+            if match:
+                # Replace the value while preserving leading whitespaces, the key, and comments
+                line = f"{match.group(1)}{new_value}{match.group(3)}\n"
+            f.write(line)
+        
 
 
 def main(inps):
@@ -324,6 +341,19 @@ def main(inps):
         if not result:
             dlAuxCal(ps.aux_dirname)
 
+    if ps.reference_date:
+        print(f'Reference date is ({ps.reference_date})')
+    else:
+        print(f'setting reference date to the first date ({dates[0]})')
+        update_yaml_key('params.yaml', 'reference_date', str(dates[0]))
+        ps.reference_date = dates[0]
+
+
+        
+        
+        
+        
+        
     if inps.dlSlc_flag:
         # Check for current SLCs and remove any bad ones
         zips = glob.glob(os.path.join(ps.slc_dirname,'*.zip'))

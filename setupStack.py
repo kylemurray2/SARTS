@@ -57,7 +57,7 @@ def main():
     ps = config.getPS()
     inps=ps
     flag = checkSLC(ps)
-
+    # inps.bbox = None
     if flag:
         # stackSentinel.main(ps)
         if os.path.exists(os.path.join(ps.work_dir, 'run_files')):

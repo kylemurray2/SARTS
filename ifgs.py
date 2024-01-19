@@ -180,8 +180,13 @@ def main(inps):
                 if not os.path.isfile(out_fn):
                     print('making ' + pair + ' PSDS ifg...')
                     d1,d2 = pair.split('_')
-                    slc1_fn = os.path.join('merged','SLC',d1,d1+'.slc.full.crop.slc.vrt')
-                    slc2_fn = os.path.join('merged','SLC',d2,d2+'.slc.full.crop.slc.vrt')
+                    if ps.crop:
+                        slc1_fn = os.path.join('merged','SLC',d1,d1+'.slc.full.crop.vrt')
+                        slc2_fn = os.path.join('merged','SLC',d2,d2+'.slc.full.crop.vrt')
+                    else:
+                        slc1_fn = os.path.join('merged','SLC',d1,d1+'.slc.full.vrt')
+                        slc2_fn = os.path.join('merged','SLC',d2,d2+'.slc.full.vrt')
+
                     ds_slc1_fn = os.path.join(ps.dolphin_work_dir,'linked_phase',d1+'.slc.tif')
                     ds_slc2_fn = os.path.join(ps.dolphin_work_dir,'linked_phase',d2+'.slc.tif')
                     ps_mask_fn = os.path.join(ps.dolphin_work_dir,'PS','ps_pixels.tif')
@@ -203,8 +208,13 @@ def main(inps):
             for pair in ps.pairs:
                 d1 = pair.split('_')[0]
                 d2 = pair.split('_')[1]
-                slc1_fn = os.path.join(ps.slcdir,d1,d1+'.slc.full.crop.slc.vrt')
-                slc2_fn = os.path.join(ps.slcdir,d2,d2+'.slc.full.crop.slc.vrt')
+                if ps.crop:
+                    slc1_fn = os.path.join(ps.slcdir,d1,d1+'.slc.full.crop.vrt')
+                    slc2_fn = os.path.join(ps.slcdir,d2,d2+'.slc.full.crop.vrt')
+                else:
+                    slc1_fn = os.path.join(ps.slcdir,d1,d1+'.slc.full.vrt')
+                    slc2_fn = os.path.join(ps.slcdir,d2,d2+'.slc.full.vrt') 
+
                 pair = d1 + '_' + d2
                 print('creating ' + pair + '.int')
                 ifg_fn = os.path.join(ps.intdir,pair,pair+'.int')
@@ -282,7 +292,6 @@ def main(inps):
     #                 print(pairdir + ' Does not exist. sequential network is disconnected')
 
 
-
 if __name__ == '__main__':
     '''
     Main driver.
@@ -292,5 +301,3 @@ if __name__ == '__main__':
     inps = cmdLineParser()
     # inps.makeIfgs = True
     main(inps)
-    
-    

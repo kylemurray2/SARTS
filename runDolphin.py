@@ -157,7 +157,7 @@ def seqPL(ps,input_file_list,logger,vrt_stack):
         )
         comp_slc_file = comp_slcs[-1]
     
-def main():
+def main(flags):
     ps = config.getPS()
 
     # config_file = 'dolphin/dolphin_config.yaml'
@@ -171,10 +171,12 @@ def main():
     logger = get_log(debug=False)
     logger.info("Running wrapped phase estimation in %s", ps.dolphin_work_dir)
 
+    print(input_file_list)
+    
     vrt_stack = _readers.VRTStack(
         input_file_list,
         subdataset=None,
-        outfile=Path(os.path.join(ps.dolphin_work_directory, "slc_stack.vrt")),
+        outfile=Path(os.path.join(ps.dolphin_work_dir, "slc_stack.vrt")),
     )
 
     if flags.do_ps:
