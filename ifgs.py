@@ -161,7 +161,8 @@ def main(inps):
     ps.coregSlcDir    = './merged/SLC'
     ps.unwrapMethod   = None
     
-    dolphinDir = ps.dolphin_work_dir
+    dolphinDir = os.path.join(ps.workdir, ps.dolphin_work_dir)
+
     if inps.nodolphin:
         ps.intdir  = os.path.join( ps.mergeddir, 'interferograms')
     else:
@@ -175,7 +176,7 @@ def main(inps):
         if inps.makeIfgs:
             # integrate PS and DS
             for pair in ps.pairs:
-                out_fn = os.path.join(ps.dolphin_work_dir,'interferograms',pair,pair + '.int')
+                out_fn = os.path.join(dolphinDir,'interferograms',pair,pair + '.int')
 
                 if not os.path.isfile(out_fn):
                     print('making ' + pair + ' PSDS ifg...')
@@ -187,11 +188,11 @@ def main(inps):
                         slc1_fn = os.path.join('merged','SLC',d1,d1+'.slc.full.vrt')
                         slc2_fn = os.path.join('merged','SLC',d2,d2+'.slc.full.vrt')
 
-                    ds_slc1_fn = os.path.join(ps.dolphin_work_dir,'linked_phase',d1+'.slc.tif')
-                    ds_slc2_fn = os.path.join(ps.dolphin_work_dir,'linked_phase',d2+'.slc.tif')
-                    ps_mask_fn = os.path.join(ps.dolphin_work_dir,'PS','ps_pixels.tif')
-                    if not os.path.isdir(os.path.join(ps.dolphin_work_dir,'interferograms',pair)):
-                        os.mkdir(os.path.join(ps.dolphin_work_dir,'interferograms',pair))
+                    ds_slc1_fn = os.path.join(dolphinDir,'linked_phase',d1+'.slc.tif')
+                    ds_slc2_fn = os.path.join(dolphinDir,'linked_phase',d2+'.slc.tif')
+                    ps_mask_fn = os.path.join(dolphinDir,'PS','ps_pixels.tif')
+                    if not os.path.isdir(os.path.join(dolphinDir,'interferograms',pair)):
+                        os.makedirs(os.path.join(dolphinDir,'interferograms',pair))
                     makePSDS(ds_slc1_fn, ds_slc2_fn, slc1_fn, slc2_fn, ps_mask_fn, out_fn)
                 else:
                     print(pair + ' PSDS already exists.. skipping')
@@ -203,7 +204,7 @@ def main(inps):
 
             if not os.path.isdir(ps.intdir):
                 print('Making merged/interferograms directory')
-                os.mkdir(ps.intdir)
+                os.makedirs(ps.intdir)
     
             for pair in ps.pairs:
                 d1 = pair.split('_')[0]
@@ -220,7 +221,7 @@ def main(inps):
                 ifg_fn = os.path.join(ps.intdir,pair,pair+'.int')
                 if not os.path.isfile(ifg_fn):
                     if not os.path.isdir(os.path.join(ps.intdir,pair)):
-                        os.mkdir(os.path.join(ps.intdir,pair))
+                        os.makedirs(os.path.join(ps.intdir,pair))
                     makeIfg(slc1_fn,slc2_fn,ifg_fn,ps)
                 else:
                     print(ifg_fn + ' already exists')
