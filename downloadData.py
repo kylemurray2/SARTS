@@ -208,7 +208,7 @@ def dlAuxCal(aux_cal_out_dir):
     '''
     if not os.path.isdir(aux_cal_out_dir):
         print('did not find aux_cal directory. Creating new one, and downloading files.')
-        os.mkdir(aux_cal_out_dir)
+        os.makedirs(aux_cal_out_dir)
         
     # Base URL and number of pages to scrape
     base_url = "https://sar-mpc.eu/adf/aux_cal/"
