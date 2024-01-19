@@ -78,11 +78,11 @@ cslc_date_fmt : '%Y%m%d'
 # Mask file used to ignore low correlation/bad data (e.g water mask). Convention is 0 for no
 #   data/invalid, and 1 for good data. Dtype must be uint8.
 nodata_mask_file : dolphin/nodata_mask.tif
-dolphin_work_dir: /d/HI/Asc/Oahu/dolphin
-slc_files : '/d/HI/Asc/Oahu/merged/SLC/*/*.slc.full.crop.vrt' # Give the vrt file
+dolphin_work_dir: dolphin # name of the dolphin directory without full path
+slc_files : merged/SLC/*/*.slc.full.crop.vrt # Give relative path with wild cards to the vrt files
 keep_paths_relative: false
 gpu_enabled: true
-n_workers: 48  # (For non-GPU) Number of cpu cores to use for Python multiprocessing. Uses `multiprocessing.cpu_count()` if not set.
+n_workers: 20  # (For non-GPU) Number of cpu cores to use for Python multiprocessing. Uses `multiprocessing.cpu_count()` if not set.
 block_shape_x: 350
 block_shape_y: 350
 output_resolution:
