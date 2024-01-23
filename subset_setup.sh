@@ -56,31 +56,30 @@ for dir in "${dirs_to_link[@]}"; do
     fi
 done
 
-# Define the source and target base directories
-src_dir="$DIR_PATH/merged"
-target_dir="./merged/SLC"
+# Make merged/SLC/ date dirs and link full slc files
+slc_ref_source="$DIR_PATH/merged/SLC"
+slc_ref_dest="./merged/SLC"
 
-# Create the target base directory if it doesn't exist
-mkdir -p "$target_dir"
-
-# Iterate over each subdirectory in the source directory
-for subdir in "$src_dir"/*; do
+# Create the slc_reference directory inside the "merged" directory in the current directory
+mkdir -p "$slc_ref_dest"
+for subdir in "$slc_ref_source"/*; do
+    echo $subdir
     if [ -d "$subdir" ]; then
-        # Extract the name of the subdirectory
-        subdir_name=$(basename "$subdir")
+            # Extract the name of the subdirectory
+            subdir_name=$(basename "$subdir")
 
-        # Create a corresponding subdirectory in the target directory
-        mkdir -p "$target_dir/$subdir_name"
+            # Create a corresponding subdirectory in the target directory
+            mkdir -p "$slc_ref_dest/$subdir_name"
 
-        # Link all files that do not contain 'crop' in their names
-        for file in "$subdir"/*; do
-            if [[ ! $(basename "$file") == *crop* ]]; then
-                ln -s "$PWD/$file" "$target_dir/$subdir_name"
-            fi
-        done
     fi
+    # Link files from slc_reference that don't contain 'crop' or 'lk' in their titles
+    for file in "$subdir"/*; do
+        file_basename=$(basename "$file")
+        if [[ ! "$file_basename" =~ (crop|lk|water|land) ]]; then
+            ln -s "$file" "$slc_ref_dest/$subdir_name"
+        fi
+    done
 done
-
 
 # Handle geom_reference directory in "merged"
 geom_ref_source="$DIR_PATH/merged/geom_reference"
