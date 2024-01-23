@@ -14,10 +14,9 @@ from dolphin._log import get_log
 from dolphin.workflows.config import DisplacementWorkflow
 from dolphin import _readers, stack
 from dolphin import ps as dolphin_ps
-from dolphin._dates import get_dates
+from opera_utils import get_dates
 from dolphin.workflows import sequential
 from SARTS import config
-
 
 def cmdLineParser():
     '''
@@ -47,6 +46,7 @@ def doPS(ps,vrt_stack,logger):
         existing_disp = None
 
         dolphin_ps.create_ps(
+            reader=vrt_stack,
             like_filename=vrt_stack.outfile,
             output_file=ps.ps_output,
             output_amp_mean_file=ps.amp_mean_file,
