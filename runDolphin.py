@@ -47,7 +47,6 @@ def doPS(ps,vrt_stack,logger):
         existing_disp = None
 
         dolphin_ps.create_ps(
-            reader=vrt_stack,
             like_filename=vrt_stack.outfile,
             output_file=ps.ps_output,
             output_amp_mean_file=ps.amp_mean_file,
