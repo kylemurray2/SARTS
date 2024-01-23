@@ -39,7 +39,7 @@ for dir in "${dirs_to_link[@]}"; do
 done
 
 # Directories inside "merged" to link
-declare -a dirs_to_link=("SLC" "baselines")
+declare -a dirs_to_link=( "baselines")
 
 for dir in "${dirs_to_link[@]}"; do
     source_dir="$DIR_PATH/merged/$dir"
@@ -55,6 +55,32 @@ for dir in "${dirs_to_link[@]}"; do
         echo "Warning: $dir does not exist in $DIR_PATH/merged/"
     fi
 done
+
+# Define the source and target base directories
+src_dir="$DIR_PATH/merged"
+target_dir="./merged/SLC"
+
+# Create the target base directory if it doesn't exist
+mkdir -p "$target_dir"
+
+# Iterate over each subdirectory in the source directory
+for subdir in "$src_dir"/*; do
+    if [ -d "$subdir" ]; then
+        # Extract the name of the subdirectory
+        subdir_name=$(basename "$subdir")
+
+        # Create a corresponding subdirectory in the target directory
+        mkdir -p "$target_dir/$subdir_name"
+
+        # Link all files that do not contain 'crop' in their names
+        for file in "$subdir"/*; do
+            if [[ ! $(basename "$file") == *crop* ]]; then
+                ln -s "$PWD/$file" "$target_dir/$subdir_name"
+            fi
+        done
+    fi
+done
+
 
 # Handle geom_reference directory in "merged"
 geom_ref_source="$DIR_PATH/merged/geom_reference"
