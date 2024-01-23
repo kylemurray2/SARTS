@@ -171,8 +171,6 @@ def main(flags):
     input_file_list.sort()
     logger = get_log(debug=False)
     logger.info("Running wrapped phase estimation in %s", ps.dolphin_work_dir)
-
-    print(input_file_list)
     
     vrt_stack = _readers.VRTStack(
         input_file_list,
