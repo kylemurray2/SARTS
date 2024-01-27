@@ -1124,6 +1124,24 @@ def geocodeKM(img,resolution,lon_ifg,lat_ifg,ps, method='linear'):
     
     return imgRegrid
 
+def rad2cm(input_vec,wavelength=.056,output='cm'):
+    '''
+    input: number or array in radians
+    wavelength: in meters
+        Sentinel-1: 0.056
+        Alos-1: 0.23
+    output: mm, cm, m
+    '''
+    if output=='m':
+        factor=1
+    if output=='cm':
+        factor=100
+    if output=='cm':
+        factor=1000
+    output_cm = input_vec*0.056/(4*np.pi)*factor
+    
+    return output_cm
+
 def orderAxes(inputArray,nx,ny):
     '''  Rearrange axes order from small to big '''
     imShape = np.asarray(inputArray.shape)
