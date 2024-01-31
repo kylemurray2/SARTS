@@ -108,7 +108,7 @@ def unwrapsnaphu(args):
     pair, ps = args
     pairDir = os.path.join(ps.intdir, pair )
 
-    if not os.path.isfile( os.path.join( pairDir, pair + '.unw')):
+    if not os.path.isfile( os.path.join( pairDir, 'filt_lk.unw')):
         print(f"Unwrapping {pair}")
         cor_file =  os.path.join( pairDir, 'filt_lk.cor')
         int_file =  os.path.join( pairDir, 'filt_lk.int')
