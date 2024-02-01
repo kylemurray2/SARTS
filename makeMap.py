@@ -10,7 +10,9 @@ Map an IFG or other gridded data
 """
 
 
-from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
+import matplotlib.ticker as mticker
+from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter, LatitudeLocator
+
 import cartopy.io.img_tiles as cimgt
 from cartopy import config
 import cartopy.feature as cfeature
@@ -30,34 +32,23 @@ class ShadedReliefESRI(GoogleTiles):
                z=z, y=y, x=x)
         return url
 
+def configure_gridlines(ax, minlon, maxlon, pad, tick_increment):
+    """
+    Configures the gridlines for the map.
 
-def mapImg(img, lons, lats, vmin, vmax, pad,zoom, title, bg='World_Imagery', cm='jet',figsize=(8,8), plotFaults= False,alpha=1,contour=False,label='cm/yr'):
-    
-    minlat=np.nanmin(lats)
-    maxlat=np.nanmax(lats)
-    minlon=np.nanmin(lons)
-    maxlon=np.nanmax(lons)
-    url = 'https://server.arcgisonline.com/ArcGIS/rest/services/' + bg + '/MapServer/tile/{z}/{y}/{x}.jpg'
-    image = cimgt.GoogleTiles(url=url)
-    data_crs = image.crs #ShadedReliefESRI().crs#ccrs.PlateCarree()
-    fig =  plt.figure(figsize=figsize)
-    ax = plt.axes(projection=data_crs)
-    ax.set_extent([minlon-pad, maxlon+pad, minlat-pad, maxlat+pad], crs=ccrs.PlateCarree())
-    cmap = plt.get_cmap(cm)
+    Parameters:
+    - ax: The Axes object to apply gridlines to.
+    - minlon: Minimum longitude value.
+    - maxlon: Maximum longitude value.
+    - pad: Padding added to longitude and latitude for extent.
+    - tick_increment: Increment for longitude gridline ticks.
 
-    
-    lon_range = (pad+maxlon) - (minlon-pad)
-    lat_range = (pad+maxlat) - (minlat-pad)
-    rangeMin = np.min(np.array([lon_range,lat_range]))
-    tick_increment = round(rangeMin/8,2)
-    
-    import matplotlib.ticker as mticker
-    from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
-                                LatitudeLocator)
-    
+    Returns:
+    - gl: The configured gridline object.
+    """
     gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
-                  linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
-    gl.xlocator = mticker.FixedLocator(np.arange(np.floor(minlon-pad),np.ceil(maxlon+pad),tick_increment))
+                      linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
+    gl.xlocator = mticker.FixedLocator(np.arange(np.floor(minlon-pad), np.ceil(maxlon+pad), tick_increment))
     gl.ylocator = LatitudeLocator()
     gl.xformatter = LongitudeFormatter()
     gl.yformatter = LatitudeFormatter()
@@ -65,36 +56,146 @@ def mapImg(img, lons, lats, vmin, vmax, pad,zoom, title, bg='World_Imagery', cm=
     gl.xlabel_style = {'size': 8, 'color': 'black'}
     gl.top_labels = False
     gl.right_labels = False
-    
-    ax.add_image(image, zoom) #zoom level
-    
+
+    return gl
+
+def plot_data(ax, lons, lats, img, contour, vmin, vmax, cm, alpha):
+    """
+    Plots the data on the map.
+
+    Parameters:
+    - ax: The Axes object to plot the data on.
+    - lons, lats: Longitude and Latitude arrays.
+    - img: The data array to plot.
+    - contour: Boolean flag to choose between contourf and pcolormesh.
+    - vmin, vmax: Minimum and maximum values for the color scale.
+    - cm: Colormap name.
+    - alpha: Alpha level for the plot.
+
+    Returns:
+    - img_handle: Handle for the plotted image, useful for creating colorbars.
+    """
+    cmap = plt.get_cmap(cm)
+
     if contour:
-        img_handle = plt.contourf(lons, lats,img,levels=np.arange(vmin,vmax,1),cmap=cmap,transform=ccrs.PlateCarree(),rasterized = True)
+        img_handle = ax.contourf(lons, lats, img, levels=np.arange(vmin, vmax, 1),
+                                 cmap=cmap, transform=ccrs.PlateCarree(), rasterized=True)
     else:
-        img_handle = plt.pcolormesh(lons, lats, img,cmap=cmap, alpha=alpha,vmin=vmin,vmax=vmax,transform=ccrs.PlateCarree(),rasterized = True,linewidth=0,ls=":", edgecolor='face')
+        img_handle = ax.pcolormesh(lons, lats, img, cmap=cmap, alpha=alpha,
+                                   vmin=vmin, vmax=vmax, transform=ccrs.PlateCarree(),
+                                   rasterized=True, linewidth=0, ls=":", edgecolor='face')
+
+    return img_handle
 
 
-    plt.colorbar(img_handle,fraction=0.03, pad=0.05,orientation='horizontal',label=label)
-    
-    if plotFaults:
-        # Plot faults
-        import cartopy.io.shapereader as shpreader
-        from cartopy.feature import ShapelyFeature
-        # reader = shpreader.Reader("/d/MapData/gem-global-active-faults/shapefile/gem_active_faults.shp")
-        reader = shpreader.Reader("kivu/kivu_faults.shp")
+def plot_faults(ax, fault_file):
+    """
+    Plots fault lines on the map.
 
-        shape_feature = ShapelyFeature(reader.geometries(), ccrs.PlateCarree(), edgecolor='black', facecolor='none',linewidth=1,zorder=5,alpha=0.8)
+    Parameters:
+    - ax: The Axes object to plot faults on.
+    - fault_file: The file path to the shapefile containing fault data.
+
+    """
+    if fault_file:
+        # Read the shapefile
+        reader = shpreader.Reader(fault_file)
+
+        # Create a feature from the shapefile geometries
+        shape_feature = ShapelyFeature(reader.geometries(), ccrs.PlateCarree(), edgecolor='black', facecolor='none', linewidth=1, zorder=5, alpha=0.8)
+
+        # Add the feature to the Axes
         ax.add_feature(shape_feature)
-    
+
+
+def add_colorbar(fig, img_handle, label, orientation='horizontal'):
+    """
+    Adds a colorbar to the figure.
+
+    Parameters:
+    - fig: The Figure object to which the colorbar will be added.
+    - img_handle: The image handle (returned by contourf, pcolormesh, etc.) to which the colorbar is linked.
+    - label: The label for the colorbar.
+    - orientation: Orientation of the colorbar, 'horizontal' or 'vertical'.
+    """
+    cbar = fig.colorbar(img_handle, fraction=0.03, pad=0.05, orientation=orientation, label=label)
+    return cbar
+
+
+def mapImg(img, lons, lats, vmin, vmax, padding, zoom_level, title, background='World_Imagery', colormap='jet', figsize=(8,8), alpha=1, draw_contour=False, label='cm/yr', fault_file=None):
+    """
+    Plots geospatial data on a map.
+
+    :param img: Array of image data to plot.
+    :param lons: Array of longitudes.
+    :param lats: Array of latitudes.
+    :param vmin: Minimum value for colormap.
+    :param vmax: Maximum value for colormap.
+    :param padding: Padding to add around the map boundaries.
+    :param zoom_level: Zoom level for the background map.
+    :param title: Title of the plot.
+    :param background: Background map type.
+    :param colormap: Colormap for the image data.
+    :param figsize: Size of the figure.
+    :param alpha: Alpha value for the image plot.
+    :param draw_contour: Boolean to draw contour if True.
+    :param label: Label for the colorbar.
+    :param fault_file: Path to a fault file to plot.
+    :return: None.
+    """
+    # Ensure lons and lats are valid
+    if len(lons) != len(lats):
+        raise ValueError("Longitude and latitude arrays must be of the same length.")
+
+    # Handling NaN values
+    lons, lats = np.asarray(lons), np.asarray(lats)
+    if np.isnan(lons).any() or np.isnan(lats).any():
+        raise ValueError("Longitude and latitude arrays must not contain NaN values.")
+
+    # Calculate bounds
+    minlat, maxlat = np.nanmin(lats), np.nanmax(lats)
+    minlon, maxlon = np.nanmin(lons), np.nanmax(lons)
+
+    # Set up mapping tiles
+    url = f'https://server.arcgisonline.com/ArcGIS/rest/services/{background}/MapServer/tile/{{z}}/{{y}}/{{x}}.jpg'
+    image = cimgt.GoogleTiles(url=url)
+    data_crs = image.crs
+
+    # Initialize plot
+    fig = plt.figure(figsize=figsize)
+    ax = plt.axes(projection=data_crs)
+    ax.set_extent([minlon-padding, maxlon+padding, minlat-padding, maxlat+padding], crs=ccrs.PlateCarree())
+
+    configure_gridlines(ax, minlon, maxlon, padding)
+    ax.add_image(image, zoom_level)
+
+    # Plot data
+    plot_data(ax, img, lons, lats, vmin, vmax, alpha, colormap, draw_contour)
+    add_colorbar(ax, label)
+
+    # Plot faults if file is provided
+    if fault_file:
+        plot_faults(ax, fault_file)
+
     plt.title(title)
     plt.show()
+
     
+def mapBackground(bg, minlon, maxlon, minlat, maxlat, zoomLevel, title, pad=0, scalebar=100, borders=True, fault_file=None):
+    """
+    Makes a background map to plot various data over it.
     
-def mapBackground(bg, minlon, maxlon, minlat, maxlat, zoomLevel, title, pad=0, scalebar=100, borders=True,plotFaults=True):
-  
-    '''
-    Makes a background map that you can then plot stuff over (footprints, scatterplot, etc.)
-    bg: background type from the ARCGIS database choose from the following:
+    Parameters:
+    - bg: Background type from the ARCGIS database.
+    - minlon, maxlon, minlat, maxlat: Longitude and latitude bounds.
+    - zoomLevel: Zoom level for the map.
+    - title: Title of the map.
+    - pad: Padding around the bounds.
+    - scalebar: Length of the scale bar.
+    - borders: Whether to plot country borders.
+    - plotFaults: Whether to plot fault lines.
+
+    Background options:
         NatGeo_world_Map
         USA_Topo_Maps
         World_Imagery
@@ -123,74 +224,45 @@ def mapBackground(bg, minlon, maxlon, minlat, maxlat, zoomLevel, title, pad=0, s
         Reference/World_Transportation 
         WorldElevation3D/Terrain3D
         WorldElevation3D/TopoBathy3D
-    '''
-    
+    """
     url = 'https://server.arcgisonline.com/ArcGIS/rest/services/' + bg + '/MapServer/tile/{z}/{y}/{x}.jpg'
     image = cimgt.GoogleTiles(url=url)
-    data_crs = image.crs #ShadedReliefESRI().crs#ccrs.PlateCarree()
-    fig =  plt.figure(figsize=(6,6))
+    data_crs = image.crs
+
+    fig = plt.figure(figsize=(6,6))
     ax = plt.axes(projection=data_crs)
     ax.set_extent([minlon-pad, maxlon+pad, minlat-pad, maxlat+pad], crs=ccrs.PlateCarree())
 
     if borders:
-        ax.add_feature(cfeature.BORDERS,linewidth=1,color='red')
-    # ax.add_feature(cfeature.OCEAN)
-    # ax.add_feature(cfeature.LAKES)
-    # ax.add_feature(cfeature.RIVERS)
-    
-    
+        ax.add_feature(cfeature.BORDERS, linewidth=1, color='red')
+
+    # Calculate tick increment for gridlines
     lon_range = (pad+maxlon) - (minlon-pad)
     lat_range = (pad+maxlat) - (minlat-pad)
-    rangeMin = np.min(np.array([lon_range,lat_range]))
-    tick_increment = round(rangeMin/4,1)
-    
-    import matplotlib.ticker as mticker
-    from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
-                                LatitudeLocator)
-    
-    gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
-                  linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
-    gl.xlocator = mticker.FixedLocator(np.arange(np.floor(minlon-pad),np.ceil(maxlon+pad),tick_increment))
-    gl.ylocator = LatitudeLocator()
-    gl.xformatter = LongitudeFormatter()
-    gl.yformatter = LatitudeFormatter()
-    gl.ylabel_style = {'size': 8, 'color': 'black'}
-    gl.xlabel_style = {'size': 8, 'color': 'black'}
-    gl.top_labels = False
-    gl.right_labels = False
-    
-    ax.add_image(image, zoomLevel,zorder=1) #zoom level
-    
-    if plotFaults:
-        # Plot faults
-        import cartopy.io.shapereader as shpreader
-        from cartopy.feature import ShapelyFeature
-        if minlon >0:
-            # reader = shpreader.Reader("/d/MapData/gem-global-active-faults/shapefile/gem_active_faults.shp")
-            reader = shpreader.Reader("/d/MapData/EARS/kivu.shp")
+    range_min = min(lon_range, lat_range)
+    tick_increment = round(range_min / 4, 1)
 
-        else:
-            # reader2 = shpreader.Reader("/d/faults/CFM/traces/shp/CFM5.3_traces.shp")
-            reader = shpreader.Reader("/d/faults/Shapefile/QFaults.shp")
-        
-        shape_feature = ShapelyFeature(reader.geometries(), ccrs.PlateCarree(), edgecolor='r', facecolor='none',linewidth=.5,zorder=5,alpha=0.8)
-        ax.add_feature(shape_feature)
-        # shape_feature2 = ShapelyFeature(reader2.geometries(), ccrs.PlateCarree(), edgecolor='b', facecolor='none',linewidth=.5,zorder=5,alpha=0.8)
-        # ax.add_feature(shape_feature2)
-    
+    # Configure gridlines
+    configure_gridlines(ax, minlon, maxlon, pad, tick_increment)
+
+    # Add background image
+    ax.add_image(image, zoomLevel, zorder=1)
+
+    # Plot faults if required
+    if fault_file:
+        plot_faults(ax, fault_file)  # You will need to provide the appropriate fault file
+
+    # Add scale bar (optional)
     # scale_bar(ax, location, length, metres_per_unit=1000, unit_name='km',
     #                tol=0.01, angle=0, color='black', linewidth=5, text_offset=0.01,
     #                ha='center', va='bottom', plot_kwargs=None, text_kwargs=None)
     if scalebar:
-        scale_bar(ax, (.1,.1), scalebar,linewidth=0.5)
-    
+        # Implement a scale_bar function or use an existing library function to add a scale bar
+        scale_bar(ax, (.1, .1), scalebar, linewidth=0.5)
 
     plt.title(title)
     plt.show()
     return data_crs
-
-
-
 
 
 
@@ -309,66 +381,121 @@ def _point_along_line(ax, start, distance, angle=0, tol=0.01):
     return _distance_along_line(start, end, distance, dist_func, tol)
 
 
-def scale_bar(ax, location, length, metres_per_unit=1000, unit_name='km',
+def scale_bar(ax, location, length, meters_per_unit=1000, unit_name='km',
               tol=0.01, angle=0, color='black', linewidth=5, text_offset=0.01,
-              ha='center', va='bottom', plot_kwargs=None, text_kwargs=None,
-              **kwargs):
-    """Add a scale bar to CartoPy axes.
-
-    For angles between 0 and 90 the text and line may be plotted at
-    slightly different angles for unknown reasons. To work around this,
-    override the 'rotation' keyword argument with text_kwargs.
+              ha='center', va='bottom', plot_kwargs=None, text_kwargs=None):
+    """
+    Add a scale bar to CartoPy axes.
 
     Args:
-        ax:              CartoPy axes.
-        location:        Position of left-side of bar in axes coordinates.
-        length:          Geodesic length of the scale bar.
-        metres_per_unit: Number of metres in the given unit. Default: 1000
-        unit_name:       Name of the given unit. Default: 'km'
-        tol:             Allowed relative error in length of bar. Default: 0.01
-        angle:           Anti-clockwise rotation of the bar.
-        color:           Color of the bar and text. Default: 'black'
-        linewidth:       Same argument as for plot.
-        text_offset:     Perpendicular offset for text in axes coordinates.
-                         Default: 0.005
-        ha:              Horizontal alignment. Default: 'center'
-        va:              Vertical alignment. Default: 'bottom'
-        **plot_kwargs:   Keyword arguments for plot, overridden by **kwargs.
-        **text_kwargs:   Keyword arguments for text, overridden by **kwargs.
-        **kwargs:        Keyword arguments for both plot and text.
+        ax: CartoPy axes.
+        location: Position of left side of bar in axes coordinates (tuple).
+        length: Length of the scale bar in given units.
+        metres_per_unit: Number of metres in one unit (default 1000 for 'km').
+        unit_name: Name of the unit (default 'km').
+        tol: Allowed relative error in length of bar (default 0.01).
+        angle: Rotation of the bar in degrees, anti-clockwise (default 0).
+        color: Color of the bar and text (default 'black').
+        linewidth: Width of the scale bar line (default 5).
+        text_offset: Offset for text perpendicular to the bar (default 0.01).
+        ha: Horizontal alignment of text (default 'center').
+        va: Vertical alignment of text (default 'bottom').
+        plot_kwargs: Additional keyword arguments for the bar plot.
+        text_kwargs: Additional keyword arguments for the text.
     """
-    # Setup kwargs, update plot_kwargs and text_kwargs.
+    from matplotlib import patheffects
+
     if plot_kwargs is None:
         plot_kwargs = {}
     if text_kwargs is None:
         text_kwargs = {}
 
-    plot_kwargs = {'linewidth': linewidth, 'color': color, **plot_kwargs,
-                   **kwargs}
-    text_kwargs = {'ha': ha, 'va': va, 'rotation': angle, 'color': color,
-                   **text_kwargs, **kwargs}
+    plot_kwargs = {'linewidth': linewidth, 'color': color, **plot_kwargs}
+    text_kwargs = {'ha': ha, 'va': va, 'rotation': angle, 'color': color, **text_kwargs}
 
-    # Convert all units and types.
-    location = np.asarray(location)  # For vector addition.
-    length_metres = length * metres_per_unit
-    angle_rad = angle * np.pi / 180
+    # Convert location to numpy array for calculations
+    location = np.asarray(location)
 
-    # End-point of bar.
-    end = _point_along_line(ax, location, length_metres, angle=angle_rad,tol=tol)
+    # Calculate end point of the scale bar
+    angle_rad = np.radians(angle)
+    length_meters = length * meters_per_unit
 
-    from matplotlib import patheffects
-    buffer = [patheffects.withStroke(linewidth=1, foreground="w")]
-    # Coordinates are currently in axes coordinates, so use transAxes to
-    # put into data coordinates. *zip(a, b) produces a list of x-coords,
-    # then a list of y-coords.
-    ax.plot(*zip(location, end), transform=ax.transAxes, linewidth=linewidth, color='black',  alpha=.6)
+    end = location + length_meters * np.array([np.cos(angle_rad), np.sin(angle_rad)])
 
-    # Push text away from bar in the perpendicular direction.
+    # Plot the scale bar
+    ax.plot(*zip(location, end), transform=ax.transAxes, **plot_kwargs)
+
+    # Position for the scale bar text
     midpoint = (location + end) / 2
     offset = text_offset * np.array([-np.sin(angle_rad), np.cos(angle_rad)])
     text_location = midpoint + offset
 
-    # 'rotation' keyword argument is in text_kwargs.
-    ax.text(*text_location, f"{length} {unit_name}", rotation_mode='anchor',
-            transform=ax.transAxes, **text_kwargs,  path_effects=buffer)
+    # Text with background buffer for visibility
+    buffer = [patheffects.withStroke(linewidth=1, foreground="white")]
+    text_kwargs['path_effects'] = buffer
+
+    ax.text(*text_location, f"{length} {unit_name}", transform=ax.transAxes, **text_kwargs)
+
+# def scale_bar(ax, location, length, metres_per_unit=1000, unit_name='km',
+#               tol=0.01, angle=0, color='black', linewidth=5, text_offset=0.01,
+#               ha='center', va='bottom', plot_kwargs=None, text_kwargs=None,
+#               **kwargs):
+#     """Add a scale bar to CartoPy axes.
+
+#     For angles between 0 and 90 the text and line may be plotted at
+#     slightly different angles for unknown reasons. To work around this,
+#     override the 'rotation' keyword argument with text_kwargs.
+
+#     Args:
+#         ax:              CartoPy axes.
+#         location:        Position of left-side of bar in axes coordinates.
+#         length:          Geodesic length of the scale bar.
+#         metres_per_unit: Number of metres in the given unit. Default: 1000
+#         unit_name:       Name of the given unit. Default: 'km'
+#         tol:             Allowed relative error in length of bar. Default: 0.01
+#         angle:           Anti-clockwise rotation of the bar.
+#         color:           Color of the bar and text. Default: 'black'
+#         linewidth:       Same argument as for plot.
+#         text_offset:     Perpendicular offset for text in axes coordinates.
+#                          Default: 0.005
+#         ha:              Horizontal alignment. Default: 'center'
+#         va:              Vertical alignment. Default: 'bottom'
+#         **plot_kwargs:   Keyword arguments for plot, overridden by **kwargs.
+#         **text_kwargs:   Keyword arguments for text, overridden by **kwargs.
+#         **kwargs:        Keyword arguments for both plot and text.
+#     """
+#     # Setup kwargs, update plot_kwargs and text_kwargs.
+#     if plot_kwargs is None:
+#         plot_kwargs = {}
+#     if text_kwargs is None:
+#         text_kwargs = {}
+
+#     plot_kwargs = {'linewidth': linewidth, 'color': color, **plot_kwargs,
+#                    **kwargs}
+#     text_kwargs = {'ha': ha, 'va': va, 'rotation': angle, 'color': color,
+#                    **text_kwargs, **kwargs}
+
+#     # Convert all units and types.
+#     location = np.asarray(location)  # For vector addition.
+#     length_metres = length * metres_per_unit
+#     angle_rad = angle * np.pi / 180
+
+#     # End-point of bar.
+#     end = _point_along_line(ax, location, length_metres, angle=angle_rad,tol=tol)
+
+#     from matplotlib import patheffects
+#     buffer = [patheffects.withStroke(linewidth=1, foreground="w")]
+#     # Coordinates are currently in axes coordinates, so use transAxes to
+#     # put into data coordinates. *zip(a, b) produces a list of x-coords,
+#     # then a list of y-coords.
+#     ax.plot(*zip(location, end), transform=ax.transAxes, linewidth=linewidth, color='black',  alpha=.6)
+
+#     # Push text away from bar in the perpendicular direction.
+#     midpoint = (location + end) / 2
+#     offset = text_offset * np.array([-np.sin(angle_rad), np.cos(angle_rad)])
+#     text_location = midpoint + offset
+
+#     # 'rotation' keyword argument is in text_kwargs.
+#     ax.text(*text_location, f"{length} {unit_name}", rotation_mode='anchor',
+#             transform=ax.transAxes, **text_kwargs,  path_effects=buffer)
 
