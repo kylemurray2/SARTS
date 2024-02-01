@@ -55,7 +55,7 @@ filename = mintDir + 'temporalCoherence.h5'
 ds = h5py.File(filename,'r+')   
 temporalCoherence = np.asarray(ds['temporalCoherence'])
 ds.close()
-avgSpatialCoh[waterMask<1] = np.nan
+temporalCoherence[waterMask<1] = np.nan
 
 filename = mintDir + 'velocity.h5' 
 ds = h5py.File(filename,'r+')   

@@ -65,6 +65,36 @@ def makeIfg(slc1_fn,slc2_fn,ifg_fn,ps):
     return ifg
 
 
+# Mask filt_lk.int files with temp coherence
+# import h5py
+# # Temporal Coh
+# filename = 'MintPy_dol_seq3_filt_1_3/temporalCoherence.h5'
+# ds = h5py.File(filename,'r+')   
+# temporalCoherence = np.asarray(ds['temporalCoherence'])
+# ds.close()
+
+# ps = config.getPS()
+# dolphinDir = os.path.join(ps.workdir, ps.dolphin_work_dir)
+# ps.intdir  = os.path.join( dolphinDir, 'interferograms')
+
+# for pair in ps.pairs:
+#     pairDir         = os.path.join(ps.intdir, pair )
+#     filt_file_out   = os.path.join(pairDir, 'filt_lk.int')
+#     intImage = isceobj.createIntImage()
+#     intImage.load(filt_file_out + '.xml')
+#     ifg = intImage.memMap()[:,:,0]
+#     ifg = ifg.copy()
+#     ifg[temporalCoherence<.3] = 0
+    
+#     fidc=open(filt_file_out,"wb")
+#     fidc.write(ifg)
+
+    
+#     intImage.dump(filt_file_out + '.xml') # Write out xml
+#     intImage.renderHdr()
+#     intImage.renderVRT()
+    
+
 def downlook(args):
     '''
     downlook ifgs

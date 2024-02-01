@@ -31,7 +31,7 @@ class ShadedReliefESRI(GoogleTiles):
         return url
 
 
-def mapImg(img, lons, lats, vmin, vmax, pad,zoom, title, bg='World_Imagery', cm='jet', plotFaults= False,alpha=1,contour=False):
+def mapImg(img, lons, lats, vmin, vmax, pad,zoom, title, bg='World_Imagery', cm='jet',figsize=(8,8), plotFaults= False,alpha=1,contour=False,label='cm/yr'):
     
     minlat=np.nanmin(lats)
     maxlat=np.nanmax(lats)
@@ -40,7 +40,7 @@ def mapImg(img, lons, lats, vmin, vmax, pad,zoom, title, bg='World_Imagery', cm=
     url = 'https://server.arcgisonline.com/ArcGIS/rest/services/' + bg + '/MapServer/tile/{z}/{y}/{x}.jpg'
     image = cimgt.GoogleTiles(url=url)
     data_crs = image.crs #ShadedReliefESRI().crs#ccrs.PlateCarree()
-    fig =  plt.figure(figsize=(8,8))
+    fig =  plt.figure(figsize=figsize)
     ax = plt.axes(projection=data_crs)
     ax.set_extent([minlon-pad, maxlon+pad, minlat-pad, maxlat+pad], crs=ccrs.PlateCarree())
     cmap = plt.get_cmap(cm)
@@ -55,16 +55,16 @@ def mapImg(img, lons, lats, vmin, vmax, pad,zoom, title, bg='World_Imagery', cm=
     from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter,
                                 LatitudeLocator)
     
-    # gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
-    #               linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
-    # gl.xlocator = mticker.FixedLocator(np.arange(np.floor(minlon-pad),np.ceil(maxlon+pad),tick_increment))
-    # gl.ylocator = LatitudeLocator()
-    # gl.xformatter = LongitudeFormatter()
-    # gl.yformatter = LatitudeFormatter()
-    # gl.ylabel_style = {'size': 8, 'color': 'black'}
-    # gl.xlabel_style = {'size': 8, 'color': 'black'}
-    # gl.top_labels = False
-    # gl.right_labels = False
+    gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
+                  linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
+    gl.xlocator = mticker.FixedLocator(np.arange(np.floor(minlon-pad),np.ceil(maxlon+pad),tick_increment))
+    gl.ylocator = LatitudeLocator()
+    gl.xformatter = LongitudeFormatter()
+    gl.yformatter = LatitudeFormatter()
+    gl.ylabel_style = {'size': 8, 'color': 'black'}
+    gl.xlabel_style = {'size': 8, 'color': 'black'}
+    gl.top_labels = False
+    gl.right_labels = False
     
     ax.add_image(image, zoom) #zoom level
     
@@ -74,16 +74,16 @@ def mapImg(img, lons, lats, vmin, vmax, pad,zoom, title, bg='World_Imagery', cm=
         img_handle = plt.pcolormesh(lons, lats, img,cmap=cmap, alpha=alpha,vmin=vmin,vmax=vmax,transform=ccrs.PlateCarree(),rasterized = True,linewidth=0,ls=":", edgecolor='face')
 
 
-    plt.colorbar(img_handle,fraction=0.03, pad=0.05,orientation='horizontal',label='mm/yr')
+    plt.colorbar(img_handle,fraction=0.03, pad=0.05,orientation='horizontal',label=label)
     
     if plotFaults:
         # Plot faults
         import cartopy.io.shapereader as shpreader
         from cartopy.feature import ShapelyFeature
         # reader = shpreader.Reader("/d/MapData/gem-global-active-faults/shapefile/gem_active_faults.shp")
-        reader = shpreader.Reader("/d/MapData/EARS/kivu.shp")
+        reader = shpreader.Reader("kivu/kivu_faults.shp")
 
-        shape_feature = ShapelyFeature(reader.geometries(), ccrs.PlateCarree(), edgecolor='r', facecolor='none',linewidth=1,zorder=5,alpha=0.8)
+        shape_feature = ShapelyFeature(reader.geometries(), ccrs.PlateCarree(), edgecolor='black', facecolor='none',linewidth=1,zorder=5,alpha=0.8)
         ax.add_feature(shape_feature)
     
     plt.title(title)
