@@ -13,7 +13,6 @@ Map an IFG or other gridded data
 import matplotlib.ticker as mticker
 from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter, LatitudeLocator
 import cartopy.io.img_tiles as cimgt
-from cartopy import config
 import cartopy.feature as cfeature
 import cartopy.crs as ccrs
 import cartopy.geodesic as cgeo
@@ -21,7 +20,6 @@ from matplotlib import pyplot as plt
 import numpy as np
 from cartopy.io.img_tiles import GoogleTiles
 import cartopy.io.shapereader as shpreader
-
 from cartopy.feature import ShapelyFeature
 
 
@@ -165,7 +163,7 @@ def mapImg(img, lons, lats, vmin, vmax, padding, zoom_level, title, background='
     data_crs = image.crs
 
     # Initialize plot
-    fig = plt.figure(figsize=figsize)
+    plt.figure(figsize=figsize)
     ax = plt.axes(projection=data_crs)
     ax.set_extent([minlon-padding, maxlon+padding, minlat-padding, maxlat+padding], crs=ccrs.PlateCarree())
 
@@ -184,7 +182,7 @@ def mapImg(img, lons, lats, vmin, vmax, padding, zoom_level, title, background='
     plt.show()
 
     
-def mapBackground(bg, minlon, maxlon, minlat, maxlat, zoomLevel, title, pad=0, scalebar=100, borders=True, fault_file=None):
+def mapBackground(bg, minlon, maxlon, minlat, maxlat, zoomLevel, title, pad=0, scalebar=100, borders=True, fault_file=None,figsize=(8,8)):
     """
     Makes a background map to plot various data over it.
     
@@ -197,7 +195,7 @@ def mapBackground(bg, minlon, maxlon, minlat, maxlat, zoomLevel, title, pad=0, s
     - scalebar: Length of the scale bar.
     - borders: Whether to plot country borders.
     - fault_file: path/file.shp shp file for faults (optional)
-
+    - figsize: fig size (x,y)
     Background options:
         NatGeo_world_Map
         USA_Topo_Maps
@@ -232,7 +230,7 @@ def mapBackground(bg, minlon, maxlon, minlat, maxlat, zoomLevel, title, pad=0, s
     image = cimgt.GoogleTiles(url=url)
     data_crs = image.crs
 
-    fig = plt.figure(figsize=(6,6))
+    plt.figure(figsize=figsize)
     ax = plt.axes(projection=data_crs)
     ax.set_extent([minlon-pad, maxlon+pad, minlat-pad, maxlat+pad], crs=ccrs.PlateCarree())
 
@@ -252,26 +250,18 @@ def mapBackground(bg, minlon, maxlon, minlat, maxlat, zoomLevel, title, pad=0, s
 
     # Add background image
     ax.add_image(image, zoomLevel, zorder=1)
-    print('hi')
-    print(ax.transAxes)
+
     # Plot faults if required
     if fault_file:
         plot_faults(ax, fault_file)  # You will need to provide the appropriate fault file
 
-    # Add scale bar (optional)
-    # scale_bar(ax, location, length, metres_per_unit=1000, unit_name='km',
-    #                tol=0.01, angle=0, color='black', linewidth=5, text_offset=0.01,
-    #                ha='center', va='bottom', plot_kwargs=None, text_kwargs=None)
-    # if scalebar:
-        # Implement a scale_bar function or use an existing library function to add a scale bar
-        # scale_bar(ax, (.1, .1), scalebar, linewidth=0.5)
-    
-    add_scale_bar(ax, data_crs,1000)  # Adding a 100 km scale bar
+    if scalebar:  
+        scale_bar(ax, (0.1,.1), scalebar)
+
 
     plt.title(title)
     plt.show()
     return data_crs
-
 
 
 def _axes_to_lonlat(ax, coords):
@@ -283,43 +273,170 @@ def _axes_to_lonlat(ax, coords):
     return lonlat
 
 
+def _upper_bound(start, direction, distance, dist_func):
+    """A point farther than distance from start, in the given direction.
 
-def add_scale_bar(ax,crs, scale_length_km, location=(0.05, 0.05)):
-    """
-    Adds a scale bar to a map.
+    It doesn't matter which coordinate system start is given in, as long
+    as dist_func takes points in that coordinate system.
 
     Args:
-    - ax: Matplotlib Axes object to add the scale bar to.
-    - scale_length_km: Length of the scale bar in kilometers.
-    
+        start:     Starting point for the line.
+        direction  Nonzero (2, 1)-shaped array, a direction vector.
+        distance:  Positive distance to go past.
+        dist_func: A two-argument function which returns distance.
+
+    Returns:
+        Coordinates of a point (a (2, 1)-shaped NumPy array).
     """
-    import matplotlib.patches as mpatches
+    if distance <= 0:
+        raise ValueError(f"Minimum distance is not positive: {distance}")
 
-    # Convert the scale length from kilometers to map units (assuming the map is in meters)
-    scale_length_map_units = scale_length_km * 1000  # 1 km = 1000 m
+    if np.linalg.norm(direction) == 0:
+        raise ValueError("Direction vector must not be zero.")
 
-    # Get the axes bounds and calculate scale bar size and position
-    xlim = ax.get_xlim()
-    ylim = ax.get_ylim()
+    # Exponential search until the distance between start and end is
+    # greater than the given limit.
+    length = 0.1
+    end = start + length * direction
+
+    while dist_func(start, end) < distance:
+        length *= 2
+        end = start + length * direction
+
+    return end
+
+
+def _distance_along_line(start, end, distance, dist_func, tol):
+    """Point at a distance from start on the segment  from start to end.
+
+    It doesn't matter which coordinate system start is given in, as long
+    as dist_func takes points in that coordinate system.
+
+    Args:
+        start:     Starting point for the line.
+        end:       Outer bound on point's location.
+        distance:  Positive distance to travel.
+        dist_func: Two-argument function which returns distance.
+        tol:       Relative error in distance to allow.
+
+    Returns:
+        Coordinates of a point (a (2, 1)-shaped NumPy array).
+    """
+    initial_distance = dist_func(start, end)
+    if initial_distance < distance:
+        raise ValueError(f"End is closer to start ({initial_distance}) than "
+                         f"given distance ({distance}).")
+
+    if tol <= 0:
+        raise ValueError(f"Tolerance is not positive: {tol}")
+
+    # Binary search for a point at the given distance.
+    left = start
+    right = end
+
+    while not np.isclose(dist_func(start, right), distance, rtol=tol):
+        midpoint = (left + right) / 2
+
+        # If midpoint is too close, search in second half.
+        if dist_func(start, midpoint) < distance:
+            left = midpoint
+        # Otherwise the midpoint is too far, so search in first half.
+        else:
+            right = midpoint
+
+    return right
+
+
+def _point_along_line(ax, start, distance, angle=0, tol=0.01):
+    """Point at a given distance from start at a given angle.
+
+    Args:
+        ax:       CartoPy axes.
+        start:    Starting point for the line in axes coordinates.
+        distance: Positive physical distance to travel.
+        angle:    Anti-clockwise angle for the bar, in radians. Default: 0
+        tol:      Relative error in distance to allow. Default: 0.01
+
+    Returns:
+        Coordinates of a point (a (2, 1)-shaped NumPy array).
+    """
+    # Direction vector of the line in axes coordinates.
+    direction = np.array([np.cos(angle), np.sin(angle)])
+
+    geodesic = cgeo.Geodesic()
+
+    # Physical distance between points.
+    def dist_func(a_axes, b_axes):
+        a_phys = _axes_to_lonlat(ax, a_axes)
+        b_phys = _axes_to_lonlat(ax, b_axes)
     
-    xtotallength = xlim[1]-xlim[0]
-    ytotallength = ylim[1]-ylim[0]
+        # Geodesic().inverse returns a NumPy MemoryView like [[distance,
+        # start azimuth, end azimuth]].
+        return geodesic.inverse(a_phys, b_phys)[0][0]
 
-    scale_bar_length = (scale_length_map_units / (xlim[1] - xlim[0]))
-    
-    scale_bar_x = xlim[0] + .05*(xtotallength) + (.5*scale_bar_length*xtotallength)
-    scale_bar_y =  ylim[0] + .02*(ytotallength) + (.1*scale_bar_length*ytotallength)
+    end = _upper_bound(start, direction, distance, dist_func)
+
+    return _distance_along_line(start, end, distance, dist_func, tol)
 
 
-    # Create a rectangle patch for scale bar
-    scale_bar = mpatches.Rectangle((scale_bar_x, scale_bar_y), scale_bar_length, 0.01, 
-                                    transform=crs, color='white', ec='black', lw=2)
+def scale_bar(ax, location, length, metres_per_unit=1000, unit_name='km',
+              tol=0.01, angle=0, color='black', linewidth=3, text_offset=0.005,
+              ha='center', va='bottom', plot_kwargs=None, text_kwargs=None,
+              **kwargs):
+    """Add a scale bar to CartoPy axes.
 
-    # Add the scale bar to the axes
-    ax.add_patch(scale_bar)
+    For angles between 0 and 90 the text and line may be plotted at
+    slightly different angles for unknown reasons. To work around this,
+    override the 'rotation' keyword argument with text_kwargs.
 
-    # Add text label for the scale bar
-    plt.text(scale_bar_x + scale_bar_length / 2, scale_bar_y + 0.01, 
-              f'{scale_length_km} km', transform=crs, ha='center', 
-              va='bottom', backgroundcolor='white',zorder=14)
+    Args:
+        ax:              CartoPy axes.
+        location:        Position of left-side of bar in axes coordinates.
+        length:          Geodesic length of the scale bar.
+        metres_per_unit: Number of metres in the given unit. Default: 1000
+        unit_name:       Name of the given unit. Default: 'km'
+        tol:             Allowed relative error in length of bar. Default: 0.01
+        angle:           Anti-clockwise rotation of the bar.
+        color:           Color of the bar and text. Default: 'black'
+        linewidth:       Same argument as for plot.
+        text_offset:     Perpendicular offset for text in axes coordinates.
+                         Default: 0.005
+        ha:              Horizontal alignment. Default: 'center'
+        va:              Vertical alignment. Default: 'bottom'
+        **plot_kwargs:   Keyword arguments for plot, overridden by **kwargs.
+        **text_kwargs:   Keyword arguments for text, overridden by **kwargs.
+        **kwargs:        Keyword arguments for both plot and text.
+    """
+    # Setup kwargs, update plot_kwargs and text_kwargs.
+    if plot_kwargs is None:
+        plot_kwargs = {}
+    if text_kwargs is None:
+        text_kwargs = {}
 
+    plot_kwargs = {'linewidth': linewidth, 'color': color, **plot_kwargs,
+                   **kwargs}
+    text_kwargs = {'ha': ha, 'va': va, 'rotation': angle, 'color': color,
+                   **text_kwargs, **kwargs}
+
+    # Convert all units and types.
+    location = np.asarray(location)  # For vector addition.
+    length_metres = length * metres_per_unit
+    angle_rad = angle * np.pi / 180
+
+    # End-point of bar.
+    end = _point_along_line(ax, location, length_metres, angle=angle_rad,
+                            tol=tol)
+
+    # Coordinates are currently in axes coordinates, so use transAxes to
+    # put into data coordinates. *zip(a, b) produces a list of x-coords,
+    # then a list of y-coords.
+    ax.plot(*zip(location, end), transform=ax.transAxes, **plot_kwargs)
+
+    # Push text away from bar in the perpendicular direction.
+    midpoint = (location + end) / 2
+    offset = text_offset * np.array([-np.sin(angle_rad), np.cos(angle_rad)])
+    text_location = midpoint + offset
+
+    # 'rotation' keyword argument is in text_kwargs.
+    ax.text(*text_location, f"{length} {unit_name}", rotation_mode='anchor',
+            transform=ax.transAxes,fontsize=8, **text_kwargs)
