@@ -305,8 +305,6 @@ def add_scale_bar(ax,crs, scale_length_km, location=(0.05, 0.05)):
     xtotallength = xlim[1]-xlim[0]
     ytotallength = ylim[1]-ylim[0]
 
-    
-    
     scale_bar_length = (scale_length_map_units / (xlim[1] - xlim[0]))
     
     scale_bar_x = xlim[0] + .05*(xtotallength) + (.5*scale_bar_length*xtotallength)
