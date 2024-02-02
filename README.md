@@ -8,7 +8,7 @@ see docs/installNotes.sh for all commands needed to do these installs.
 Workflow:  
 1. Create working directory and cd into it. Copy the params.yaml file by running:  
 
-    getParams.py  
+    get_params_sarts.py  
 
 2. Edit the params.yaml file with all of the settings you need. Spend some extra time double-checking all of these parameters are exactly how you want them before moving on, because most issues will be related to mistakes in this step.  
 
@@ -116,7 +116,6 @@ Good example of processing workflow here:
 https://github.com/insarlab/MintPy-tutorial/blob/main/workflows/smallbaselineApp.ipynb  
 
 
-
 Potential errors:  
 -->    Exception: Could not determine a suitable burst offset  
 fix: The orbit file may have not downloaded correctly. try redownloading it.  
@@ -124,5 +123,3 @@ fix: The orbit file may have not downloaded correctly. try redownloading it.
 
 notes:  
 If you want to update the stack and you deleted your SLC safe files, you should adjust the search dates to be 6 acquisitions before the first date of the update so you only download the SLCs that you need.  After downloading all of those, put the search date back to the original search date before running setupStack.py (setupStack.py also uses the date range to decide what to process).    
-
-
