@@ -123,3 +123,8 @@ fix: The orbit file may have not downloaded correctly. try redownloading it.
 
 notes:  
 If you want to update the stack and you deleted your SLC safe files, you should adjust the search dates to be 6 acquisitions before the first date of the update so you only download the SLCs that you need.  After downloading all of those, put the search date back to the original search date before running setupStack.py (setupStack.py also uses the date range to decide what to process).    
+
+IW mode Sentinel-1 SLCs
+    Resolution: 2.7x22 m to 3.5x22 m	
+    Pixel Spacing: 2.3x14.1 m
+

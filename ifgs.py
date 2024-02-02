@@ -198,7 +198,15 @@ def main(inps):
     else:
         ps.intdir  = os.path.join( dolphinDir, 'interferograms')
         
-    
+
+    pix_spacing_range = round(2.3 * ps.rlks,2)
+    pix_spacing_az = round(14.1 * ps.alks,2)
+    print(f'Az looks is set to {ps.alks}')
+    print(f'Az pixel spacing will be ~{pix_spacing_az} m')
+    print(f'Rg looks is set to {ps.rlks}')
+    print(f'Rg pixel spacing will be ~{pix_spacing_range} m')
+
+
     #__Make IFGS____________________
     if not inps.nodolphin:
         # Make ifgs with dolphin
