@@ -59,8 +59,8 @@ nlcd_in   : /d/HI/Landcover/data/hi_maui_2010_ccap_hr_land_cover_20150213.img  #
 
 #__________________________________________________________________________
 # ifgs.py_________________________________________________________________
-alks : 1 # number of looks in azimuth
-rlks : 4 # number of looks in range
+alks : 1 # number of looks in azimuth (S1 pixel spacing is ~14.1 m)
+rlks : 4 # number of looks in range  (S1 pixel spacing is ~2.3 m).  ~6X alks
 filterStrength: .2
 # snaphu
 init_method : MCF
