@@ -42,18 +42,30 @@ for pair in ps.pairs[-16:]:
 cor_stack = np.asarray(cor_stack,dtype=np.float32)
 
 avg_cor = np.nanmean(cor_stack,axis=0)
+original_image = avg_cor
 
 def find_highest_avg_box(original_image, box_size, downsample_factor):
     # Downsample the image
     downsampled_image = original_image[::downsample_factor, ::downsample_factor]
+    ds_box = box_size//downsample_factor
     # Compute the local mean on the downsampled image
-    local_mean = uniform_filter(downsampled_image, size=box_size//downsample_factor)
+    local_mean = uniform_filter(downsampled_image, size=ds_box)
     # Find the position of the highest average value in the downsampled image
     max_pos = np.unravel_index(np.argmax(local_mean), local_mean.shape)
     # Scale the coordinates back to the original image size
     y1, x1 = max_pos[0] * downsample_factor, max_pos[1] * downsample_factor
+    
+    y1 -=(box_size//2)
+    x1 -=(box_size//2)
+    
+    
     y2, x2 = y1 + box_size, x1 + box_size
     return y1, y2, x1, x2
+
+
+# plt.figure();plt.imshow(downsampled_image)
+# plt.figure();plt.imshow(local_mean)
+# plt.figure();plt.imshow(downsampled_image)
 
 
 box_size = 300
@@ -68,7 +80,7 @@ y = [y1, y2, y2, y1, y1]
 
 plt.figure(figsize=(10, 10))
 plt.imshow(avg_cor, cmap='magma')
-plt.plot(x, y, 'black', linewidth=2)
+plt.plot(x, y, 'red', linewidth=2)
 plt.title('coherence')
 plt.legend(['Best coherence box'])
 plt.show()
