@@ -56,8 +56,8 @@ def find_highest_avg_box(original_image, box_size, downsample_factor):
     return y1, y2, x1, x2
 
 
-box_size = 400
-downsample_factor = 6
+box_size = 300
+downsample_factor =4
 y1, y2, x1, x2 = find_highest_avg_box(avg_cor, box_size, downsample_factor)
 
 print(f'The best {box_size}X{box_size} box is: ')
