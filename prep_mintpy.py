@@ -12,6 +12,9 @@ import numpy as np
 from scipy.ndimage import uniform_filter
 import matplotlib.pyplot as plt
 
+mpDir = 'MintPy'
+
+
 ps = config.getPS()
 
 
@@ -19,12 +22,38 @@ sartPath = config.__file__
 sartPath = os.path.dirname(sartPath)
 mpPath = os.path.join(sartPath, 'docs', 'mintpy_template.inps')
 
-if not os.path.isdir('./MintPy'):
+inps_fn = os.path.join(mpDir,'inps.cfg')
+
+if not os.path.isdir(mpDir):
     print("Setting up MintPy directory")
-    os.mkdir('MintPy')
-    shutil.copy(mpPath, './MintPy/inps.cfg')
+    os.mkdir(mpDir)
+    shutil.copy(mpPath, inps_fn)
 else:
     print('MintPy directory already exists.')
+
+def update_cfg_variable(cfg_file_path, variable_name, new_value):
+    """
+    Updates the value of a specific variable in a .cfg file.
+
+    Parameters:
+    - cfg_file_path: Path to the .cfg file.
+    - variable_name: Name of the variable to update.
+    - new_value: New value to assign to the variable.
+    """
+    # Read the file and store lines in memory
+    with open(cfg_file_path, 'r') as file:
+        lines = file.readlines()
+
+    # Modify the line containing the variable
+    with open(cfg_file_path, 'w') as file:
+        for line in lines:
+            if line.startswith(variable_name):
+                # Split the line at the '=' sign, replace the value, and reassemble the line
+                parts = line.split('=')
+                if len(parts) == 2:
+                    line = f"{parts[0]}= {new_value}\n"
+            file.write(line)
+
 
 
 # Find a box that has the highest coherence
@@ -74,7 +103,6 @@ y1, y2, x1, x2 = find_highest_avg_box(avg_cor, box_size, downsample_factor)
 
 print(f'The best {box_size}X{box_size} box is: ')
 print(f'y1:y2, x1:x2 --> {y1}:{y2}, {x1}:{x2}')
-
 x = [x1, x1, x2, x2, x1]
 y = [y1, y2, y2, y1, y1]
 
@@ -84,4 +112,9 @@ plt.plot(x, y, 'red', linewidth=2)
 plt.title('coherence')
 plt.legend(['Best coherence box'])
 plt.show()
+
+# replace the value in inps.cfg
+variable_name = 'mintpy.network.aoiYX'
+new_value = f'{y1}:{y2}, {x1}:{x2}' 
+update_cfg_variable(inps_fn, variable_name, new_value)
 
