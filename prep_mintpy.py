@@ -86,7 +86,7 @@ def main(inps):
 
     sartPath = config.__file__
     sartPath = os.path.dirname(sartPath)
-    mpPath = os.path.join(sartPath, 'docs', 'mintpy_template.inps')
+    mpPath = os.path.join(sartPath, 'docs', 'mintpy_template.cfg')
     inps_fn = os.path.join(inps.mpDir,'inps.cfg')
     
     if not os.path.isdir(inps.mpDir):
