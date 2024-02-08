@@ -12,6 +12,8 @@ Map an IFG or other gridded data
 
 import matplotlib.ticker as mticker
 from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter, LatitudeLocator
+from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+
 import cartopy.io.img_tiles as cimgt
 import cartopy.feature as cfeature
 import cartopy.crs as ccrs
@@ -32,32 +34,62 @@ class ShadedReliefESRI(GoogleTiles):
                z=z, y=y, x=x)
         return url
 
-def configure_gridlines(ax, minlon, maxlon, pad, tick_increment):
+
+
+def configure_gridlines(ax, minlon, maxlon, minlat, maxlat, pad):
     """
-    Configures the gridlines for the map.
+    Configures the gridlines for the map to ensure between 2 and 6 gridlines/ticks
+    based on predefined increments.
 
     Parameters:
     - ax: The Axes object to apply gridlines to.
-    - minlon: Minimum longitude value.
-    - maxlon: Maximum longitude value.
+    - minlon, maxlon, minlat, maxlat: Longitude and latitude bounds.
     - pad: Padding added to longitude and latitude for extent.
-    - tick_increment: Increment for longitude gridline ticks.
 
     Returns:
     - gl: The configured gridline object.
     """
+    # Calculate the range for longitude and latitude, adjust for padding
+    lon_range = (maxlon+pad) - (minlon-pad) 
+    lat_range = (maxlat+pad) - (minlat-pad)
+    
+    # Define possible tick increments
+    increments = [20, 10, 5, 2, 1, 0.5, 0.2, 0.1]
+    
+    # Function to find suitable increment ensuring 2 to 6 gridlines
+    def find_increment(range_value):
+        suitable_incs = []
+
+        for inc in increments:
+            num_lines = range_value / inc
+            if 3 <= num_lines <= 8:
+                suitable_incs.append(inc)
+        
+        if len(suitable_incs)> 0:
+            return suitable_incs[len(suitable_incs)//2]
+        else:   
+            return increments[0]
+        # return increments[-1]  # Fallback to the smallest increment if no suitable one is found
+
+    # Determine suitable increments for longitude and latitude
+    print('Automatically determining gridline spacing')
+    lon_increment = find_increment(lon_range)
+    lat_increment = find_increment(lat_range)
+
     gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
                       linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
-    gl.xlocator = mticker.FixedLocator(np.arange(np.floor(minlon-pad), np.ceil(maxlon+pad), tick_increment))
-    gl.ylocator = LatitudeLocator()
-    gl.xformatter = LongitudeFormatter()
-    gl.yformatter = LatitudeFormatter()
+    gl.xlocator = mticker.FixedLocator(np.arange(np.floor(minlon - pad), np.ceil(maxlon + pad), lon_increment))
+    gl.ylocator = mticker.FixedLocator(np.arange(np.floor(minlat - pad), np.ceil(maxlat + pad), lat_increment))
+    gl.xformatter = LONGITUDE_FORMATTER
+    gl.yformatter = LATITUDE_FORMATTER
     gl.ylabel_style = {'size': 8, 'color': 'black'}
     gl.xlabel_style = {'size': 8, 'color': 'black'}
     gl.top_labels = False
     gl.right_labels = False
 
     return gl
+
+
 
 def plot_data(ax, lons, lats, img, contour, vmin, vmax, cm, alpha):
     """
@@ -123,7 +155,7 @@ def add_colorbar(fig, img_handle, label, orientation='horizontal'):
     return cbar
 
 
-def mapImg(img, lons, lats, vmin, vmax, padding, zoom_level, title, background='World_Imagery', colormap='jet', figsize=(8,8), alpha=1, draw_contour=False, label='cm/yr', fault_file=None):
+def mapImg(img, lons, lats, vmin, vmax, padding=0, zoom_level=5, title='', background='World_Imagery', colormap='jet', figsize=(8,8), alpha=1, draw_contour=False, label='cm/yr', fault_file=None):
     """
     Plots geospatial data on a map.
 
@@ -167,7 +199,7 @@ def mapImg(img, lons, lats, vmin, vmax, padding, zoom_level, title, background='
     ax = plt.axes(projection=data_crs)
     ax.set_extent([minlon-padding, maxlon+padding, minlat-padding, maxlat+padding], crs=ccrs.PlateCarree())
 
-    configure_gridlines(ax, minlon, maxlon, padding)
+    configure_gridlines(ax, minlon, maxlon, minlat, maxlat, padding)
     ax.add_image(image, zoom_level)
 
     # Plot data
@@ -181,8 +213,8 @@ def mapImg(img, lons, lats, vmin, vmax, padding, zoom_level, title, background='
     plt.title(title)
     plt.show()
 
-    
-def mapBackground(bg, minlon, maxlon, minlat, maxlat, zoomLevel, title, pad=0, scalebar=100, borders=True, fault_file=None,figsize=(8,8)):
+
+def mapBackground(minlon, maxlon, minlat, maxlat, zoomLevel=6, title='map', bg='World_Shaded_Relief',pad=0, scalebar=100, borders=True, fault_file=None,figsize=(8,8)):
     """
     Makes a background map to plot various data over it.
     
@@ -238,15 +270,8 @@ def mapBackground(bg, minlon, maxlon, minlat, maxlat, zoomLevel, title, pad=0, s
         ax.add_feature(cfeature.BORDERS, linewidth=.5, color='grey')
         ax.coastlines(linewidth=.5)
 
-
-    # Calculate tick increment for gridlines
-    lon_range = (pad+maxlon) - (minlon-pad)
-    lat_range = (pad+maxlat) - (minlat-pad)
-    range_min = min(lon_range, lat_range)
-    tick_increment = round(range_min / 4, 1)
-
     # Configure gridlines
-    configure_gridlines(ax, minlon, maxlon, pad, tick_increment)
+    configure_gridlines(ax, minlon, maxlon,minlat,maxlat, pad)
 
     # Add background image
     ax.add_image(image, zoomLevel, zorder=1)
@@ -258,10 +283,10 @@ def mapBackground(bg, minlon, maxlon, minlat, maxlat, zoomLevel, title, pad=0, s
     if scalebar:  
         scale_bar(ax, (0.1,.1), scalebar)
 
-
     plt.title(title)
     plt.show()
-    return data_crs
+    
+    return ax,data_crs
 
 
 def _axes_to_lonlat(ax, coords):
@@ -440,3 +465,35 @@ def scale_bar(ax, location, length, metres_per_unit=1000, unit_name='km',
     # 'rotation' keyword argument is in text_kwargs.
     ax.text(*text_location, f"{length} {unit_name}", rotation_mode='anchor',
             transform=ax.transAxes,fontsize=8, **text_kwargs)
+    
+    
+if __name__ == '__main__':
+    '''
+    Main driver.
+    '''
+    bg='World_Shaded_Relief'
+    minlon = 30
+    maxlon = 31
+    minlat = 1
+    maxlat = 2
+    zoomLevel=10
+    scalebar = 50
+    pad = 1
+    borders= True
+    fault_file = None
+    figsize=(8,8)
+    title = 'Example from mapBackground()'
+    mapBackground(minlon, maxlon, minlat, maxlat, zoomLevel, title, bg=bg, pad=pad, scalebar=scalebar, borders=borders , fault_file=fault_file,figsize=figsize)
+    
+    # Scatter plot to plot points
+    plt.scatter(30,2,s=500,c='yellow',marker='*',transform=ccrs.PlateCarree(),zorder=2)
+    
+    # Text plot 
+    plt.text(30.9,1.7,'Lake Albert',rotation=35,transform=ccrs.PlateCarree(),zorder=2,color='white')
+
+    # Quiver to plot vectors
+    X =np.array([31,31.5])
+    Y =np.array([.5,.5])
+    dx =np.array([1,1])
+    dy = np.array([1,1])
+    plt.quiver(X,Y,dx,dy,headlength=4,headaxislength=4,scale=20, linewidths=0.5, width=0.004,pivot='mid',color='green',transform=ccrs.PlateCarree(),zorder=2)

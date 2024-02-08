@@ -1131,6 +1131,11 @@ def rad2cm(input_vec,wavelength=.056,output='cm'):
         Sentinel-1: 0.056
         Alos-1: 0.23
     output: mm, cm, m
+    
+    The factor of 4pi comes from the fact that the phase difference represents 
+    a round-trip change in distance (to the ground and back), and there are 2pi 
+    radians in a full cycle. So a fringe = wavelength/2, which is ~2.78 cm LOS 
+    displacement.
     '''
     if output=='m':
         factor=1
@@ -1234,3 +1239,19 @@ def vector2raster(shapefile_fn, raster_sample_fn, raster_out_fn, feature):
     ds = gdal.Open(raster_out_fn)
     raster = ds.GetVirtualMemArray()
     return raster 
+
+
+def update_yaml_key(file_path, key, new_value):
+    import re
+    with open(file_path, "r") as f:
+        lines = f.readlines()
+
+    with open(file_path, "w") as f:
+        for line in lines:
+            # Try to match a YAML key-value pair line
+            match = re.match(rf"({key}\s*:\s*)(\S+)", line)
+            if match:
+                # Replace the value while preserving the key and any surrounding whitespace
+                line = f"{match.group(1)}{new_value}\n"
+            f.write(line)
+            

@@ -52,12 +52,9 @@ def getPS(directory='.'):
         miny,maxy,minx,maxx        = ps.bounds.split(sep=',')
         ps.bbox                    = miny +' '+ maxy  +' '+ minx +' '+  maxx #demBounds[0] + ' ' + demBounds[1] + ' ' + demBounds[2] + ' ' + demBounds[3] #SNWE
         
-
         if ps.sat=='ALOS':
             ps.slcDir = ps.slc_dirname
             ps.inputDir = ps.slc_dirname
-
-
 
         if ps.sat=='SENTINEL-1':
             ps.swath_num = str(ps.swath_num)

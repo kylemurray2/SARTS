@@ -3,7 +3,7 @@
 """
 Created on Fri Sep 23 12:58:37 2022
 
-Some examples/ starting point to Load and plot Fringe and  MintPy outputs
+Some examples/ starting point to Load and plot dolphin and  MintPy outputs
 Mintpy also has many useful plotting functions. 
 
 @author: km
