@@ -32,8 +32,10 @@ def cmdLineParser():
 
 def link_ifgs(ps, alks_orig, rlks_orig):
     source_base_dir = os.path.join(ps.workdir,ps.dolphin_work_dir, f'interferograms_{alks_orig}_{rlks_orig}')
-    print(source_base_dir)
     target_base_dir = os.path.join(ps.workdir,ps.dolphin_work_dir, 'interferograms')
+    
+    if not os.path.isdir(source_base_dir):
+        os.system('mv ' + target_base_dir + ' ' + source_base_dir)
     
     for p in ps.pairs_seq:
         source_dir = os.path.join(source_base_dir, p)
