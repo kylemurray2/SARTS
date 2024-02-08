@@ -37,7 +37,7 @@ def link_ifgs(ps, alks_orig, rlks_orig):
     if not os.path.isdir(source_base_dir):
         os.system('mv ' + target_base_dir + ' ' + source_base_dir)
     
-    for p in ps.pairs_seq:
+    for p in ps.pairs:
         source_dir = os.path.join(source_base_dir, p)
         target_dir = os.path.join(target_base_dir, p)
         os.makedirs(target_dir, exist_ok=True)  # Ensure the target directory exists
