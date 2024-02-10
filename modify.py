@@ -70,8 +70,8 @@ def link_geom(ps, alks_orig, rlks_orig):
     if not os.path.isdir(source_base_dir):
         os.system('mv ' + target_base_dir + ' ' + source_base_dir)
         os.mkdir(target_base_dir)
-        
-    crop_pns = glob.glob(source_base_dir+'/*crop*')
+
+    crop_pns = glob.glob(source_base_dir+'/*')
 
     for pn in crop_pns: 
         fn = pn.split('/')[-1]
