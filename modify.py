@@ -14,7 +14,7 @@ updates params.yaml with new rlks/alks if given
 Then you should be able to just rerun ifgs.py to make new dl ifgs and unw
 But first rerun adjustGeom.py
 
-adjustGeom.py -dr 
+adjustGeom.py -drc 
 ifgs.py -du
 prep_mintpy.py -a # -r #
 
@@ -98,7 +98,8 @@ def main(inps):
     if inps.rlks_new:
         util.update_yaml_key('params.yaml', 'rlks', inps.rlks_new)
     util.update_yaml_key('params.yaml', 'doCropSlc', 'False')
-    
+    if not os.path.isdir(f' MintPy_{alks_orig}_{rlks_orig}'):
+        os.system('mv MintPy ' + f' MintPy_{alks_orig}_{rlks_orig}')
 if __name__ == '__main__':
     '''
     Main driver.
