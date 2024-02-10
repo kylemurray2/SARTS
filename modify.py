@@ -8,6 +8,7 @@ Use this if you want to change the number of looks and keep the originals
 moves dolphin/interferograms directory to interferograms_alks_rlks
 makes new interferograms dir
 links all of the full res ifgs from the original to the new in respective date pair dirs
+makes a new merged/geom_reference directory and links files.
 updates params.yaml with new rlks/alks if given
 
 Then you should be able to just rerun ifgs.py to make new dl ifgs and unw
@@ -96,7 +97,7 @@ def main(inps):
         util.update_yaml_key('params.yaml', 'alks', inps.alks_new)
     if inps.rlks_new:
         util.update_yaml_key('params.yaml', 'rlks', inps.rlks_new)
-    
+    util.update_yaml_key('params.yaml', 'doCropSlc', 'False')
     
 if __name__ == '__main__':
     '''
