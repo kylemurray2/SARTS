@@ -98,7 +98,7 @@ def main(inps):
         
     avg_cor = get_avg_cor(16,ps)
     
-    box_size = int(((ps.nxl+ps.nyl)/2)*.05)
+    box_size = int(((ps.nxl+ps.nyl)/2)*.09)
     downsample_factor =4
     y1, y2, x1, x2 = find_highest_avg_box(avg_cor, box_size, downsample_factor)
     
