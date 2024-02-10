@@ -10,11 +10,18 @@ makes new interferograms dir
 links all of the full res ifgs from the original to the new in respective date pair dirs
 updates params.yaml with new rlks/alks if given
 
-Then you should be able to just rerun ifgs.py -du to make new dl ifgs and unw
+Then you should be able to just rerun ifgs.py to make new dl ifgs and unw
+But first rerun adjustGeom.py
+
+adjustGeom.py -dr 
+ifgs.py -du
+prep_mintpy.py -a # -r #
+
+Then you can make another MintPy directory 
 
 """
 
-import os,argparse
+import os,argparse,glob
 from SARTS import config,util
 
 
@@ -56,12 +63,34 @@ def link_ifgs(ps, alks_orig, rlks_orig):
     print('updating looks in params.yaml')
 
 
+def link_geom(ps, alks_orig, rlks_orig):
+    source_base_dir = os.path.join(ps.mergeddir,f'geom_reference_{alks_orig}_{rlks_orig}')
+    target_base_dir = os.path.join(ps.mergeddir,f'geom_reference')
+    
+    if not os.path.isdir(source_base_dir):
+        os.system('mv ' + target_base_dir + ' ' + source_base_dir)
+    
+    crop_pns = glob.glob(source_base_dir+'/*crop*')
+
+    for pn in crop_pns: 
+        fn = pn.split('/')[-1]
+        source_file = os.path.join(source_base_dir, fn)
+        target_file = os.path.join(target_base_dir, fn)
+
+        if os.path.exists(source_file) and not os.path.exists(target_file):
+            os.symlink(source_file, target_file)
+            print(f"Link created: {target_file}")
+        else:
+            print(f"File not found or link already exists: {source_file} -> {target_file}")
+    
+
+
 def main(inps):
     ps = config.getPS()
     alks_orig = ps.alks
     rlks_orig = ps.rlks
     link_ifgs(ps, alks_orig, rlks_orig)
-    
+    link_geom(ps, alks_orig, rlks_orig)
     if inps.alks_new:
         util.update_yaml_key('params.yaml', 'alks', inps.alks_new)
     if inps.rlks_new:
