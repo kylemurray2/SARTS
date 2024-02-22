@@ -43,7 +43,7 @@ Workflow:
 
 4. Check that the SLCs can be opened and then setup the run_files and configs:
 
-    setupstack.py
+    setupStack.py
 
 5. Run the stack processor/ISCE:
 
@@ -114,6 +114,15 @@ https://github.com/insarlab/MintPy/tree/main
 
 Good example of processing workflow here:  
 https://github.com/insarlab/MintPy-tutorial/blob/main/workflows/smallbaselineApp.ipynb  
+
+To process ALOS-1:
+    run get_params_sarts.py with the -a flag
+    modify params.yaml with the path, etc.
+    downloadData.py -sd (don't use orbit flag)
+    use 'prepRawALOS_modified.py -i SLCS -o SLCS' to organize/reformat the files
+    setupStack_alos.py
+    Then follow the normal steps... runISCE.py etc...
+
 
 
 Potential errors:  

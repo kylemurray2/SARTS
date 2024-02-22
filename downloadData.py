@@ -255,13 +255,25 @@ def dlDEM(ps):
     zips = glob.glob(os.path.join(ps.slc_dirname, '*zip'))
     # Figure out what bounds to use for the DEM
     minlats, maxlats, minlons, maxlons = [], [], [], []
-    for z in zips:
-        safe = sentinelSLC(z)
-        safe.get_lat_lon_v2()
-        minlats.append(safe.SNWE[0])
-        maxlats.append(safe.SNWE[1])
-        minlons.append(safe.SNWE[2])
-        maxlons.append(safe.SNWE[3])
+    if ps.sat=='SENTINEL-1':
+        for z in zips:
+            safe = sentinelSLC(z)
+            safe.get_lat_lon_v2()
+            minlats.append(safe.SNWE[0])
+            maxlats.append(safe.SNWE[1])
+            minlons.append(safe.SNWE[2])
+            maxlons.append(safe.SNWE[3])
+
+        minlat = min(minlats)
+        maxlat = max(maxlats)
+        minlon = min(minlons)
+        maxlon = max(maxlons)
+    else:
+        minlat = np.floor( float(ps.bounds.split(',')[0]) )
+        maxlat = np.ceil(float(ps.bounds.split(',')[1]))
+        minlon = np.floor(float(ps.bounds.split(',')[2]))
+        maxlon = np.ceil(float(ps.bounds.split(',')[3]))
+
     if not os.path.isdir('Figs'):
         os.mkdir('Figs')
     if not os.path.isdir('Npy'):
@@ -269,10 +281,7 @@ def dlDEM(ps):
 
     plt.savefig('Figs/bounds.png')
 
-    minlat = min(minlats)
-    maxlat = max(maxlats)
-    minlon = min(minlons)
-    maxlon = max(maxlons)
+
 
     demBounds = f"{int(np.floor(minlat))},{int(np.ceil(maxlat))},{int(np.floor(minlon))},{int(np.ceil(maxlon))}"
 
@@ -358,7 +367,8 @@ def main(inps):
         # Check for current SLCs and remove any bad ones
         zips = glob.glob(os.path.join(ps.slc_dirname,'*.zip'))
         if len(zips)>0:
-            flag = setupStack.checkSLC(ps)
+            if ps.sat=='SENTINEL-1':
+                flag = setupStack.checkSLC(ps)
 
         dlSlc(slcUrls, gran, ps.slc_dirname)
         

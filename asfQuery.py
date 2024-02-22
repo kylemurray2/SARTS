@@ -44,6 +44,10 @@ def getGran(path, start, end, sat, bounds, poly):
       output=fmt)
 
 
+    if sat=='ALOS':
+        data['beamMode'] = 'FBS,FBD'
+
+        data['processingLevel'] = 'L1.0'
     if poly:
         print('Using polygon')
         data['intersectsWith'] = poly
@@ -68,7 +72,7 @@ def getGran(path, start, end, sat, bounds, poly):
 
     print('Searching for data')
     r = requests.get(baseurl, params=data, timeout=100)
-    print(r)
+    print(r.url)
     with open('out.csv', 'w') as (j):
         j.write(r.text)
     slcUrls = pd.read_csv('out.csv')['URL']

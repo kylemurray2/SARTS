@@ -31,6 +31,8 @@ if not os.path.isdir('./logFiles'):
 startT = time.time()
 
 
+
+
 def append_wait_to_files(file_list):
     """
     Append the string "wait" to the end of each file in the provided list.

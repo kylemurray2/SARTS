@@ -107,12 +107,12 @@ def main(inps):
     x = [x1, x1, x2, x2, x1]
     y = [y1, y2, y2, y1, y1]
     
-    # plt.figure(figsize=(8,8))
-    # plt.imshow(avg_cor, cmap='magma')
-    # plt.plot(x, y, 'red', linewidth=2)
-    # plt.title('coherence')
-    # plt.legend(['Best coherence box'])
-    # plt.show()
+    plt.figure(figsize=(8,8))
+    plt.imshow(avg_cor, cmap='magma')
+    plt.plot(x, y, 'red', linewidth=2)
+    plt.title('coherence')
+    plt.legend(['Best coherence box'])
+    plt.show()
     
     # replace the value in inps.cfg
     variable_name = 'mintpy.network.aoiYX'

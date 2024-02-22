@@ -56,7 +56,11 @@ def checkSLC(ps,doRemove=True):
 def main():
     ps = config.getPS()
     inps=ps
-    flag = checkSLC(ps)
+    if ps.sat=='SENTINEL-1':
+        flag = checkSLC(ps)
+    else:
+        print('Skipping SLC check because not processing Sentinel-1')
+        flag=True
     # inps.bbox = None
     if flag:
         # stackSentinel.main(ps)

@@ -13,6 +13,13 @@ point       :  # lon,lat (Usually leave this blank unless you dont want to use p
 slc_dirname : ./SLCS/
 workdir     : os.getcwd() # Use current directory as working directory
 
+# For prepRawALOS.py
+inputDir         : './SLCS/'
+rmfile : False
+outputDir : './SLCS/'
+fbd2fbs : True
+nofocus : False
+
 #__________________________________________________________________________
 # For setupStack.py __________________________________________________________
 slcDir           : './SLCS/'
@@ -41,68 +48,59 @@ text_cmd         : ''
 useGPU           : False
 summary          : False
 
-# For prepRawALOS.py
-inputDir         : './SLCS/'
-rmfile : False
-outputDir : './SLCS/'
-fbd2fbs : True
-nofocus : False
-
 
 #__________________________________________________________________________
 # adjustGeom.py___________________________________________________________
 crop     : True
-cropymin : 11500
-cropymax : 29400
+doCropSlc : True
+cropymin : 0
+cropymax : 0
 cropxmin : 0
-cropxmax : 8300
+cropxmax : 0
+geobbox  : # Optional crop based on lat/lon coordinates ('S,N,W,E')
+networkType : maxbandwidth # maxbandwidth, delaunay, 
+bandwidth : 2 # only if networkType is 'maxbandwidth'
+waterMask : True
+nlcd_in   : /d/HI/Landcover/data/hi_maui_2010_ccap_hr_land_cover_20150213.img  # Optional: NLCD raster for landcover and watermask
+
 
 #__________________________________________________________________________
 # ifgs.py_________________________________________________________________
-alks : 1 # number of looks in azimuth
-rlks : 4 # number of looks in range
-networkType : delaunay # sequential1, sequential2, delaunay
+alks : 1 # number of looks in azimuth (S1 pixel spacing is ~14.1 m)
+rlks : 4 # number of looks in range  (S1 pixel spacing is ~2.3 m).  ~6X alks
+filterStrength: .2
 # snaphu
 init_method : MCF
 cost_mode   : SMOOTH
 max_comp    : 32
 defo_max    : 0
+lam : .055 # sentinel
+#__________________________________________________________________________
+# __________________________________________________________________
+maxMem    : 80000
 
 #__________________________________________________________________________
-# Fringe__________________________________________________________________
-waterMask : True
-nlcd_in   : '/d/HI/Landcover/data/hi_oahu_2011_ccap_hr_land_cover20140619.img' # Optional: NLCD raster for landcover and watermask
-maxMem    : 80000
-# tops2vrt:
-stackdir: './Fringe/coreg_stack'
-geomdir: './Fringe/geometry'
-outdir: './Fringe/slcs'
-# nmap:
-inputDS: './Fringe/coreg_stack/slcs_base.vrt'
-outputDS: './Fringe/KS2/nmap'
-countDS: './Fringe/KS2/count'
-maskDS: './merged/geom_reference/waterMask.rdr.full.crop.vrt'
-linesPerBlock: 256
-halfWindowX: 11
-halfWindowY: 5
-pValue: 0.05
-method: 'KS2'
-noGPU: 'True'
-# sequential_PL:
-outputDir: './Fringe/Sequential'
-minNeighbors: 5
-miniStackSize: 20
-forceprocessing: false
-# adjustMiniStacks:
-slcDir: './Fringe/slcs/'
-miniStackDir: './Fringe/Sequential/miniStacks/'
-datumDir: './Fringe/Sequential/Datum_connection/'
-outDir: './Fringe/adjusted_wrapped_DS'
-unwrapped: false
-# ampdispersion:
-meanampDS: './Fringe/ampDispersion/mean'
-refBand: 1
-outputAD: './Fringe/ampDispersion/ampdispersion'
-ampDispersionThreshold: '0.35'
-
-
+# Dolphin___________________________________________________________________
+cslc_date_fmt : '%Y%m%d'
+dolphin_work_dir: dolphin # name of the dolphin directory without full path
+nodata_mask_file : dolphin/nodata_mask.tif # Mask file used to ignore low correlation/bad data (e.g water mask). Convention is 0 for no data/invalid, and 1 for good data. Dtype must be uint8.
+slc_files : merged/SLC/*/*.slc.full.crop.vrt # Give relative path with wild cards to the vrt files
+keep_paths_relative: false
+gpu_enabled: true
+n_workers: 20  # (For non-GPU) Number of cpu cores to use for Python multiprocessing. Uses `multiprocessing.cpu_count()` if not set.
+block_shape_x: 350
+block_shape_y: 350
+output_resolution:
+strides: 
+    x: 1
+    y: 1
+amp_dispersion_threshold: 0.01
+ministack_size: 15
+max_num_compressed: 5
+half_window:
+    x: 11 
+    y: 5
+use_evd: false # Use EVD on the coherence instead of using the EMI algorithm.
+beta: 0.01   # Beta regularization parameter for correlation matrix inversion. 0 is no regularization.
+shp_method: glrt #   Options: ['glrt', 'ks', 'kld', 'rect', 'rect'].
+shp_alpha: 0.05

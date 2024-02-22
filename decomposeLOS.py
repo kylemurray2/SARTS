@@ -20,20 +20,23 @@ from osgeo import gdal
 from astropy.convolution import Gaussian2DKernel,convolve
 import os
 
-island='Oahu'
-doBridge=True
+dirName='Oahu'
+mp_dir_a = 'MintPy_1_4'
+mp_dir_d = 'MintPy_1_4'
+os.chdir('/d/HI/verthorz/'+dirName)
 
-ascDir = os.path.join('/d/HI/S1/Asc', island)
-desDir = os.path.join('/d/HI/S1/Des', island)
+doBridge=False
 
-os.chdir('/d/HI/S1/verthorz/'+island)
+ascDir = os.path.join('/d/HI/Asc', mp_dir_a)
+desDir = os.path.join('/d/HI/Des', mp_dir_d)
 
 ps_a = config.getPS(ascDir)
 ps_d = config.getPS(desDir)
 
-mpdir_a = os.path.join(ascDir, 'MintPy_delaunay_cohthresh')
-mpdir_d = os.path.join(desDir, 'MintPy_delaunay_cohthresh')
+mpdir_a = os.path.join(ascDir, 'MintPy_1_4')
+mpdir_d = os.path.join(desDir, 'MintPy_1_4')
 
+# Geometry files and water mask
 filename = os.path.join(mpdir_a, 'inputs/geometryRadar.h5')
 ds = h5py.File(filename,'r+')
 lons_a = np.asarray(ds['longitude'])
@@ -42,12 +45,20 @@ az_a =  np.asarray(ds['azimuthAngle'])
 inc_a =  np.asarray(ds['incidenceAngle'])
 waterMask_a = np.asarray(ds['waterMask'])
 ds.close()
+filename    = os.path.join(mpdir_d, 'inputs/geometryRadar.h5')
+ds          = h5py.File(filename,'r+')   
+lons_d      = np.asarray(ds['longitude'])
+lats_d      = np.asarray(ds['latitude'])
+az_d        = np.asarray(ds['azimuthAngle'])
+inc_d       = np.asarray(ds['incidenceAngle'])
+waterMask_d = np.asarray(ds['waterMask'])
+ds.close()
 
-#Land cover
-filename = os.path.join(ascDir, 'merged/geom_reference/landCover_lk.rdr.vrt')
-ds = gdal.Open(filename)   
-lc = ds.GetVirtualMemArray()
-plt.figure();plt.imshow(lc,cmap='jet')
+# #Land cover
+# filename = os.path.join(ascDir, 'merged/geom_reference/landCover_lk.rdr.vrt')
+# ds = gdal.Open(filename)   
+# lc = ds.GetVirtualMemArray()
+# plt.figure();plt.imshow(lc,cmap='jet')
 
 # avgSpatialCoh
 filename = os.path.join(mpdir_a, 'avgSpatialCoh.h5')
@@ -66,35 +77,21 @@ filename = os.path.join(mpdir_a, 'maskConnComp.h5')
 ds = h5py.File(filename,'r+')   
 maskConnComp_a = np.asarray(ds['mask'])
 ds.close()
-
-# maskConnComp
 filename = os.path.join(mpdir_d, 'maskConnComp.h5')
 ds = h5py.File(filename,'r+')   
 maskConnComp_d = np.asarray(ds['mask'])
 ds.close()
 
+#Velocity
 filename = os.path.join(mpdir_a, 'velocity.h5')
 ds = h5py.File(filename,'r+')   
 velocity_a = np.asarray(ds['velocity']) *1000 #convert to mm
 ds.close()
-
-
-
-
-
-filename    = os.path.join(mpdir_d, 'inputs/geometryRadar.h5')
-ds          = h5py.File(filename,'r+')   
-lons_d      = np.asarray(ds['longitude'])
-lats_d      = np.asarray(ds['latitude'])
-az_d        = np.asarray(ds['azimuthAngle'])
-inc_d       = np.asarray(ds['incidenceAngle'])
-waterMask_d = np.asarray(ds['waterMask'])
-ds.close()
-
 filename    = os.path.join(mpdir_d, 'velocity.h5')
 ds          = h5py.File(filename,'r+')   
 velocity_d  = np.asarray(ds['velocity']) *1000 #convert to mm
 ds.close()
+
 
 # velocity_d[np.isnan(velocity_d)] = 0
 # velocity_a[np.isnan(velocity_a)] = 0
@@ -120,48 +117,48 @@ if doBridge:
     velocity_a_trim,mask_a_trim = bridge.main(velocity_a, maskConnComp_a, minPix)
     velocity_d_resamp_trim,mask_a_trim = bridge.main(velocity_d_resamp, maskConnComp_a, minPix)
 
-# mask with asc conncomp mask
-velocity_d_resamp_trim_msk = velocity_d_resamp_trim.copy()
-velocity_d_resamp_trim_msk[~mask_a_trim] = np.nan
-velocity_a_trim_msk = velocity_a_trim.copy()
-velocity_a_trim_msk[~mask_a_trim] = np.nan
+# # mask with asc conncomp mask
+# velocity_d_resamp_trim_msk = velocity_d_resamp_trim.copy()
+# velocity_d_resamp_trim_msk[~mask_a_trim] = np.nan
+# velocity_a_trim_msk = velocity_a_trim.copy()
+# velocity_a_trim_msk[~mask_a_trim] = np.nan
 
 
-plt.figure();plt.imshow(maskConnComp_d)
-plt.figure();plt.imshow(mask_a_trim)
-plt.show()
+# plt.figure();plt.imshow(maskConnComp_d)
+# plt.figure();plt.imshow(mask_a_trim)
+# plt.show()
 
-# Light spatial filter
-kernel = Gaussian2DKernel(x_stddev=.2)
-velocity_a_trim_msk_filt = convolve(velocity_a_trim_msk, kernel)
-velocity_d_resamp_trim_msk_filt = convolve(velocity_d_resamp_trim_msk, kernel)
+# # Light spatial filter
+# kernel = Gaussian2DKernel(x_stddev=.2)
+# velocity_a_trim_msk_filt = convolve(velocity_a_trim_msk, kernel)
+# velocity_d_resamp_trim_msk_filt = convolve(velocity_d_resamp_trim_msk, kernel)
 
-plt.figure();plt.imshow(velocity_a_trim_msk_filt,vmin=-6,vmax=6)
-plt.figure();plt.imshow(velocity_d_resamp_trim_msk_filt,vmin=-6,vmax=6)
-plt.figure();plt.imshow(velocity_d_resamp,vmin=-26,vmax=26)
+# plt.figure();plt.imshow(velocity_a_trim_msk_filt,vmin=-6,vmax=6)
+# plt.figure();plt.imshow(velocity_d_resamp_trim_msk_filt,vmin=-6,vmax=6)
+# plt.figure();plt.imshow(velocity_d_resamp,vmin=-26,vmax=26)
 
-npix = len(velocity_a_trim_msk_filt.ravel())
+npix = len(velocity_a.ravel())
 
-# smooth  = .4
-# vertHorVec = np.zeros((npix,2))
-# for ii in range(npix):
-#     if ii%200000 == 0:
-#         print("\r" + str(100*np.round((ii/npix),2)) + '%', end='', flush=True)
-#     asc = velocity_a_trim_msk_filt.ravel()[ii]
-#     des = velocity_d_resamp_trim_msk_filt.ravel()[ii]
-#     psi_a = az_a.ravel()[ii]
-#     psi_d = az_d_resamp.ravel()[ii]
-#     theta_a = inc_a.ravel()[ii]
-#     theta_d = inc_d_resamp.ravel()[ii]
-#     vertHorVec[ii,:] = util.invertVertHor(asc,des,psi_a,theta_a,psi_d,theta_d,smooth)
+smooth  = .4
+vertHorVec = np.zeros((npix,2))
+for ii in range(npix):
+    if ii%200000 == 0:
+        print("\r" + str(100*np.round((ii/npix),2)) + '%', end='', flush=True)
+    asc = velocity_a.ravel()[ii]
+    des = velocity_d.ravel()[ii]
+    psi_a = az_a.ravel()[ii]
+    psi_d = az_d_resamp.ravel()[ii]
+    theta_a = inc_a.ravel()[ii]
+    theta_d = inc_d_resamp.ravel()[ii]
+    vertHorVec[ii,:] = util.invertVertHor(asc,des,psi_a,theta_a,psi_d,theta_d,smooth)
     
-# east = vertHorVec[:,0].reshape(velocity_a.shape)
-# vert = vertHorVec[:,1].reshape(velocity_a.shape)
+east = vertHorVec[:,0].reshape(velocity_a.shape)
+vert = vertHorVec[:,1].reshape(velocity_a.shape)
 
-# if not os.path.isdir('Npy'):
-#     os.mkdir('Npy')
-# np.save(ps_d.workdir + '/Npy/vert2.npy',vert)
-# np.save(ps_d.workdir + '/Npy/east2.npy',east)
+if not os.path.isdir('Npy'):
+    os.mkdir('Npy')
+np.save(ps_d.workdir + '/Npy/vert2.npy',vert)
+np.save(ps_d.workdir + '/Npy/east2.npy',east)
 
 vert = np.load(ps_d.workdir + '/Npy/vert2.npy')
 east = np.load(ps_d.workdir + '/Npy/east2.npy')
