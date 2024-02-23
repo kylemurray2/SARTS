@@ -286,12 +286,13 @@ def px2ll(x, y, lon_ifgm,lat_ifgm):
     return lon,lat
 
 
-def fitLong(image,order,mask):
+def fitLong(image,order,mask=None):
     from astropy.convolution import Gaussian2DKernel,convolve
     kernel = Gaussian2DKernel(x_stddev=1) # For smoothing and nan fill
     image = convolve(image,kernel)
     image[np.isnan(image)] = 0
-    image[mask==0] = 0
+    if mask:
+        image[mask==0] = 0
     ny,nx = image.shape
     X,Y = np.meshgrid(range(nx),range(ny))
     X1,Y1 = X.ravel(),Y.ravel()

@@ -17,9 +17,10 @@ stripmapStack/Stack line 69 and 70 change to:
 
 from stripmapStack import stackStripMap
 from SARTS import config
-
+import os
 ps = config.getPS()
 inps=ps
 del(inps.crop)
 stackStripMap.main(inps)
 
+os.system('rm run_files/*job')

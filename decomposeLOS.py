@@ -27,8 +27,8 @@ os.chdir('/d/HI/verthorz/'+dirName)
 
 doBridge=False
 
-ascDir = os.path.join('/d/HI/Asc', mp_dir_a)
-desDir = os.path.join('/d/HI/Des', mp_dir_d)
+ascDir = os.path.join('/d/HI/Asc', dirName)
+desDir = os.path.join('/d/HI/Des', dirName)
 
 ps_a = config.getPS(ascDir)
 ps_d = config.getPS(desDir)
@@ -108,6 +108,19 @@ plt.figure();plt.imshow(velocity_d,vmin=vmin,vmax=vmax)
 # decimate=2;vmin=-10;vmax=10;pad=0;zoomLevel=12;title='veld';bg='World_Shaded_Relief'
 # makeMap.mapImg(velocity_a[::decimate,::decimate], lons_a[::decimate,::decimate], lats_a[::decimate,::decimate], vmin,vmax, pad,zoomLevel, title, bg, cm='RdBu_r',plotFaults= False,alpha=1)
 
+# decimate=1
+# lons_d = lons_d[::decimate,::decimate]
+# lats_d = lats_d[::decimate,::decimate]
+# velocity_d = velocity_d[::decimate,::decimate]
+# inc_d = inc_d[::decimate,::decimate]
+# az_d = az_d[::decimate,::decimate]
+# lons_a = lons_a[::decimate,::decimate]
+# lats_a = lats_a[::decimate,::decimate]
+# velocity_a = velocity_a[::decimate,::decimate]
+# inc_a = inc_a[::decimate,::decimate]
+# az_a = az_a[::decimate,::decimate]
+
+
 velocity_d_resamp = griddata((lons_d.ravel(),lats_d.ravel()), velocity_d.ravel(), (lons_a,lats_a), method='linear')
 az_d_resamp = griddata((lons_d.ravel(),lats_d.ravel()), az_d.ravel(), (lons_a,lats_a), method='linear')
 inc_d_resamp = griddata((lons_d.ravel(),lats_d.ravel()), inc_d.ravel(), (lons_a,lats_a), method='linear')
@@ -137,34 +150,44 @@ if doBridge:
 # plt.figure();plt.imshow(velocity_d_resamp_trim_msk_filt,vmin=-6,vmax=6)
 # plt.figure();plt.imshow(velocity_d_resamp,vmin=-26,vmax=26)
 
-npix = len(velocity_a.ravel())
-
-smooth  = .4
+ymin,ymax,xmin,xmax = 760,1260,2120,2530
+npix = len(velocity_a[ymin:ymax,xmin:xmax].ravel())
+smooth  = .1
 vertHorVec = np.zeros((npix,2))
 for ii in range(npix):
     if ii%200000 == 0:
         print("\r" + str(100*np.round((ii/npix),2)) + '%', end='', flush=True)
-    asc = velocity_a.ravel()[ii]
-    des = velocity_d.ravel()[ii]
-    psi_a = az_a.ravel()[ii]
-    psi_d = az_d_resamp.ravel()[ii]
-    theta_a = inc_a.ravel()[ii]
-    theta_d = inc_d_resamp.ravel()[ii]
+    asc = velocity_a[ymin:ymax,xmin:xmax].ravel()[ii]
+    des = velocity_d_resamp[ymin:ymax,xmin:xmax].ravel()[ii]
+    psi_a = az_a[ymin:ymax,xmin:xmax].ravel()[ii]
+    psi_d = az_d_resamp[ymin:ymax,xmin:xmax].ravel()[ii]
+    theta_a = inc_a[ymin:ymax,xmin:xmax].ravel()[ii]
+    theta_d = inc_d_resamp[ymin:ymax,xmin:xmax].ravel()[ii]
     vertHorVec[ii,:] = util.invertVertHor(asc,des,psi_a,theta_a,psi_d,theta_d,smooth)
     
-east = vertHorVec[:,0].reshape(velocity_a.shape)
-vert = vertHorVec[:,1].reshape(velocity_a.shape)
+east = vertHorVec[:,0].reshape(velocity_a[ymin:ymax,xmin:xmax].shape)
+vert = vertHorVec[:,1].reshape(velocity_a[ymin:ymax,xmin:xmax].shape)
 
 if not os.path.isdir('Npy'):
     os.mkdir('Npy')
-np.save(ps_d.workdir + '/Npy/vert2.npy',vert)
-np.save(ps_d.workdir + '/Npy/east2.npy',east)
+np.save(ps_d.workdir + '/Npy/vert.npy',vert)
+np.save(ps_d.workdir + '/Npy/east.npy',east)
 
 vert = np.load(ps_d.workdir + '/Npy/vert2.npy')
 east = np.load(ps_d.workdir + '/Npy/east2.npy')
 
 eastm = east.copy()
 vertm = vert.copy()
+
+plt.figure();plt.imshow(maskConnComp_a)
+vertm[temporalCoherence_a[ymin:ymax,xmin:xmax]<.7] = np.nan
+plt.figure();plt.imshow(vertm,cmap='magma',vmin=-12,vmax=0)
+
+
+kernel = Gaussian2DKernel(x_stddev=.6,x_size=11,y_size=11)
+vertm_filt = convolve(vertm, kernel)
+vertm_filt[waterMask_a[ymin:ymax,xmin:xmax]==0] = np.nan
+plt.figure();plt.imshow(np.flipud(vertm_filt),vmin=-12,vmax=0,cmap='magma')
 
 #Mask
 thresh = .7
