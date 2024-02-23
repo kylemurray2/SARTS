@@ -1099,25 +1099,24 @@ def geocode(filename):
         
     geocodeIsce.runGeocode(inpsArgs, inpsArgs.prodlist, inpsArgs.bbox, inpsArgs.demfilename, is_offset_mode=False)
 
-def geocodeKM(img,resolution,lon_ifg,lat_ifg,ps, method='linear'):
+def geocodeKM(img,resolution,lon_ifg,lat_ifg,minlat,minlon,maxlat,maxlon, method='linear'):
     '''
     resolution in meters (pixel)
     
     '''    
     from scipy.interpolate import griddata 
-    import math
     
-    delta_latitude = ps.maxlat-ps.minlat
-    delta_longitude = ps.maxlon-ps.minlon
-    avgLat = (ps.minlat+ps.maxlat)/2
+    delta_latitude = maxlat-minlat
+    delta_longitude = maxlon-minlon
+    avgLat = (minlat+maxlat)/2
     
     lonDist = 1000*delta_longitude * (40000 * np.cos( np.deg2rad(avgLat) ) / 360)
     latDist = 111111 * delta_latitude  
     
     nx = int(lonDist//resolution)
     ny = int(latDist//resolution)
-    xx = np.linspace(ps.minlon,ps.maxlon,nx)
-    yy = np.linspace(ps.minlat,ps.maxlat,ny)
+    xx = np.linspace(minlon,maxlon,nx)
+    yy = np.linspace(minlat,maxlat,ny)
     XX,YY = np.meshgrid(xx,yy)
     
     imgRegrid = griddata((lon_ifg.ravel(),lat_ifg.ravel()), img.ravel(), (XX,YY), method=method)
