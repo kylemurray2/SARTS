@@ -362,8 +362,6 @@ def main(inps):
         
         
         
-        
-        
     if inps.dlSlc_flag:
         # Check for current SLCs and remove any bad ones
         zips = glob.glob(os.path.join(ps.slc_dirname,'*.zip'))
