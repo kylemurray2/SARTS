@@ -184,6 +184,64 @@ def makePSDS(ds_slc1_fn, ds_slc2_fn, slc1_fn, slc2_fn, ps_mask_fn, out_fn):
     return None
 
 
+def link_full_ifgs(dir_name_target,dir_name_source,base_dir,newpairs):
+    '''
+    This is for when you want to make a new network type, and link the available
+    full IFGs from a previous network rather than making them all again.
+    
+    example:
+        dolphinDir = os.path.join(ps.workdir, ps.dolphin_work_dir)     
+        dir_name_target = 'interferograms'
+        dir_name_source = 'interferograms_seq3'
+        link_full_ifgs(dir_name_target,dir_name_source,dolphinDir,ps.pairs)
+    
+    '''
+    
+    dir_target = os.path.join(base_dir,dir_name_target)
+    dir_source = os.path.join(base_dir,dir_name_source)
+    
+    exts = ['.int','.int.xml','.int.vrt']
+    
+    if not os.path.isdir(dir_target):
+        os.mkdir(dir_target)
+    
+    for p in newpairs:
+        pairdir_source = os.path.join(dir_source,p)
+        pairdir_target = os.path.join(dir_target,p)
+        if os.path.isdir(pairdir_source):
+            if not os.path.isdir(pairdir_target):
+                os.mkdir(pairdir_target)
+            for ext in exts:
+                dest =os.path.join(dir_target,p,p+ext)
+                source_rel = os.path.join('../..',dir_name_source,p,p+ext)
+        
+                if not os.path.isdir(dest):
+                    os.symlink(source_rel,dest)
+                else:
+                    print(f'{pairdir_source} Already exists in {dir_name_source}')
+        else:
+            print(f'{pairdir_source} Does not exist.')
+
+
+def mask_ifgs(ps,msk,file_name='filt_lk.int'):
+    # Loop through filt_lk.int and mask out water
+    for pair in ps.pairs:
+        pairDir         =  os.path.join(ps.intdir,pair)
+        f_out   = os.path.join(pairDir,file_name)
+        intImage = isceobj.createIntImage()
+        intImage.load(f_out + '.xml')
+        ifg = intImage.memMap()[:,:,0]
+        ifg = ifg.copy()
+        ifg[msk==0] = 0
+        
+        fidc=open(f_out,"wb")
+        fidc.write(ifg)
+    
+        intImage.dump(f_out + '.xml') # Write out xml
+        intImage.renderHdr()
+        intImage.renderVRT()
+    
+    
 def main(inps):
     ps = config.getPS()
     ps.azlooks      = int(ps.alks)
@@ -215,7 +273,9 @@ def main(inps):
             # integrate PS and DS
             for pair in ps.pairs:
                 out_fn = os.path.join(dolphinDir,'interferograms',pair,pair + '.int')
-
+                
+                
+                
                 if not os.path.isfile(out_fn):
                     print('making ' + pair + ' PSDS ifg...')
                     d1,d2 = pair.split('_')
@@ -308,27 +368,10 @@ def main(inps):
             for pair in ps.pairs:
                 unwrapsnaphu(pair,ps)
             
-            
-    # # link files to sequential1 if that is not the chosen network type
-    # if not inps.nodolphin:
-    #     if ps.networkType != 'sequential1':
-    #         seq1Dir = os.path.join(dolphinDir,'PS_DS','sequential1')
-    #         if not os.path.isdir(seq1Dir):
-    #             os.mkdir(seq1Dir)
-    #         for p in ps.pairs_seq:
-    #             pairdir = os.path.join(ps.outDir,p)
-    #             if os.path.isdir(pairdir):
-    #                 dest =os.path.join(seq1Dir,p)
-    #                 # dest_abs = os.path.abspath(os.path.join(seq1Dir,p))
-    #                 # source =os.path.join(ps.outDir,p)
-    #                 source_rel = os.path.join('..',ps.networkType,p)
 
-    #                 if not os.path.isdir(dest):
-    #                     os.symlink(source_rel,dest)
-    #                 else:
-    #                     print(pairdir + ' Already exists in sequential1')
-    #             else:
-    #                 print(pairdir + ' Does not exist. sequential network is disconnected')
+
+
+
 
 
 if __name__ == '__main__':
