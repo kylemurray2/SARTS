@@ -290,19 +290,33 @@ def fitLong(image,order,mask=None):
     from astropy.convolution import Gaussian2DKernel,convolve
     kernel = Gaussian2DKernel(x_stddev=1) # For smoothing and nan fill
     image = convolve(image,kernel)
-    image[np.isnan(image)] = 0
+    # image[np.isnan(image)] = 0
     if mask:
         image[mask==0] = 0
     ny,nx = image.shape
     X,Y = np.meshgrid(range(nx),range(ny))
     X1,Y1 = X.ravel(),Y.ravel()
+    image_raveled = image.ravel()
+    # Create a mask for valid (non-nan) data points
+    valid_mask = ~np.isnan(image_raveled)
     
-    if order==1: # Plane
-        G  = np.array([np.ones((len(X1),)), X1, Y1]).T
-        Gg = np.dot( np.linalg.inv(np.dot(G.T,G)), G.T)
-        mod   = np.dot(Gg,image.ravel())
+    # Select valid data points
+    X1_valid, Y1_valid = X1[valid_mask], Y1[valid_mask]
+    G_valid = np.array([np.ones(X1_valid.shape), X1_valid, Y1_valid]).T
+    image_valid = image_raveled[valid_mask]
+    
+    if order == 1:  # Plane
+        # Perform the least squares fit on the valid data points only
+        Gg_valid = np.dot(np.linalg.pinv(G_valid.T @ G_valid), G_valid.T)
+        mod = np.dot(Gg_valid, image_valid)
+        
+        # Create synthetic image using the model
+        # Note that we calculate synth using all X1, Y1 points, not just the valid ones
         synth = mod[0] + mod[1] * X1 + mod[2] * Y1
-        synth = synth.reshape(ny,nx)
+        synth = synth.reshape(ny, nx)
+    
+        # Where the original image was nan, set the synthetic image to nan as well
+        synth[np.isnan(image)] = np.nan
             
     if order==2: # Quadratic
         G  = np.array([np.ones((len(X1),)), X1, Y1, X1**2, Y1**2]).T
@@ -1118,8 +1132,10 @@ def geocodeKM(img,resolution,lon_ifg,lat_ifg,minlat,minlon,maxlat,maxlon, method
     xx = np.linspace(minlon,maxlon,nx)
     yy = np.linspace(minlat,maxlat,ny)
     XX,YY = np.meshgrid(xx,yy)
-    
-    imgRegrid = griddata((lon_ifg.ravel(),lat_ifg.ravel()), img.ravel(), (XX,YY), method=method)
+    valid_mask = ~np.isnan(lon_ifg) | ~np.isnan(lat_ifg)
+
+
+    imgRegrid = griddata((lon_ifg[valid_mask].ravel(),lat_ifg[valid_mask].ravel()), img[valid_mask].ravel(), (XX,YY), method=method)
     imgRegrid = np.flipud(imgRegrid)
     
     return imgRegrid
