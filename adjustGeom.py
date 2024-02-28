@@ -161,9 +161,17 @@ def main(inps):
             convert_land_cover(ps.nlcd_in,ps)
     
     # Get the list of geometry files to work on
-    geomList = glob.glob(ps.mergeddir + '/geom_reference/*full')
+    if ps.sat == 'ALOS':       
+        geomList = glob.glob(ps.mergeddir + '/geom_reference/*rdr')
+        slcList = glob.glob(ps.slcdir + '/*/*slc')
+
+
+    else:
+        geomList = glob.glob(ps.mergeddir + '/geom_reference/*full')
+        slcList = glob.glob(ps.slcdir + '/*/*full')
+
+
     geomList = [item for item in geomList if '_lk' not in item]
-    slcList = glob.glob(ps.slcdir + '/*/*full')
     slcList.sort()
     # Get the acquisition dates
     flist = glob.glob( os.path.join(ps.slcdir, '2*'))
@@ -282,6 +290,8 @@ def main(inps):
     # Get width and length
     if ps.sat == 'ALOS':
         f_lon = ps.mergeddir + '/geom_reference/lon.rdr'
+        ref_slc = os.path.join(ps.slcdir, dates[0],dates[0]+'.slc')
+        os.system('gdal2isce_xml.py -i ' + ref_slc)
     else:
         f_lon = ps.mergeddir + '/geom_reference/lon.rdr.full'
         
@@ -480,7 +490,10 @@ def main(inps):
         # Make a waterMask tif for dolhpin
         if not os.path.isfile('dolphin/nodata_mask.tif') or inps.replace:
             if ps.crop:
-                ds = gdal.Open(ps.mergeddir + '/geom_reference/waterMask.rdr.full.crop.vrt')
+                if ps.sat=='ALOS':
+                    ds = gdal.Open(ps.mergeddir + '/geom_reference/waterMask.rdr.crop.vrt')
+                else:
+                    ds = gdal.Open(ps.mergeddir + '/geom_reference/waterMask.rdr.full.crop.vrt') 
             else:
                 ds = gdal.Open(ps.mergeddir + '/geom_reference/waterMask.rdr.full.vrt')
 

@@ -167,6 +167,7 @@ def main(flags):
     # Get the file list using the slc_files string
     base_dir, pattern = ps.slc_files.split('SLC/', 1)
     base_dir = Path(base_dir + 'SLC')  # Reconstruct the base directory Path object
+    print(pattern)
     input_file_list = list(base_dir.glob(pattern))
     input_file_list.sort()
     logger = get_log(debug=False)

@@ -116,12 +116,14 @@ Good example of processing workflow here:
 https://github.com/insarlab/MintPy-tutorial/blob/main/workflows/smallbaselineApp.ipynb  
 
 To process ALOS-1:
-    run get_params_sarts.py with the -a flag
-    modify params.yaml with the path, etc.
-    downloadData.py -sd (don't use orbit flag)
-    use 'prepRawALOS_modified.py -i SLCS -o SLCS' to organize/reformat the files
-    setupStack_alos.py
-    Then follow the normal steps... runISCE.py etc...
+    run get_params_sarts.py with the -a flag  
+    modify params.yaml with the path, polygon, bounds, etc.  
+    downloadData.py -sd -srtm (don't use orbit flag). This downloads the srtm dem   
+    put the path to the .wgs84 dem in params.yaml  
+    use 'prepRawALOS_modified.py -i SLCS -o SLCS' to organize/reformat the files  
+    setupStack_alos.py  
+    Then follow the normal steps... runISCE.py etc...  
+
 
 
 

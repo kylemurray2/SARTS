@@ -134,7 +134,7 @@ def dlOrbs(gran,outdir):
         print('Some orbit files may have not been properly downloaded. Please try again.')
         #sys.exit(1)
 
-def dlSlc(slcUrls, gran,outdir):
+def dlSlc(slcUrls, gran,outdir,sat='S1'):
 
     # Create a list of file path/names
     outNames = []
@@ -164,9 +164,10 @@ def dlSlc(slcUrls, gran,outdir):
             print('Warning: File does not exist ' + fname)
             sys.exit(1)
         else:
-            if os.path.getsize(fname) < 2**30: # If it's smaller than 1 Gb
-                print('Warning: ' + fname + ' is too small. Try again.')
-                sys.exit(1)
+            if sat!='ALOS':
+                if os.path.getsize(fname) < 2**30: # If it's smaller than 1 Gb
+                    print('Warning: ' + fname + ' is too small. Try again.')
+                    sys.exit(1)
 
 def check_aux_cal(dir_path):
     # Check if directory exists
@@ -370,7 +371,7 @@ def main(inps):
             if ps.sat=='SENTINEL-1':
                 flag = setupStack.checkSLC(ps)
 
-        dlSlc(slcUrls, gran, ps.slc_dirname)
+        dlSlc(slcUrls, gran, ps.slc_dirname,ps.sat)
         
         # make sure we have the reference date
         matching_files = [filename for filename in zips if ps.reference_date in filename]
@@ -383,7 +384,7 @@ def main(inps):
             formatted_date_str2 = date_obj2.strftime('%Y-%m-%dT%H:%M:%SZ')
             try:
                 slcUrls, gran, _,_ = asfQuery.getGran(ps.path, formatted_date_str1, formatted_date_str2, ps.sat, ps.bounds, ps.poly)
-                dlSlc(slcUrls, gran, ps.slc_dirname)
+                dlSlc(slcUrls, gran, ps.slc_dirname,ps.sat)
             except:
                 print('failed to find SLC for reference date')
                 sys.exit(1)

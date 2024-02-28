@@ -1,13 +1,7 @@
 #!/usr/bin/env python3
 # David Bekaert
 
-
-import os
-import glob
-import argparse
-import shutil
-import tarfile
-import zipfile
+import argparse, zipfile, sys, shutil, tarfile,zipfile,os,glob
 from stripmapStack import uncompressFile
 
 
@@ -96,6 +90,21 @@ def get_ALOS_ALP_name(infile):
     return outname
 
 
+
+
+def check_and_delete_zip(filename):
+    flag = False
+    try:
+        # Attempt to open the zip file
+        with zipfile.ZipFile(filename, 'r') as zip_ref:
+            print(f"{filename} is a valid zip file and can be opened.")
+    except zipfile.BadZipFile:
+        flag =True
+        # If the file is not a valid zip file, delete it
+        os.remove(filename)
+        print(f"{filename} is not a valid zip file and has been deleted.")
+    return flag
+
 def main(iargs=None):
     '''
     The main driver.
@@ -106,7 +115,19 @@ def main(iargs=None):
     # inps.rmfile = False
     # inps.fbd2fbs = True
     # inps.text_cmd = ''
+    
     inps = cmdLineParse(iargs)
+
+    zipFiles = glob.glob('SLCS/*zip')
+    nbad = 0
+    for z in zipFiles:
+        flag = check_and_delete_zip(z)
+        if flag:
+            nbad+=1
+    
+    if nbad>0:
+        print('Rerun downloadData.py')
+        sys.exit(1)
 
     # filename of the runfile
     run_unPack = 'run_unPackALOS'   
