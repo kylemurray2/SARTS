@@ -5,6 +5,24 @@ import time
 import numpy as np
 from SARTS import util
 
+#from dolphin.unwrap import _tophu 
+# _tophu.multiscale_unwrap(int_file, cor_file, unw_file,(10,10),(20,20),1)
+#       ifg_filename: Filename,
+#       corr_filename: Filename,
+#       unw_filename: Filename,
+#       downsample_factor: tuple[int, int],
+#       ntiles: tuple[int, int],
+#       nlooks: float,
+#       mask_file: Filename | None = None,
+#       zero_where_masked: bool = True,
+#       unwrap_method: UnwrapMethod = UnwrapMethod.SNAPHU,
+#       unwrap_callback=None,  # type is `tophu.UnwrapCallback`
+#       nodata: str | float | None = None,
+#       init_method: str = "mst",
+#       cost: str = "smooth",
+#       scratchdir: Filename | None = None,
+#       log_to_file: bool = True,)
+
 
 def unwrap_snaphu(int_file, cor_file, unw_file, ps):
     '''Unwrap interferograms using SNAPHU via isce2.

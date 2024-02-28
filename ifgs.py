@@ -129,7 +129,25 @@ def downlook(args):
         FilterAndCoherence.estCoherence(filt_file_out, cor_file_out)
     else:
         print(pair + '/' + filt_file_out + ' is already file.')
-              
+  
+
+def unwrapsnaphu_test(pair,ps):  
+    '''
+    unwrap ifgs
+    '''
+    pairDir = os.path.join(ps.intdir, pair )
+
+    if not os.path.isfile( os.path.join( pairDir, 'filt_lk.unw')):
+        print(f"Unwrapping {pair}")
+        cor_file =  os.path.join( pairDir, 'filt_lk.cor')
+        int_file =  os.path.join( pairDir, 'filt_lk.int')
+        unw_file =  os.path.join( pairDir, 'filt_lk2.unw')        
+        unwrap.unwrap_snaphu(int_file, cor_file, unw_file, ps)
+    else:
+        print(f"{pair} is already unwrapped.")
+          
+# unwrapsnaphu_test(ps.pairs[0],ps)
+        
 
 def unwrapsnaphu(args):  
     '''
@@ -363,10 +381,10 @@ def main(inps):
     else:
         if inps.downlook:
             for pair in ps.pairs:
-                downlook(pair,ps)
+                downlook((pair,ps))
         if inps.unwrap:
             for pair in ps.pairs:
-                unwrapsnaphu(pair,ps)
+                unwrapsnaphu((pair,ps))
             
 
 

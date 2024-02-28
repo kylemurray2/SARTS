@@ -303,7 +303,6 @@ def main(inps):
     if ps.crop:
         ny = ps.cropymax-ps.cropymin
         nx = ps.cropxmax-ps.cropxmin
-    
     else:
         ny = gImage.length
         nx = gImage.width
