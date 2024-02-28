@@ -59,7 +59,10 @@ def update_yaml_key(file_path, key, new_value):
 def geo2rdr(ps):
     print('Getting approximate crop bounds from geobbox')
     print('Loading lon.rdr.full and lat.rdr.full')
-    infile = os.path.join(ps.mergeddir,'geom_reference','lon.rdr.full')
+    if ps.sat=='ALOS':
+        infile = os.path.join(ps.mergeddir,'geom_reference','lon.rdr')
+    else:
+        infile= os.path.join(ps.mergeddir,'geom_reference','lon.rdr.full')
     imgi = isceobj.createImage()
     imgi.load(infile+'.xml')
     lon_full = imgi.memMap().copy()
@@ -67,14 +70,18 @@ def geo2rdr(ps):
     lon_full = np.squeeze(lon_full)
     lon_full[lon_full==0] = np.nan
     
-    infile = os.path.join(ps.mergeddir,'geom_reference','lat.rdr.full')
+    if ps.sat=='ALOS':
+        infile = os.path.join(ps.mergeddir,'geom_reference','lat.rdr')
+    else:
+        infile= os.path.join(ps.mergeddir,'geom_reference','lat.rdr.full')
+    
     imgi = isceobj.createImage()
     imgi.load(infile+'.xml')
     lat_full = imgi.memMap().copy()
     lat_full = lat_full.astype(float)  # Convert to float
     lat_full = np.squeeze(lat_full)
     lat_full[lat_full==0] = np.nan
-    
+    print(ps.geobbox)
     latmin,latmax,lonmin,lonmax = ps.geobbox
     y_ll,x_ll = util.ll2pixel(lon_full,lat_full,lonmin,latmin)
     y_lr,x_lr = util.ll2pixel(lon_full,lat_full,lonmax,latmin)
