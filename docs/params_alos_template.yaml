@@ -58,7 +58,7 @@ cropymin : 0
 cropymax : 0
 cropxmin : 0
 cropxmax : 0
-geobbox  : # Optional crop based on lat/lon coordinates ('S,N,W,E')
+geobbox  : # Optional crop based on lat/lon coordinates [S,N,W,E]
 networkType : maxbandwidth # maxbandwidth, delaunay, 
 bandwidth : 2 # only if networkType is 'maxbandwidth'
 waterMask : True
@@ -67,8 +67,8 @@ nlcd_in   : /d/HI/Landcover/data/hi_maui_2010_ccap_hr_land_cover_20150213.img  #
 
 #__________________________________________________________________________
 # ifgs.py_________________________________________________________________
-alks : 1 # number of looks in azimuth (S1 pixel spacing is ~14.1 m)
-rlks : 4 # number of looks in range  (S1 pixel spacing is ~2.3 m).  ~6X alks
+alks : 8 # number of looks in azimuth (S1 pixel spacing is ~14.1 m)
+rlks : 2 # number of looks in range  (S1 pixel spacing is ~2.3 m).  ~6X alks
 filterStrength: .2
 # snaphu
 init_method : MCF
@@ -85,7 +85,7 @@ maxMem    : 80000
 cslc_date_fmt : '%Y%m%d'
 dolphin_work_dir: dolphin # name of the dolphin directory without full path
 nodata_mask_file : dolphin/nodata_mask.tif # Mask file used to ignore low correlation/bad data (e.g water mask). Convention is 0 for no data/invalid, and 1 for good data. Dtype must be uint8.
-slc_files : merged/SLC/*/*.slc.full.crop.vrt # Give relative path with wild cards to the vrt files
+slc_files : merged/SLC/*/*.slc.crop.vrt # Give relative path with wild cards to the vrt files
 keep_paths_relative: false
 gpu_enabled: true
 n_workers: 20  # (For non-GPU) Number of cpu cores to use for Python multiprocessing. Uses `multiprocessing.cpu_count()` if not set.

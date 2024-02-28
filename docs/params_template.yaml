@@ -50,7 +50,7 @@ cropymin : 0
 cropymax : 0
 cropxmin : 0
 cropxmax : 0
-geobbox  : # Optional crop based on lat/lon coordinates ('S,N,W,E')
+geobbox  : # Optional crop based on lat/lon coordinates [S,N,W,E]
 networkType : maxbandwidth # maxbandwidth, delaunay, 
 bandwidth : 2 # only if networkType is 'maxbandwidth'
 waterMask : True
