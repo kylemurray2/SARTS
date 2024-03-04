@@ -21,7 +21,7 @@ from isce.components import isceobj
 import FilterAndCoherence
 import integratePS
 import multiprocessing
-from SARTS import unwrap, config
+from SARTS import unwrap, config, filter_ifg
 import argparse
 from osgeo import gdal
 import numpy as np
@@ -38,6 +38,7 @@ def cmdLineParser():
     parser.add_argument('-m', '--make-ifgs', action='store_true', dest='makeIfgs',help='Make the interferograms')
     parser.add_argument('-n', '--nproc', type=int, dest='num_processes', default=3, help='Number of parallel processes. Use 1 for no parallelization')
     parser.add_argument('-f', '--nodolphin', action='store_true', dest='nodolphin', help='Use this flag if you are not using dolphin psds.')
+    parser.add_argument('-q', '--filt_full', action='store_true', dest='filt_full', help='Filter the full res ifg')
 
     return parser.parse_args()
 
@@ -101,7 +102,11 @@ def downlook(args):
     '''
     pair, ps = args
     pairDir         = os.path.join(ps.intdir, pair )
-    ps.infile       = os.path.join(pairDir, f"{pair}.int")
+    if inps.filt_full:
+        print('using filtered int')
+        ps.infile       = os.path.join(pairDir, f"{pair}_filt.int")
+    else:
+        ps.infile       = os.path.join(pairDir, f"{pair}.int")
     ps.outfile      = os.path.join(pairDir, 'fine_lk.int')
     cor_file_out    = os.path.join(pairDir, 'filt_lk.cor')
     filt_file_out   = os.path.join(pairDir, 'filt_lk.int')
@@ -167,11 +172,11 @@ def unwrapsnaphu(args):
 
 
 def makePSDS(ds_slc1_fn, ds_slc2_fn, slc1_fn, slc2_fn, ps_mask_fn, out_fn):
-    ds1 = gdal.Open(slc1_fn)
-    ds2 = gdal.Open(slc2_fn)
-    slc1 = ds1.GetVirtualMemArray()
-    slc2 = ds2.GetVirtualMemArray()
-    ifg_raw = np.multiply(slc1,np.conj(slc2))
+    # ds1 = gdal.Open(slc1_fn)
+    # ds2 = gdal.Open(slc2_fn)
+    # slc1 = ds1.GetVirtualMemArray()
+    # slc2 = ds2.GetVirtualMemArray()
+    # ifg_raw = np.multiply(slc1,np.conj(slc2))
     # del(slc1,slc2)
     
     ds1 = gdal.Open(ds_slc1_fn)
@@ -181,11 +186,11 @@ def makePSDS(ds_slc1_fn, ds_slc2_fn, slc1_fn, slc2_fn, ps_mask_fn, out_fn):
     ifg_ds_ps = np.multiply(ds_slc1,np.conj(ds_slc2))
     # del(ds_slc1,ds_slc2)
     
-    ds = gdal.Open(ps_mask_fn)
-    psPixels = ds.GetVirtualMemArray()
+    # ds = gdal.Open(ps_mask_fn)
+    # psPixels = ds.GetVirtualMemArray()
 
     # get the data for PS pixels
-    ifg_ds_ps[psPixels == 1] = ifg_raw[psPixels == 1]
+    # ifg_ds_ps[psPixels == 1] = ifg_raw[psPixels == 1]
 
     out = isceobj.createIntImage() # Copy the interferogram image from before
     out.dataType = 'CFLOAT'
@@ -243,6 +248,10 @@ def link_full_ifgs(dir_name_target,dir_name_source,base_dir,newpairs):
 
 def mask_ifgs(ps,msk,file_name='filt_lk.int'):
     # Loop through filt_lk.int and mask out water
+    ds = gdal.Open('merged/geom_reference/waterMask_lk.rdr.vrt')
+    msk = ds.GetVirtualMemArray()
+    
+    
     for pair in ps.pairs:
         pairDir         =  os.path.join(ps.intdir,pair)
         f_out   = os.path.join(pairDir,file_name)
@@ -258,8 +267,81 @@ def mask_ifgs(ps,msk,file_name='filt_lk.int'):
         intImage.dump(f_out + '.xml') # Write out xml
         intImage.renderHdr()
         intImage.renderVRT()
+
+def filt_full_ifgs(args):
     
+    pair, ps = args
+    pairDir         =  os.path.join(ps.intdir,pair)
+    f_in   = os.path.join(pairDir,pair +'.int')
+    f_out   = os.path.join(pairDir,pair +'_filt.int')
+    if not os.path.isfile(f_out):
+        intImage = isceobj.createIntImage()
+        intImage.load(f_in + '.xml')
     
+        ifg = intImage.memMap()[:,:,0]
+        ifg = ifg.copy()
+        real = np.real(ifg)
+        imag = np.imag(ifg)
+        realf = filter_ifg.gamma_map_filter(real, kernel_size=7, cu=0.4)
+        imagf = filter_ifg.gamma_map_filter(imag, kernel_size=7, cu=0.4)
+        ifgf    = realf + 1j * imagf
+        
+        intOut = intImage.clone()
+        intOut.filename = f_out
+        fidc=open(f_out,"wb")
+        fidc.write(ifgf)
+    
+        intOut.dump(f_out + '.xml') # Write out xml
+        intOut.renderHdr()
+        intOut.renderVRT()
+    
+def make_ifgs_dolphin(args):
+
+    pair, ps = args
+    # integrate PS and DS
+    out_fn = os.path.join(ps.dolphinDir,'interferograms',pair,pair + '.int')
+    if not os.path.isfile(out_fn):
+        print('making ' + pair + ' PSDS ifg...')
+        d1,d2 = pair.split('_')
+        if ps.crop:
+            slc1_fn = os.path.join('merged','SLC',d1,d1+'.slc.full.crop.vrt')
+            slc2_fn = os.path.join('merged','SLC',d2,d2+'.slc.full.crop.vrt')
+        else:
+            slc1_fn = os.path.join('merged','SLC',d1,d1+'.slc.full.vrt')
+            slc2_fn = os.path.join('merged','SLC',d2,d2+'.slc.full.vrt')
+
+        ds_slc1_fn = os.path.join(ps.dolphinDir,'linked_phase',d1+'.slc.tif')
+        ds_slc2_fn = os.path.join(ps.dolphinDir,'linked_phase',d2+'.slc.tif')
+        ps_mask_fn = os.path.join(ps.dolphinDir,'PS','ps_pixels.tif')
+        if not os.path.isdir(os.path.join(ps.dolphinDir,'interferograms',pair)):
+            os.makedirs(os.path.join(ps.dolphinDir,'interferograms',pair))
+        makePSDS(ds_slc1_fn, ds_slc2_fn, slc1_fn, slc2_fn, ps_mask_fn, out_fn)
+    else:
+        print(pair + ' PSDS already exists.. skipping')
+    # Filter full res if specified
+
+            
+def make_ifgs(args):
+    pair, ps = args
+    d1 = pair.split('_')[0]
+    d2 = pair.split('_')[1]
+    if ps.crop:
+        slc1_fn = os.path.join(ps.slcdir,d1,d1+'.slc.full.crop.vrt')
+        slc2_fn = os.path.join(ps.slcdir,d2,d2+'.slc.full.crop.vrt')
+    else:
+        slc1_fn = os.path.join(ps.slcdir,d1,d1+'.slc.full.vrt')
+        slc2_fn = os.path.join(ps.slcdir,d2,d2+'.slc.full.vrt') 
+
+    pair = d1 + '_' + d2
+    print('creating ' + pair + '.int')
+    ifg_fn = os.path.join(ps.intdir,pair,pair+'.int')
+    if not os.path.isfile(ifg_fn):
+        if not os.path.isdir(os.path.join(ps.intdir,pair)):
+            os.makedirs(os.path.join(ps.intdir,pair))
+        makeIfg(slc1_fn,slc2_fn,ifg_fn,ps)
+    else:
+        print(ifg_fn + ' already exists')
+
 def main(inps):
     ps = config.getPS()
     ps.azlooks      = int(ps.alks)
@@ -267,12 +349,12 @@ def main(inps):
     ps.coregSlcDir    = './merged/SLC'
     ps.unwrapMethod   = None
     
-    dolphinDir = os.path.join(ps.workdir, ps.dolphin_work_dir)
+    ps.dolphinDir = os.path.join(ps.workdir, ps.dolphin_work_dir)
 
     if inps.nodolphin:
         ps.intdir  = os.path.join( ps.mergeddir, 'interferograms')
     else:
-        ps.intdir  = os.path.join( dolphinDir, 'interferograms')
+        ps.intdir  = os.path.join( ps.dolphinDir, 'interferograms')
         
 
     pix_spacing_range = round(2.3 * ps.rlks,2)
@@ -282,65 +364,6 @@ def main(inps):
     print(f'Rg looks is set to {ps.rlks}')
     print(f'Rg pixel spacing will be ~{pix_spacing_range} m')
 
-
-    #__Make IFGS____________________
-    if not inps.nodolphin:
-        # Make ifgs with dolphin
-        print('Using PS_DS slcs')
-        if inps.makeIfgs:
-            # integrate PS and DS
-            for pair in ps.pairs:
-                out_fn = os.path.join(dolphinDir,'interferograms',pair,pair + '.int')
-                
-                
-                
-                if not os.path.isfile(out_fn):
-                    print('making ' + pair + ' PSDS ifg...')
-                    d1,d2 = pair.split('_')
-                    if ps.crop:
-                        slc1_fn = os.path.join('merged','SLC',d1,d1+'.slc.full.crop.vrt')
-                        slc2_fn = os.path.join('merged','SLC',d2,d2+'.slc.full.crop.vrt')
-                    else:
-                        slc1_fn = os.path.join('merged','SLC',d1,d1+'.slc.full.vrt')
-                        slc2_fn = os.path.join('merged','SLC',d2,d2+'.slc.full.vrt')
-
-                    ds_slc1_fn = os.path.join(dolphinDir,'linked_phase',d1+'.slc.tif')
-                    ds_slc2_fn = os.path.join(dolphinDir,'linked_phase',d2+'.slc.tif')
-                    ps_mask_fn = os.path.join(dolphinDir,'PS','ps_pixels.tif')
-                    if not os.path.isdir(os.path.join(dolphinDir,'interferograms',pair)):
-                        os.makedirs(os.path.join(dolphinDir,'interferograms',pair))
-                    makePSDS(ds_slc1_fn, ds_slc2_fn, slc1_fn, slc2_fn, ps_mask_fn, out_fn)
-                else:
-                    print(pair + ' PSDS already exists.. skipping')
-    else:
-        # Make ifgs without dolphin PSDS
-        print('Using original slcs because nodolphin flag is set')
-        print(ps.intdir)
-        if inps.makeIfgs:
-
-            if not os.path.isdir(ps.intdir):
-                print('Making merged/interferograms directory')
-                os.makedirs(ps.intdir)
-    
-            for pair in ps.pairs:
-                d1 = pair.split('_')[0]
-                d2 = pair.split('_')[1]
-                if ps.crop:
-                    slc1_fn = os.path.join(ps.slcdir,d1,d1+'.slc.full.crop.vrt')
-                    slc2_fn = os.path.join(ps.slcdir,d2,d2+'.slc.full.crop.vrt')
-                else:
-                    slc1_fn = os.path.join(ps.slcdir,d1,d1+'.slc.full.vrt')
-                    slc2_fn = os.path.join(ps.slcdir,d2,d2+'.slc.full.vrt') 
-
-                pair = d1 + '_' + d2
-                print('creating ' + pair + '.int')
-                ifg_fn = os.path.join(ps.intdir,pair,pair+'.int')
-                if not os.path.isfile(ifg_fn):
-                    if not os.path.isdir(os.path.join(ps.intdir,pair)):
-                        os.makedirs(os.path.join(ps.intdir,pair))
-                    makeIfg(slc1_fn,slc2_fn,ifg_fn,ps)
-                else:
-                    print(ifg_fn + ' already exists')
     #______________________
     # #organize the ifgs into pairs directories inside the ps.networkType dir
     # if not os.path.isdir( os.path.join(ps.intdir,ps.networkType)):
@@ -364,8 +387,35 @@ def main(inps):
     
     args_list = [(pair, ps) for pair in ps.pairs]
 
-    
     if inps.num_processes>1:
+        #__Make IFGS____________________
+
+        if inps.makeIfgs:
+            if not inps.nodolphin:
+                print('Using PS_DS slcs')
+                pool = multiprocessing.Pool(processes=inps.num_processes)
+                pool.map(make_ifgs_dolphin, args_list)
+                pool.close()
+                pool.join()
+                
+            else:
+                print('Using original slcs because nodolphin flag is set')
+                print(ps.intdir)
+                if not os.path.isdir(ps.intdir):
+                    print('Making merged/interferograms directory')
+                    os.makedirs(ps.intdir)
+                pool = multiprocessing.Pool(processes=inps.num_processes)
+                pool.map(make_ifgs, args_list)
+                pool.close()
+                pool.join() 
+                
+        if inps.filt_full:
+            print('filtering full res ifgs')
+            pool = multiprocessing.Pool(processes=inps.num_processes)
+            pool.map(filt_full_ifgs, args_list)
+            pool.close()
+            pool.join()  
+                
         if inps.downlook:
             pool = multiprocessing.Pool(processes=inps.num_processes)
             pool.map(downlook, args_list)
@@ -385,11 +435,6 @@ def main(inps):
         if inps.unwrap:
             for pair in ps.pairs:
                 unwrapsnaphu((pair,ps))
-            
-
-
-
-
 
 
 if __name__ == '__main__':
