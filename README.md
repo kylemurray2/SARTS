@@ -82,7 +82,7 @@ Workflow:
 
     To rerun or run any specific step, these are the options:   
 
-Run Fringe sequential estimator with phase linking  
+    Run sequential estimator with phase linking  
 
     options:  
     -h, --help           show this help message and exit  
