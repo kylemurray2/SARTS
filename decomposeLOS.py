@@ -54,11 +54,11 @@ inc_d       = np.asarray(ds['incidenceAngle'])
 waterMask_d = np.asarray(ds['waterMask'])
 ds.close()
 
-# #Land cover
-# filename = os.path.join(ascDir, 'merged/geom_reference/landCover_lk.rdr.vrt')
-# ds = gdal.Open(filename)   
-# lc = ds.GetVirtualMemArray()
-# plt.figure();plt.imshow(lc,cmap='jet')
+#Land cover
+filename = os.path.join(ascDir, 'merged/geom_reference/landCover_lk.rdr.vrt')
+ds = gdal.Open(filename)   
+lc = ds.GetVirtualMemArray()
+plt.figure();plt.imshow(lc,cmap='jet')
 
 # avgSpatialCoh
 filename = os.path.join(mpdir_a, 'avgSpatialCoh.h5')
@@ -86,6 +86,7 @@ ds.close()
 filename = os.path.join(mpdir_a, 'velocity.h5')
 ds = h5py.File(filename,'r+')   
 velocity_a = np.asarray(ds['velocity']) *1000 #convert to mm
+velocity_a_std = np.asarray(ds['velocityStd']) *1000 #convert to mm
 ds.close()
 filename    = os.path.join(mpdir_d, 'velocity.h5')
 ds          = h5py.File(filename,'r+')   
@@ -173,8 +174,8 @@ if not os.path.isdir('Npy'):
 np.save(ps_d.workdir + '/Npy/vert.npy',vert)
 np.save(ps_d.workdir + '/Npy/east.npy',east)
 
-vert = np.load(ps_d.workdir + '/Npy/vert2.npy')
-east = np.load(ps_d.workdir + '/Npy/east2.npy')
+vert = np.load(ps_d.workdir + '/Npy/vert.npy')
+east = np.load(ps_d.workdir + '/Npy/east.npy')
 
 eastm = east.copy()
 vertm = vert.copy()
@@ -218,7 +219,11 @@ plt.figure()
 plt.imshow(msk_sum,cmap='magma');plt.title('mask sum')
 
 msk = np.ones(vert.shape)
-msk[msk_sum<3] = 0
+msk[temporalCoherence_a<.7] = 0
+msk[msk_veg<1] = 0
+
+vert[msk == 0] = np.nan
+plt.figure();plt.imshow(vert)
 
 vmin,vmax = -20,20
 

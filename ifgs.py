@@ -275,8 +275,15 @@ def main(inps):
         ps.intdir  = os.path.join( dolphinDir, 'interferograms')
         
 
-    pix_spacing_range = round(2.3 * ps.rlks,2)
-    pix_spacing_az = round(14.1 * ps.alks,2)
+    if ps.sat=='SENTINEL-1':
+        print('ALOS data')
+        pix_spacing_range = round(2.3 * ps.rlks,2)
+        pix_spacing_az = round(14.1 * ps.alks,2)
+    else:
+        print('ALOS data')
+        pix_spacing_range = round(9.7 * ps.rlks,2)
+        pix_spacing_az = round(3.1 * ps.alks,2)
+        
     print(f'Az looks is set to {ps.alks}')
     print(f'Az pixel spacing will be ~{pix_spacing_az} m')
     print(f'Rg looks is set to {ps.rlks}')
@@ -297,12 +304,13 @@ def main(inps):
                 if not os.path.isfile(out_fn):
                     print('making ' + pair + ' PSDS ifg...')
                     d1,d2 = pair.split('_')
-                    if ps.crop:
-                        slc1_fn = os.path.join('merged','SLC',d1,d1+'.slc.full.crop.vrt')
-                        slc2_fn = os.path.join('merged','SLC',d2,d2+'.slc.full.crop.vrt')
-                    else:
-                        slc1_fn = os.path.join('merged','SLC',d1,d1+'.slc.full.vrt')
-                        slc2_fn = os.path.join('merged','SLC',d2,d2+'.slc.full.vrt')
+
+                    suffix = '.slc.crop.vrt' if ps.crop else '.slc.vrt'
+                    if ps.sat != 'ALOS':
+                        suffix = '.slc.full' + suffix
+                    # Construct the file names
+                    slc1_fn = os.path.join('merged', 'SLC', d1, d1 + suffix)
+                    slc2_fn = os.path.join('merged', 'SLC', d2, d2 + suffix)
 
                     ds_slc1_fn = os.path.join(dolphinDir,'linked_phase',d1+'.slc.tif')
                     ds_slc2_fn = os.path.join(dolphinDir,'linked_phase',d2+'.slc.tif')
@@ -325,12 +333,13 @@ def main(inps):
             for pair in ps.pairs:
                 d1 = pair.split('_')[0]
                 d2 = pair.split('_')[1]
-                if ps.crop:
-                    slc1_fn = os.path.join(ps.slcdir,d1,d1+'.slc.full.crop.vrt')
-                    slc2_fn = os.path.join(ps.slcdir,d2,d2+'.slc.full.crop.vrt')
-                else:
-                    slc1_fn = os.path.join(ps.slcdir,d1,d1+'.slc.full.vrt')
-                    slc2_fn = os.path.join(ps.slcdir,d2,d2+'.slc.full.vrt') 
+
+                suffix = '.slc.crop.vrt' if ps.crop else '.slc.vrt'
+                if ps.sat != 'ALOS':
+                    suffix = '.slc.full' + suffix
+                # Construct the file names
+                slc1_fn = os.path.join(ps.slcdir,d1, d1 + suffix)
+                slc2_fn = os.path.join(ps.slcdir,d2, d2 + suffix)
 
                 pair = d1 + '_' + d2
                 print('creating ' + pair + '.int')
