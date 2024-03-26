@@ -219,8 +219,6 @@ def improfile(z, x0, y0, x1, y1):
     zi = z[y.astype(int), x.astype(int)]
     return zi
 
-
-
 def ll2pixel(lon_ifg, lat_ifg, lon, lat):
     """
     Output the pixels (radar coords) given the lat/lon matrices and lat/lon points.
@@ -1113,12 +1111,17 @@ def geocode(filename):
         
     geocodeIsce.runGeocode(inpsArgs, inpsArgs.prodlist, inpsArgs.bbox, inpsArgs.demfilename, is_offset_mode=False)
 
-def geocodeKM(img,resolution,lon_ifg,lat_ifg,minlat,minlon,maxlat,maxlon, method='linear'):
+def geocodeKM(img,resolution,lon_ifg,lat_ifg, method='linear'):
     '''
     resolution in meters (pixel)
     
     '''    
     from scipy.interpolate import griddata 
+    
+    minlat = lat_ifg.min()
+    minlon = lon_ifg.min()
+    maxlat = lat_ifg.max()
+    maxlon = lon_ifg.max()
     
     delta_latitude = maxlat-minlat
     delta_longitude = maxlon-minlon
@@ -1138,7 +1141,7 @@ def geocodeKM(img,resolution,lon_ifg,lat_ifg,minlat,minlon,maxlat,maxlon, method
     imgRegrid = griddata((lon_ifg[valid_mask].ravel(),lat_ifg[valid_mask].ravel()), img[valid_mask].ravel(), (XX,YY), method=method)
     imgRegrid = np.flipud(imgRegrid)
     
-    return imgRegrid
+    return imgRegrid,XX,YY
 
 def rad2cm(input_vec,wavelength=.056,output='cm'):
     '''

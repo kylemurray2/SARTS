@@ -18,7 +18,7 @@ def cmdLineParser():
     Command line parser.
     '''
     parser = argparse.ArgumentParser(
-        description='Crop and downlook geom files. Save parameters',
+        description='Setup a mintpy directory with inps.cfg file',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-d', '--mpDir', type=str, dest='mpDir', default='MintPy', help='MintPy Director name')
 
@@ -118,6 +118,12 @@ def main(inps):
     variable_name = 'mintpy.network.aoiYX'
     new_value = f'{y1}:{y2}, {x1}:{x2}' 
     update_cfg_variable(inps_fn, variable_name, new_value)
+    update_cfg_variable(inps_fn, 'mintpy.reference.yx', f'{ y1+ ((y2-y1)//2)   },{x1+((x2-x1)//2)}')
+
+    if ps.sat=='ALOS':
+        new_metaFile = f'../merged/SLC/{ps.dates[0]}/referenceShelve/data.dat' 
+        update_cfg_variable(inps_fn, 'mintpy.load.metaFile', new_metaFile)
+
 
 
 if __name__ == '__main__':

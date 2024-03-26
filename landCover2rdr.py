@@ -31,8 +31,8 @@ def cmdLineParser():
 
 
 def convert_land_cover(fileName,ps, plot_flag=False):
-    if not os.path.isdir('./Fringe'):
-        os.mkdir('./Fringe')
+    if not os.path.isdir('./dolphin'):
+        os.mkdir('./dolphin')
     
     if ps.sat == 'ALOS':
         latFile = './merged/geom_reference/lat.rdr'
@@ -77,10 +77,6 @@ def convert_land_cover(fileName,ps, plot_flag=False):
     croppedim.initImage(rdr_outfile, 'read', cropped.shape[1], 'BYTE')
     croppedim.renderHdr()
     
-
-    
-
-
     
     waterMask = np.zeros(cropped.shape, dtype=np.uint8)
     
@@ -112,17 +108,6 @@ def convert_land_cover(fileName,ps, plot_flag=False):
     im2.renderVRT()
     waterMask.tofile(outName)
     im2.finalizeImage()
-
-
-
-    # lc_fn = './Fringe/LCimage.vrt'
-    # os.system('rm ' + lc_fn)
-    # atr = {
-    #     'WIDTH': LCimage.shape[1],
-    #     'LENGTH': LCimage.shape[0],
-    #     'FILE_TYPE': 'landCover'
-    # }
-    # writefile.write(LCimage, out_file=lc_fn, metadata=atr)
     
     
 if __name__ == '__main__':

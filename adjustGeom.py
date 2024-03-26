@@ -244,18 +244,36 @@ def main(inps):
         # print(pair)
     print(str(len(networkObj.pairsDates)) + ' pairs')
 
+
+    def is_leap_year(year):
+        return (year % 4 == 0 and year % 100 != 0) or year % 400 == 0
     dec_year = []
     dn = []
     for d in networkObj.dateList:
-        yr = d[0:4]
-        mo = d[4:6]
-        day = d[6:8]
-        dt = date.toordinal(date(int(yr), int(mo), int(day)))
+        yr, mo, day = int(d[0:4]), int(d[4:6]), int(d[6:8])
+        
+        # Convert to date object and get ordinal
+        current_date = date(yr, mo, day)
+        dt = current_date.toordinal()
+        
+        # Ordinal of the first day of the year
+        d0 = date(yr, 1, 1).toordinal()
+        
+        # Calculate day of the year
+        doy = dt - d0 + 1
+        
+        # Determine if it's a leap year
+        is_leap = is_leap_year(yr)
+        
+        # Adjust the divisor for leap years
+        days_in_year = 366 if is_leap else 365
+        
+        # Calculate decimal year
+        dec_year.append(yr + (doy - 1) / days_in_year)
         dn.append(dt)
-        dt = date.toordinal(date(int(yr), int(mo), int(day)))
-        d0 = date.toordinal(date(int(yr), 1, 1))
-        doy = np.asarray(dt)-d0+1
-        dec_year.append(float(yr) + (doy/365.25))
+    
+    # If needed, convert dec_year to a NumPy array
+    dec_year = np.array(dec_year)
     dn = np.asarray(dn)
     dn0 = dn-dn[0] # make relative to first date
     
