@@ -1160,9 +1160,9 @@ def rad2cm(input_vec,wavelength=.056,output='cm'):
         factor=1
     if output=='cm':
         factor=100
-    if output=='cm':
+    if output=='mm':
         factor=1000
-    output_cm = input_vec*0.056/(4*np.pi)*factor
+    output_cm = (input_vec*0.056/(4*np.pi))*factor
     
     return output_cm
 
@@ -1274,3 +1274,61 @@ def update_yaml_key(file_path, key, new_value):
                 line = f"{match.group(1)}{new_value}\n"
             f.write(line)
             
+            
+def date_string_2_dec_year(date_strings):
+    '''
+    date_strings: array of 'YYYYMMDD'
+    '''
+    from datetime import date
+
+    def is_leap_year(year):
+        return (year % 4 == 0 and year % 100 != 0) or year % 400 == 0
+    dec_year = []
+    for d in date_strings:
+        yr, mo, day = int(d[0:4]), int(d[4:6]), int(d[6:8])
+        current_date = date(yr, mo, day)
+        dt = current_date.toordinal()
+        d0 = date(yr, 1, 1).toordinal()
+        doy = dt - d0 + 1
+        is_leap = is_leap_year(yr)
+        days_in_year = 366 if is_leap else 365
+        dec_year.append(yr + (doy - 1) / days_in_year)
+    
+    # If needed, convert dec_year to a NumPy array
+    dec_year = np.array(dec_year)
+    return dec_year
+
+
+def invert_ifgs(unw_stack,pairs,dates):
+    '''
+    unw_stack: (nifgs,ny,nx)
+    pairs: array of 'YYYYMMDD_YYYYMMDD'
+    dates: array of 'YYYYMMDD'
+    returns time series of displacements : array (ndates,ny,nx)
+    '''
+    
+    # Make G matrix for dates inversion
+    G = np.zeros((len(pairs)+1,len(dates)))# extra row of zeros to make first date zero for reference
+    for ii,pair in enumerate(pairs):
+        a = dates.index(pair[0:8])
+        b = dates.index(pair[9:17])
+        G[ii,a] = 1
+        G[ii,b] = -1
+    G[-1,0]=1
+    Gg = np.dot( np.linalg.inv(np.dot(G.T,G)), G.T)
+    
+    nxl = unw_stack.shape[2]
+    nyl = unw_stack.shape[1]
+    
+    # Do dates inversion
+    ts_full = np.zeros((len(dates),nxl*nyl))
+    for ii in np.arange(0,nyl-1): #iterate through rows
+        tmp = np.zeros((len(pairs)+1,nxl))
+        for jj,pair in enumerate(pairs): #loop through each ifg and append to alld 
+            tmp[jj,:] = unw_stack[jj,ii,:]
+        ts_full[:,ii*nxl:nxl*ii+nxl] = np.dot(Gg, tmp)
+    
+    ts_full = ts_full.reshape(len(dates),nyl,nxl)
+    ts_full = rad2cm(ts_full,wavelength=.056,output='cm')
+    print('converted to cm')
+    return ts_full
