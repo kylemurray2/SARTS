@@ -245,7 +245,7 @@ def ll2pixel(lon_ifg, lat_ifg, lon, lat):
     
 
 # phase elevation model
-def phaseElev(img, hgt,msk, ymin, ymax, xmin, xmax,makePlot=False):
+def phaseElev(img, hgt,msk, ymin, ymax, xmin, xmax,makePlot=True):
     '''
     Take the ifg or rate map and the dem and mask and outputs phs/elev dependence.
     Use ymin, xmin, etc. if you want to only use a subset of the image.
@@ -266,14 +266,17 @@ def phaseElev(img, hgt,msk, ymin, ymax, xmin, xmax,makePlot=False):
     phs_model = moda[0] * hgt.ravel() + moda[1]
     phs_model = phs_model.reshape(img.shape)
     
+    elevs = np.arange(z.min(),z.max(),10)
+    bestLine =elevs*moda[0] + moda[1]
+    
     if makePlot:
         from matplotlib import pyplot as plt
-        plt.figure();plt.scatter(z.ravel(),p.ravel(),.1)
-        # plt.plot(z.ravel(),phs_model.ravel())
+        plt.figure();plt.scatter(z.ravel(),p.ravel(),.1,color='black')
+        plt.plot(elevs,bestLine,color='red')
 
         plt.title('Phase-elevation dependence')
         plt.xlabel('Elevation (m)')
-        plt.ylabel('Phase (rad)')
+        plt.ylabel('Displacement (input units)')
     
     return phs_model
 
@@ -284,13 +287,14 @@ def px2ll(x, y, lon_ifgm,lat_ifgm):
     return lon,lat
 
 
-def fitLong(image,order,mask=None):
+def fitLong(image,order,mask):
     from astropy.convolution import Gaussian2DKernel,convolve
     kernel = Gaussian2DKernel(x_stddev=1) # For smoothing and nan fill
     image = convolve(image,kernel)
     # image[np.isnan(image)] = 0
-    if mask:
-        image[mask==0] = 0
+
+    image[~mask] = np.nan
+    
     ny,nx = image.shape
     X,Y = np.meshgrid(range(nx),range(ny))
     X1,Y1 = X.ravel(),Y.ravel()
@@ -314,12 +318,12 @@ def fitLong(image,order,mask=None):
         synth = synth.reshape(ny, nx)
     
         # Where the original image was nan, set the synthetic image to nan as well
-        synth[np.isnan(image)] = np.nan
+        # synth[np.isnan(image)] = np.nan
             
     if order==2: # Quadratic
-        G  = np.array([np.ones((len(X1),)), X1, Y1, X1**2, Y1**2]).T
-        Gg = np.dot( np.linalg.inv(np.dot(G.T,G)), G.T)
-        mod   = np.dot(Gg,image.ravel())
+        G_valid = np.array([np.ones(X1_valid.shape), X1_valid, Y1_valid,X1_valid**2, Y1_valid**2]).T
+        Gg_valid = np.dot(np.linalg.pinv(G_valid.T @ G_valid), G_valid.T)
+        mod   = np.dot(Gg_valid,image_valid)
         synth = mod[0] + mod[1] * X1 + mod[2] * Y1 + mod[3] * X1**2 + mod[4] * Y1**2 
         synth = synth.reshape(ny,nx)
 

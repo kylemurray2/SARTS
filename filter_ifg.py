@@ -97,8 +97,10 @@ def wavelet_denoise_phase_with_levels(image, wavelet='db4', max_level=None, thre
         
         # Reconstruct the image from the modified coefficients
         level_image = pywt.waverec2(temp_coeffs, wavelet)
-        denoised_images.append(level_image)
-    
+        # Trim the image to the original dimensions
+        level_image = level_image[:image.shape[0], :image.shape[1]]
+        
+        denoised_images.append(level_image)    
     return denoised_images
 
 
@@ -274,6 +276,8 @@ def grow_unmasked_regions(image, iterations=1, footprint_size=3):
     final_image = np.where(~non_nan_mask & filled_mask, grown_image, image)
     
     return final_image,grown_image
+
+
 
 # a,phs_dilate = grow_unmasked_regions(phs, iterations=3)
 # plt.figure();plt.imshow(phs_dilate,cmap='jet')
