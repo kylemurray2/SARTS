@@ -155,7 +155,7 @@ def add_colorbar(fig, img_handle, label, orientation='horizontal'):
     return cbar
 
 
-def mapImg(img, lons, lats, vmin, vmax, padding=0, zoom_level=5, title='', background='World_Imagery', colormap='jet', figsize=(8,8), alpha=1, draw_contour=False, label='cm/yr', fault_file=None):
+def mapImg(img, lons, lats, vmin, vmax, padding=0, zoom_level=5,scalebar=True, title='', background='World_Imagery', colormap='jet', figsize=(8,8), alpha=1, draw_contour=False, label='cm/yr', fault_file=None):
     """
     Plots geospatial data on a map.
 
@@ -195,17 +195,18 @@ def mapImg(img, lons, lats, vmin, vmax, padding=0, zoom_level=5, title='', backg
     data_crs = image.crs
 
     # Initialize plot
-    plt.figure(figsize=figsize)
-    ax = plt.axes(projection=data_crs)
+    fig, ax = plt.subplots(figsize=figsize, subplot_kw={'projection': data_crs})
     ax.set_extent([minlon-padding, maxlon+padding, minlat-padding, maxlat+padding], crs=ccrs.PlateCarree())
 
     configure_gridlines(ax, minlon, maxlon, minlat, maxlat, padding)
     ax.add_image(image, zoom_level)
 
     # Plot data
-    plot_data(ax, img, lons, lats, vmin, vmax, alpha, colormap, draw_contour)
-    add_colorbar(ax, label)
-
+    img_handle = plot_data(ax, lons, lats, img, draw_contour, vmin, vmax, colormap, alpha)
+    # plot_data(ax, img, lons, lats, vmin, vmax, alpha, colormap, draw_contour)
+    add_colorbar(fig, img_handle,label)
+    if scalebar:  
+        scale_bar(ax, (0.1,.1), scalebar)
     # Plot faults if file is provided
     if fault_file:
         plot_faults(ax, fault_file)

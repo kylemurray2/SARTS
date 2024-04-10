@@ -271,13 +271,12 @@ def phaseElev(img, hgt,msk, ymin, ymax, xmin, xmax,makePlot=True):
     
     if makePlot:
         from matplotlib import pyplot as plt
-        plt.figure();plt.scatter(z.ravel(),p.ravel(),.1,color='black')
+        plt.figure(figsize=(10,5));plt.scatter(z.ravel(),p.ravel(),.1,color='black')
         plt.plot(elevs,bestLine,color='red')
-
         plt.title('Phase-elevation dependence')
         plt.xlabel('Elevation (m)')
-        plt.ylabel('Displacement (input units)')
-    
+        plt.ylabel('Displacement (mm)')
+        plt.savefig('Figs/phs_elev.png',dpi=300)
     return phs_model
 
 
@@ -367,158 +366,154 @@ def json2bbox(file):
     return bbox,lons,lats
 
 
+import numpy as np
+from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
 
-def struct_fun(data, ny,nx, tot=600, lengthscale=600, plot_flag=0, binwidth=20, fun=None):
-    '''
-    Main function to calculate structure function from a unwrapped ifg matrix (data)
+def struct_fun(data, ny, nx, tot=600, lengthscale=600, plot_flag=0, binwidth=20, fun=None):
+    """
+    Calculate structure function from an unwrapped interferogram matrix (data).
+    nan values in data are okay.
     
-    '''
-    import matplotlib.pyplot as plt
-    import scipy
-#    ny,nx = lon_ifg.shape
+    Parameters:
+    - data: 2D NumPy array representing the unwrapped interferogram.
+    - ny, nx: dimensions of data.
+    - tot: total number of points to generate.
+    - lengthscale: scale of the structure function.
+    - plot_flag: if nonzero, plot the results.
+    - binwidth: width of bins for averaging.
+    - fun: function to fit ('exp' or 'spherical').
     
-    xx = np.arange(0,nx);yy=np.arange(0,ny)
-    X,Y = np.meshgrid(xx,yy, sparse=False, indexing='ij')
+    Returns:
+    - sqrt(S/2): square root of half the structure function values.
+    - S2: unused, set to 0 for compatibility.
+    - dists: distances for each pair of points.
+    - allnxy: array of the same size as dists, for compatibility.
+    - yd: square root of half the binned structure function values.
+    - yd_std: unused, set to 0 for compatibility.
+    - xd: distances corresponding to the binned values.
+    - sf_fit: fitted function values.
+    """
     
-    xd,yd = np.meshgrid([0,1,2,5,10,15,20,25,35,(lengthscale-binwidth),lengthscale],[-lengthscale, (-lengthscale+binwidth),-35,-25,-20,-15,-10,-5,-4,-2,-1,0,1,2,4,5,10,15,20,25,35,(lengthscale-binwidth),lengthscale], sparse=False, indexing='ij')  #dense sampling near origin
-
-    tx    =np.floor(np.random.randint(1,lengthscale,size=tot))
-    ty    =np.floor(np.random.randint(1,lengthscale,size=tot))
-    ty[::2] = -ty[::2] # Make half of points negative; start stop step
-    q=np.matrix([tx,ty]).T
+    xx, yy = np.arange(nx), np.arange(ny)
+    X, Y = np.meshgrid(xx, yy, sparse=False, indexing='ij')
     
-    # Remove duplicates
-    jnk,ids = np.unique(q,axis=0,return_index=True)
-    tx = tx[ids]
-    tx = np.asarray([*map(int, tx)])
-    ty = ty[ids]
-    ty = np.asarray([*map(int, ty)])
+    xd, yd = np.meshgrid(
+        [0, 1, 2, 5, 10, 15, 20, 25, 35, (lengthscale - binwidth), lengthscale],
+        [-lengthscale, (-lengthscale + binwidth), -35, -25, -20, -15, -10, -5, -2, -1, 0, 1, 2, 5, 10, 15, 20, 25, 35, (lengthscale - binwidth), lengthscale],
+        sparse=False, indexing='ij'
+    )
     
-    #***add on dense grid from above;
-    tx = np.append(tx, xd.flatten())
-    ty = np.append(ty, yd.flatten())
+    tx, ty = np.random.randint(1, lengthscale, size=(2, tot))
+    ty[::2] = -ty[::2]
     
-    #***remove duplicates
-#    a=np.array((tx,ty))
-#    ix = np.unique(a,return_index=True, axis=1);
-#    tx       = tx[ix[1]];
-#    ty       = ty[ix[1]];
-
-    aty = abs(ty) # used for the negative offsets
-    S = np.empty([len(tx)])
-#    S2 = np.empty([len(tx)])
-    allnxy = np.empty([len(tx)])
-    iters = np.arange(0,len(tx))
+    q = np.vstack([tx, ty]).T
+    _, ids = np.unique(q, axis=0, return_index=True)
+    tx, ty = tx[ids].astype(int), ty[ids].astype(int)
     
-    for ii in iters:
-        i=int(ii)
-        if ty[ii] >= 0: 
-            A = data[1 : ny-ty[ii] , tx[ii] : nx-1 ]
-            B = data[ty[i] : ny-1 , 1 : nx-tx[i] ];
+    tx, ty = np.append(tx, xd.flatten()), np.append(ty, yd.flatten())
+    
+    aty = np.abs(ty)
+    S = np.empty(len(tx))
+    allnxy = np.empty(len(tx))
+    
+    for i in range(len(tx)):
+        if ty[i] >= 0:
+            A = data[1 : ny - ty[i], tx[i] : nx - 1]
+            B = data[ty[i] : ny - 1, 1 : nx - tx[i]]
         else:
-            A = data[aty[ii] : ny-1 , tx[ii] : nx-1]
-            B = data[1 : ny-aty[ii] , 1 : nx-tx[ii]]
-    
-        C = A-B # All differences
-        C2 = np.square(C)
+            A = data[aty[i] : ny - 1, tx[i] : nx - 1]
+            B = data[1 : ny - aty[i], 1 : nx - tx[i]]
+        C = A - B  # Difference, nan values will propagate
         
-        S[ii] = np.nanmean(C2)       
-#        S2[ii] = np.nanstd(C2)
-
-        allnxy[ii] = len(C2);
-    dists = np.sqrt(np.square(tx) + np.square(ty))
+        # Calculating square of differences and then mean while ignoring nan
+        S[i] = np.nanmean(C**2)
+        allnxy[i] = np.count_nonzero(~np.isnan(C.flatten()))  # Count non-nan entries for weights
     
-#    S[np.isnan(S)]=0
-    bins = np.arange(0,dists.max(),binwidth,dtype=int)
-    S_bins=list()
-#    S2_bins=list()
-    Ws = list()
-    dist_bins=list()
-    for ii,bin_min in enumerate(bins):
-        bin_ids = np.where((dists< (bin_min+binwidth)) & (dists>bin_min))
-        w = allnxy[bin_ids] #these are the weights for the weighted average
-        if len(w)==0:
-            S_bins.append(np.nan)  
-#            S2_bins.append(np.nan)
-            dist_bins.append(np.nan)
-        elif len(w)==1:
-            S_bins.append(S[bin_ids[0]])  
-#            S2_bins.append(S2[bin_ids[0]])  
+    
+    dists = np.sqrt(tx**2 + ty**2)
+    bins = np.arange(0, dists.max(), binwidth, dtype=int)
+    S_bins, dist_bins = [], []
+    
+    for bin_min in bins:
+        bin_ids = np.where((dists < (bin_min + binwidth)) & (dists >= bin_min))[0]
+        w = allnxy[bin_ids]
+        if len(w) == 0:
+            S_bins.append(np.nan)
             dist_bins.append(np.nan)
         else:
-            S_bins.append(np.average(S[bin_ids],axis=0,weights=w))  
-#            S2_bins.append(np.average(S2[bin_ids],axis=0,weights=w))  
-            Ws.append(len(w))
+            S_bins.append(np.average(S[bin_ids], weights=w))
             dist_bins.append(np.nanmean(dists[bin_ids]))
     
-    if plot_flag:
-        fig = plt.figure(figsize=(14,10))
-        # Plot IFG
-        ax = fig.add_subplot(221)
-        ax.set_title("Image")
-        cf = plt.imshow(data)
-        #cmap=plt.cm.Spectral.reversed()
-        plt.colorbar(cf)
-        
-        ax = fig.add_subplot(222)
-        ax.set_title("sqrt(S) vs. position")
-        cf = plt.scatter(tx,ty,c=np.sqrt(S))
-        plt.scatter(-tx,-ty,c=np.sqrt(S))
-        plt.ylabel('north')
-        plt.xlabel('east')
-        plt.colorbar(cf)
-        
-        ax = fig.add_subplot(212)
-        ax.set_title("S vs. distance, colored by num points")
-        cf = plt.scatter(dists[1:],np.sqrt(S[1:]),c=allnxy[1:])
-        plt.ylabel('sqrt(S), units of cm')
-        plt.xlabel('distance(km)')
-        plt.colorbar(cf)
-        plt.show()
-        
-        
-    # Fit a log function to the binned data   
-#    S_bins = np.asarray(S_bins)
-#    S_bins[np.where(np.isnan(S_bins))]=0
-    xd = np.asarray(dist_bins)
-    oh=np.asarray(S_bins,dtype=np.float32)/2
-#    oh[np.isnan(oh)]=0
-    yd = np.sqrt(oh)
-#    yd_std = np.sqrt(S2_bins) 
-    yd[np.isnan(yd)]=0
-#    yd_std[np.isnan(yd_std)]=0
 
     
-    # Fit exponential function to structure function
-    # y = A*log(Bx)
-    if fun=='exp':
-        def fit_log(x,a,b,c):
-            '''
-            Spherical model of the semivariogram
-            '''
-            return a*np.log(b*x)+c
+    xd = np.asarray(dist_bins)
+    yd = np.sqrt(np.asarray(S_bins, dtype=np.float32) / 2)
+    yd[np.isnan(yd)] = 0
     
-        popt, pcov = scipy.optimize.curve_fit(fit_log,xd,yd)
-        sf_fit = fit_log(xd, *popt)
-        
-        
-    elif fun=='spherical': 
-        def spherical(x, a, b ):
-            '''
-            Spherical model of the semivariogram
-            '''
-            return b*( 1.5*x/a - 0.5*(x/a)**3.0 )
-        
-        popt, pcov = scipy.optimize.curve_fit(spherical,xd,yd)
-        sf_fit = spherical(xd, *popt)
-    
+    sf_fit = np.zeros_like(xd)  # Default to zero if no fitting function specified
+
+    if fun == 'exp':
+        mask = ~np.isnan(xd) & ~np.isnan(yd)  # Ensure both xd and yd are not nan
+        sf_fit = fit_log(xd[mask], yd[mask]) if np.any(mask) else np.zeros_like(xd)
+    elif fun == 'spherical':
+        mask = ~np.isnan(xd) & ~np.isnan(yd)
+        sf_fit = fit_spherical(xd[mask], yd[mask]) if np.any(mask) else np.zeros_like(xd)
     else:
-        print('No function specified. Can be spherical or exp.')
-        sf_fit=0
+        sf_fit = np.zeros_like(xd)
+        
     
-    S2=0
-    yd_std=0
-    return np.sqrt(S/2), S2, dists, allnxy, yd, yd_std, xd, sf_fit
+    if plot_flag:
+        plt.figure(figsize=(14, 10))
+        plt.subplot(221)
+        plt.title("Image")
+        plt.imshow(data,vmin=-10,vmax=10)
+        plt.colorbar()
+        
+        plt.subplot(222)
+        plt.title("sqrt(S) vs. position")
+        plt.scatter(tx, ty, c=np.sqrt(S))
+        plt.scatter(-tx, -ty, c=np.sqrt(S))
+        plt.xlabel('east')
+        plt.ylabel('north')
+        plt.colorbar()
+        
+        plt.subplot(212)
+        plt.title("S vs. distance, colored by num points")
+        plt.scatter(dists[1:], np.sqrt(S[1:]/2), c=allnxy[1:])
+
+        # Ensure that dist_bins and sf_fit are not empty or all nan
+        if len(dist_bins) > 0 and not np.all(np.isnan(sf_fit)):
+            valid_mask = ~np.isnan(dist_bins) & ~np.isnan(sf_fit)
+            plt.scatter(np.array(dist_bins)[valid_mask], np.sqrt(np.array(S_bins)[valid_mask]/2), label='Binned Data', alpha=0.7)
+            plt.plot(np.array(dist_bins)[valid_mask], sf_fit[valid_mask], 'r-', label='Best Fit')
+        else:
+            print("No valid data for plotting best fit function.")
+        
+        plt.xlabel('Distance')
+        plt.ylabel('sqrt(S/2)')
+
+        plt.colorbar()
+        plt.show()
+    
+    return np.sqrt(S / 2), 0, dists, allnxy, yd, 0, xd, sf_fit
+
+def fit_log(xd, yd):
+    """Fit logarithmic function."""
+    def fit_function(x, a, b, c):
+        return a * np.log(b * x) + c
+    popt, _ = curve_fit(fit_function, xd, yd)
+    return fit_function(xd, *popt)
+
+def fit_spherical(xd, yd):
+    """Fit spherical model."""
+    def spherical(x, a, b):
+        return b * (1.5 * x / a - 0.5 * (x / a) ** 3.0)
+    popt, _ = curve_fit(spherical, xd, yd)
+    return spherical(xd, *popt)
+
+
+
 
 
 def estimate_dem_error(ts0, G0, tbase, date_flag=None, phase_velocity=False):
