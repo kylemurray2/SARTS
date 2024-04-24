@@ -76,9 +76,57 @@ def writeGeotiff(array, lat_bounds, lon_bounds, output_file,epsg=4326):
 
     dataset.FlushCache()
     dataset = None  # Close the file
+    
+    
+def reproject_to_wgs84(input_filename, output_filename, resolution_reduction_factor=1):
+    '''
+    Reprojects a single GeoTIFF file to EPSG:4326.
+    
+    Parameters:
+        input_filename (str): Path to the input GeoTIFF file.
+        output_filename (str): Path where the output GeoTIFF will be saved.
+        resolution_reduction_factor (int, optional): Factor by which the resolution is reduced. Default is 1 (no reduction).
+    '''
+    import rasterio
+    from rasterio.warp import calculate_default_transform, reproject, Resampling
 
+    dst_crs = 'EPSG:4326'  # Destination CRS
 
+    # Open the source dataset
+    with rasterio.open(input_filename) as src:
+        src_crs = src.crs  # Source CRS
+        src_transform = src.transform  # Source affine transformation matrix
 
+        # Calculate the transformation and dimensions for the output image
+        dst_transform, width, height = calculate_default_transform(
+            src_crs, dst_crs, src.width, src.height, *src.bounds,
+            dst_width=src.width // resolution_reduction_factor,
+            dst_height=src.height // resolution_reduction_factor
+        )
+
+        # Update the metadata for the destination file
+        dst_kwargs = src.meta.copy()
+        dst_kwargs.update({
+            'crs': dst_crs,
+            'transform': dst_transform,
+            'width': width,
+            'height': height,
+            'driver': 'GTiff'
+        })
+
+        # Create the destination file and reproject
+        with rasterio.open(output_filename, 'w', **dst_kwargs) as dst:
+            reproject(
+                source=rasterio.band(src, 1),
+                destination=rasterio.band(dst, 1),
+                src_transform=src_transform,
+                src_crs=src_crs,
+                dst_transform=dst_transform,
+                dst_crs=dst_crs,
+                resampling=Resampling.nearest
+            )
+
+    return output_filename
 
 
 def geotiff_to_kmz(geotiff_path, kmz_path,vmin,vmax, average_elevation, colormap='RdBu'):
@@ -289,7 +337,7 @@ def px2ll(x, y, lon_ifgm,lat_ifgm):
 def fitLong(image,order,mask):
     from astropy.convolution import Gaussian2DKernel,convolve
     kernel = Gaussian2DKernel(x_stddev=1) # For smoothing and nan fill
-    image = convolve(image,kernel)
+    # image = convolve(image,kernel)
     # image[np.isnan(image)] = 0
 
     image[~mask] = np.nan
@@ -1331,3 +1379,65 @@ def invert_ifgs(unw_stack,pairs,dates):
     ts_full = rad2cm(ts_full,wavelength=.056,output='cm')
     print('converted to cm')
     return ts_full
+
+
+def fill_bad_geom(geom_path):
+    '''
+    geom_path: path to geometryRadar.h5 ('./MintPy/inputs/geometryRadar.h5')
+    
+    This will just fill the bad values with max lat/lon so when you geocode, 
+    all of the values will collapse to a single pixel in the corner.  
+    
+    '''
+    import h5py
+
+
+    ds = h5py.File(geom_path,'r+')
+    lons = np.asarray(ds['longitude'])
+    lats = np.asarray(ds['latitude'])
+    
+    # fig,ax = plt.subplots(2,1)
+    # ax[0].imshow(lons);ax[0].set_title('lon')
+    # ax[1].imshow(lats);ax[1].set_title('lat')
+    mask_geom = lons!=0
+        
+    lon_ramp = fitLong(lons, 1,mask_geom)
+    lat_ramp = fitLong(lats, 1,mask_geom)
+    
+    # fig,ax = plt.subplots(2,1)
+    # ax[0].imshow(lon_ramp);ax[0].set_title('lon_ramp')
+    # ax[1].imshow(lat_ramp);ax[1].set_title('lat_ramp')
+    
+    lon_diff = abs(lon_ramp-lons)
+    lat_diff = abs(lat_ramp-lats)
+    
+    # fig,ax = plt.subplots(2,1)
+    # ax[0].imshow(lon_diff);ax[0].set_title('lon_diff')
+    # ax[1].imshow(lat_diff);ax[1].set_title('lat_diff')
+    
+    lons_corrected = lons.copy()
+    lats_corrected = lats.copy()
+    
+    lons_corrected[lon_diff>.5] = lon_ramp[lon_diff>.5]
+    lats_corrected[lat_diff>.5] = lat_ramp[lat_diff>.5]
+    
+    # fig,ax = plt.subplots(2,1)
+    # ax[0].imshow(lons_corrected[3500:,2500:]);ax[0].set_title('lon corrected')
+    # ax[1].imshow(lats_corrected[3500:,2500:]);ax[1].set_title('lat corrected')
+    
+    
+    lons_single_fill = lons_corrected.copy()
+    lats_single_fill = lats_corrected.copy()
+    
+    lons_single_fill[lon_diff>.5] = np.nanmax(lons_corrected)
+    lats_single_fill[lat_diff>.5] = np.nanmax(lats_corrected)
+    
+    # fig,ax = plt.subplots(2,1)
+    # ax[0].imshow(lons_single_fill);ax[0].set_title('lon lons_single_fill')
+    # ax[1].imshow(lats_single_fill);ax[1].set_title('lat lats_single_fill')
+    
+    ds['longitude'][...] = lons_single_fill
+    ds['latitude'][...] = lats_single_fill
+    
+    
+    ds.close()

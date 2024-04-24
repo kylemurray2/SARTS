@@ -70,8 +70,6 @@ if not os.path.isfile(os.path.join(ps_2.workdir, p2, 'Npy/mask_full.npy')):
 else:
     mask_full_2 = np.load(os.path.join(ps_2.workdir, p2, 'Npy/mask_full.npy'))
 
-
-
 # Load Data
 N = len(dates)
 N_ref = 2

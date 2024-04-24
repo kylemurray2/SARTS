@@ -23,7 +23,7 @@ def get_mask(mintPy_dir='MintPy',spatial_coh_thresh  = 0.6,temporal_coh_thresh =
         spatial coherence
         temporal coherence
         non-zero phase closure (ratio of ifgs)
-        water mask
+        water mask 
         shadow mask
 
     '''

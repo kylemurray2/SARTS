@@ -54,7 +54,7 @@ def configure_gridlines(ax, minlon, maxlon, minlat, maxlat, pad):
     lat_range = (maxlat+pad) - (minlat-pad)
     
     # Define possible tick increments
-    increments = [20, 10, 5, 2, 1, 0.5, 0.2, 0.1]
+    increments = [20, 10, 5, 2, 1, 0.5, 0.2, 0.1,.04]
     
     # Function to find suitable increment ensuring 2 to 6 gridlines
     def find_increment(range_value):
@@ -68,6 +68,7 @@ def configure_gridlines(ax, minlon, maxlon, minlat, maxlat, pad):
         if len(suitable_incs)> 0:
             return suitable_incs[len(suitable_incs)//2]
         else:   
+            print('no suitable increment')
             return increments[0]
         # return increments[-1]  # Fallback to the smallest increment if no suitable one is found
 
@@ -91,7 +92,7 @@ def configure_gridlines(ax, minlon, maxlon, minlat, maxlat, pad):
 
 
 
-def plot_data(ax, lons, lats, img, contour, vmin, vmax, cm, alpha):
+def plot_data(ax, lons, lats, img, vmin, vmax, contour=False,  cm='jet', alpha=1):
     """
     Plots the data on the map.
 
@@ -102,7 +103,7 @@ def plot_data(ax, lons, lats, img, contour, vmin, vmax, cm, alpha):
     - contour: Boolean flag to choose between contourf and pcolormesh.
     - vmin, vmax: Minimum and maximum values for the color scale.
     - cm: Colormap name.
-    - alpha: Alpha level for the plot.
+    - alpha: Alpha level for the plot. (opacity)
 
     Returns:
     - img_handle: Handle for the plotted image, useful for creating colorbars.
@@ -115,7 +116,7 @@ def plot_data(ax, lons, lats, img, contour, vmin, vmax, cm, alpha):
     else:
         img_handle = ax.pcolormesh(lons, lats, img, cmap=cmap, alpha=alpha,
                                    vmin=vmin, vmax=vmax, transform=ccrs.PlateCarree(),
-                                   rasterized=True, linewidth=0, ls=":", edgecolor='face')
+                                   rasterized=True, linewidth=0, ls=":", edgecolor='face',zorder =10)
 
     return img_handle
 
@@ -202,7 +203,7 @@ def mapImg(img, lons, lats, vmin, vmax, padding=0, zoom_level=5,scalebar=True, t
     ax.add_image(image, zoom_level)
 
     # Plot data
-    img_handle = plot_data(ax, lons, lats, img, draw_contour, vmin, vmax, colormap, alpha)
+    img_handle = plot_data(ax, lons, lats, img, vmin, vmax, draw_contour, colormap, alpha)
     # plot_data(ax, img, lons, lats, vmin, vmax, alpha, colormap, draw_contour)
     add_colorbar(fig, img_handle,label)
     if scalebar:  

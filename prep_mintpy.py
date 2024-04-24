@@ -123,7 +123,9 @@ def main(inps):
     if ps.sat=='ALOS':
         new_metaFile = f'../merged/SLC/{ps.dates[0]}/referenceShelve/data.dat' 
         update_cfg_variable(inps_fn, 'mintpy.load.metaFile', new_metaFile)
-
+        update_cfg_variable(inps_fn, 'mintpy.unwrapError.ramp','linear')
+        update_cfg_variable(inps_fn, 'mintpy.troposphericDelay.method','height_correlation')
+        update_cfg_variable(inps_fn, 'mintpy.deramp','quadratic')
 
 
 if __name__ == '__main__':
