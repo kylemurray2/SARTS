@@ -1253,11 +1253,21 @@ def fitSine1d(t, signal):
    
     # Fit the data
     popt, pcov = curve_fit(signal_model, t, signal, p0=[freq_cos, freq_sin, amplitude_cos, amplitude_sin, phase_shift_cos, phase_shift_sin],maxfev=5000)
-   
-    # Extract the fitting parameters
     freq_cos, freq_sin, amplitude_cos, amplitude_sin, phase_shift_cos, phase_shift_sin = popt
-   
-    return freq_cos, freq_sin, amplitude_cos, amplitude_sin, phase_shift_cos, phase_shift_sin
+    modeled_signal = amplitude_cos * np.cos(2 * np.pi * freq_cos * t + phase_shift_cos) + amplitude_sin * np.sin(2 * np.pi * freq_sin * t + phase_shift_sin)
+
+        # try:
+        #     popt, _ = curve_fit(signal_model, valid_years, valid_interpolated_values, p0=initial_guess, maxfev=10000)
+        #     modeled_signal2 = signal_model(decimal_years_vector, *popt)  # Use decimal_years_vector for full length
+        #     freq_cos2, freq_sin2, amplitude_cos2, amplitude_sin2, phase_shift_cos2, phase_shift_sin2 = popt
+        # except RuntimeError as e:
+        #     print(f"Error fitting sine model for station {station_name}: {e}")
+        #     modeled_signal = np.full_like(decimal_years_vector, np.nan)
+        #     freq_cos, freq_sin, amplitude_cos, amplitude_sin, phase_shift_cos, phase_shift_sin = [np.nan] * 6
+            
+
+
+    return modeled_signal,freq_cos, freq_sin, amplitude_cos, amplitude_sin, phase_shift_cos, phase_shift_sin
 
 def vector2raster(shapefile_fn, raster_sample_fn, raster_out_fn, feature):
     '''

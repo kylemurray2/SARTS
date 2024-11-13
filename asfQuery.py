@@ -70,6 +70,8 @@ def getGran(path, start, end, sat, bounds, poly):
     if flightDirection:
         data['flightDirection'] = flightDirection
 
+    data['processingLevel'] = 'BURST'
+
     print('Searching for data')
     r = requests.get(baseurl, params=data, timeout=100)
     print(r.url)

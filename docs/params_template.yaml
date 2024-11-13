@@ -9,7 +9,7 @@ swath_num :    # default:'1 2 3'
 # Optional
 start       : '2014-01-01T00:00:00Z'    #'2010-05-01T00:00:00Z'
 end         : '2080-01-01T23:59:00Z'   #'2020-02-01T23:59:00Z'
-sat         : SENTINEL-1
+sat         : SENTINEL-1 # SENTINEL-1 or SLC-BURST
 point       :  # lon,lat (Usually leave this blank unless you dont want to use poly)
 slc_dirname : ./SLCS/
 workdir     : os.getcwd() # Use current directory as working directory

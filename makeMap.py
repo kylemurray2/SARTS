@@ -264,7 +264,7 @@ def mapBackground(minlon, maxlon, minlat, maxlat, zoomLevel=6, title='map', bg='
     image = cimgt.GoogleTiles(url=url)
     data_crs = image.crs
 
-    plt.figure(figsize=figsize)
+    fig = plt.figure(figsize=figsize)
     ax = plt.axes(projection=data_crs)
     ax.set_extent([minlon-pad, maxlon+pad, minlat-pad, maxlat+pad], crs=ccrs.PlateCarree())
 
@@ -287,8 +287,9 @@ def mapBackground(minlon, maxlon, minlat, maxlat, zoomLevel=6, title='map', bg='
 
     plt.title(title)
     plt.show()
-    
-    return ax,data_crs
+
+    map_crs = ccrs.PlateCarree()
+    return ax,fig,map_crs
 
 
 def _axes_to_lonlat(ax, coords):
