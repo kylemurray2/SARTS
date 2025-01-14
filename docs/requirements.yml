@@ -13,33 +13,33 @@ dependencies:
   - python==3.10.0
 # For ISCE-2
 #  - isce2
-  - git 
-  - cmake 
-  - cython 
-  - gdal 
-  - h5py 
-  - libgdal 
-  - pytest 
-  - numpy 
-  - fftw 
-  - scipy 
-  - pybind11 
+  - git
+  - cmake
+  - cython
+  - gdal
+  - h5py
+  - libgdal
+  - pytest
+  - numpy
+  - fftw
+  - scipy
+  - pybind11
   - shapely
 # For MDX
-  - openmotif 
-  - openmotif-dev 
-  - xorg-libx11 
-  - xorg-libxt 
-  - xorg-libxmu 
-  - xorg-libxft 
-  - libiconv 
-  - xorg-libxrender 
-  - xorg-libxau 
-  - xorg-libxdmcp 
+  - openmotif
+  - openmotif-dev
+  - xorg-libx11
+  - xorg-libxt
+  - xorg-libxmu
+  - xorg-libxft
+  - libiconv
+  - xorg-libxrender
+  - xorg-libxau
+  - xorg-libxdmcp
 # For compiling isce (if you don't have access to system installed compiler [recommended])
-  - gcc_linux-64 
-  - gxx_linux-64 
-  - gfortran_linux-64
+#  - gcc_linux-64
+#  - gxx_linux-64
+#  - gfortran_linux-64
 
 # Other
   - mintpy
@@ -70,6 +70,6 @@ dependencies:
   - threadpoolctl>=3.0
   - typing_extensions>=3.10
 # For Dolphin GPU version
-  - cupy>=11.0
+#  - cupy>=11.0
   - cudatoolkit
   - pynvml>=11.0
